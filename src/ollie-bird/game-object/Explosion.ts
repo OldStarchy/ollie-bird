@@ -1,31 +1,24 @@
+import { LAYER_FOREGROUND } from '../const';
 import GameObject from '../GameObject';
-import type IGame from '../IGame';
 
 export default class Explosion extends GameObject {
-	layer = GameObject.LAYER_FOREGROUND;
-	constructor(
-		game: IGame,
-		private x: number,
-		private y: number,
-		private radius: number,
-		private maxRadius: number,
-		private expansionRate: number,
-	) {
-		super(game);
-	}
+	layer = LAYER_FOREGROUND;
+	public radius: number = 0;
+	public maxRadius: number = 100;
+	public expansionRate: number = 1;
 
-	step(): void {
+	protected override update(): void {
 		if (this.radius < this.maxRadius) {
 			this.radius += this.expansionRate;
 		} else {
-			this.game.objects.remove(this);
+			this.destroy();
 		}
 	}
 
-	render(context: CanvasRenderingContext2D): void {
+	protected override render(context: CanvasRenderingContext2D): void {
 		context.strokeStyle = 'orange';
 		context.beginPath();
-		context.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+		context.arc(...this.transform.position.xy, this.radius, 0, Math.PI * 2);
 		context.lineWidth = 3;
 		context.stroke();
 		context.lineWidth = 1;

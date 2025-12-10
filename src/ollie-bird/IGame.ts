@@ -1,11 +1,10 @@
 import type EventSource from './EventSource';
 import type GameObject from './GameObject';
-import type ICollection from './ICollection';
 import type Keyboard from './Keyboard';
 import type Mouse from './Mouse';
 
 declare global {
-	interface GameEventMap { }
+	interface GameEventMap {}
 }
 
 export default interface IGame {
@@ -14,10 +13,16 @@ export default interface IGame {
 	readonly physics: {
 		g: number;
 	};
-	readonly objects: ICollection<GameObject>;
 	readonly canvas: HTMLCanvasElement;
 	readonly event: EventSource<GameEventMap>;
 
+	spawn<T extends GameObject>(type: new (game: IGame) => T): T;
+	destroy<T extends GameObject>(obj: T): void;
+	findObjectsByTag(tag: string): Array<GameObject>;
+	findObjectsByType<T extends GameObject>(
+		type: new (game: IGame) => T,
+	): Array<T>;
+	getObjects(): Array<GameObject>;
 
 	restart(): void;
 }

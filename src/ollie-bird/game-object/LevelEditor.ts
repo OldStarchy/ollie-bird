@@ -8,6 +8,7 @@ import BaddieSpawner from './BaddieSpawner';
 import Bird from './Bird';
 import Goal from './Goal';
 import Obstacle from './Obstacle';
+import type RectangleTrigger from './RectangleTrigger';
 import SpawnPoint from './SpawnPoint';
 
 enum EditorMode {
@@ -45,7 +46,22 @@ export default class LevelEditor extends GameObject {
 		};
 	}
 
-	step(): void {
+	private spawnCollider<T extends RectangleTrigger>(
+		type: new (game: IGame) => T,
+		x: number,
+		y: number,
+		width: number,
+		height: number,
+	): T {
+		const trigger = this.game.spawn(type);
+		trigger.transform.position.set(x, y);
+		trigger.width = width;
+		trigger.height = height;
+
+		return trigger;
+	}
+
+	protected override update(): void {
 		this.handleSaveKeys();
 		if (this.game.keyboard.getKey('Tab') === ButtonState.Pressed) {
 			this.mode = (this.mode + 1) % (EditorMode.LAST + 1);
@@ -56,9 +72,7 @@ export default class LevelEditor extends GameObject {
 		}
 
 		if (this.game.keyboard.getKey('KeyP') === ButtonState.Pressed) {
-			const bird = [...this.game.objects].find(
-				(obj) => obj.constructor.name === 'Bird',
-			) as Bird | null;
+			const bird = this.game.findObjectsByType(Bird)[0];
 
 			if (bird) {
 				bird.togglePause();
@@ -102,18 +116,15 @@ export default class LevelEditor extends GameObject {
 						};
 						switch (this.mode) {
 							case EditorMode.AddObstacle:
-								this.game.objects.add(
-									new Obstacle(
-										this.game,
-										rect.x,
-										rect.y,
-										rect.width,
-										rect.height,
-									),
+								this.spawnCollider(
+									Obstacle,
+									rect.x,
+									rect.y,
+									rect.width,
+									rect.height,
 								);
 								break;
 							case EditorMode.DeleteObstacle: {
-								const toRemove: GameObject[] = [];
 								const collider = new RectangleCollider(
 									rect.x,
 									rect.y,
@@ -121,36 +132,31 @@ export default class LevelEditor extends GameObject {
 									rect.height,
 								);
 
-								for (const obj of this.game.objects) {
-									if (obj instanceof Obstacle) {
-										if (
-											collider.isCollidingWith(
-												obj.getCollider(),
-											)
-										) {
-											toRemove.push(obj);
-										}
+								for (const obj of this.game.findObjectsByType(
+									Obstacle,
+								)) {
+									if (
+										collider.isCollidingWith(
+											obj.getCollider(),
+										)
+									) {
+										obj.destroy();
 									}
-								}
-								for (const obj of toRemove) {
-									this.game.objects.remove(obj);
 								}
 								break;
 							}
 
 							case EditorMode.SetGoal:
-								this.game.objects.removeBy(
-									(obj) => obj instanceof Goal,
-								);
+								this.game
+									.findObjectsByType(Goal)
+									.forEach((obj) => obj.destroy());
 
-								this.game.objects.add(
-									new Goal(
-										this.game,
-										rect.x,
-										rect.y,
-										rect.width,
-										rect.height,
-									),
+								this.spawnCollider(
+									Goal,
+									rect.x,
+									rect.y,
+									rect.width,
+									rect.height,
 								);
 								break;
 						}
@@ -162,12 +168,12 @@ export default class LevelEditor extends GameObject {
 					this.game.mouse.getButton(Mouse.BUTTON_LEFT) ===
 					ButtonState.Pressed
 				) {
-					this.game.objects.removeBy(
-						(obj) => obj instanceof SpawnPoint,
-					);
-					this.game.objects.add(
-						new SpawnPoint(this.game, mPos.x, mPos.y),
-					);
+					this.game
+						.findObjectsByType(SpawnPoint)
+						.forEach((obj) => obj.destroy());
+					this.game
+						.spawn(SpawnPoint)
+						.transform.position.set(mPos.x, mPos.y);
 				}
 				break;
 			case EditorMode.AddBaddie:
@@ -175,9 +181,9 @@ export default class LevelEditor extends GameObject {
 					this.game.mouse.getButton(Mouse.BUTTON_LEFT) ===
 					ButtonState.Pressed
 				) {
-					this.game.objects.add(
-						new BaddieSpawner(this.game, mPos.x, mPos.y),
-					);
+					this.game
+						.spawn(BaddieSpawner)
+						.transform.position.set(mPos.x, mPos.y);
 				}
 				break;
 		}
@@ -187,7 +193,7 @@ export default class LevelEditor extends GameObject {
 		}
 	}
 
-	render(context: CanvasRenderingContext2D): void {
+	protected override render(context: CanvasRenderingContext2D): void {
 		context.fillStyle = 'black';
 		context.beginPath();
 		context.fillText(
@@ -234,40 +240,32 @@ export default class LevelEditor extends GameObject {
 
 	getLevelData(): string {
 		const obstacles = [];
-		for (const obj of this.game.objects) {
-			if (obj instanceof Obstacle) {
-				obstacles.push({
-					type: 'obstacle_rectangle',
-					x: obj.x,
-					y: obj.y,
-					width: obj.width,
-					height: obj.height,
-				});
-			}
+		for (const obj of this.game.findObjectsByType(Obstacle)) {
+			obstacles.push({
+				type: 'obstacle_rectangle',
+				...obj.transform.position,
+				width: obj.width,
+				height: obj.height,
+			});
 		}
 
-		const spawn = this.game.objects.find(
-			(obj) => obj instanceof SpawnPoint,
-		) as SpawnPoint | undefined;
+		const spawn = this.game.findObjectsByType(SpawnPoint)[0];
 
 		const goals = [];
-		for (const obj of this.game.objects) {
-			if (obj instanceof Goal) {
-				goals.push({
-					type: 'goal_rectangle',
-					x: obj.x,
-					y: obj.y,
-					width: obj.width,
-					height: obj.height,
-				});
-			}
+		for (const obj of this.game.findObjectsByType(Goal)) {
+			goals.push({
+				type: 'goal_rectangle',
+				...obj.transform.position,
+				width: obj.width,
+				height: obj.height,
+			});
 		}
 
 		return JSON.stringify(
 			{
 				obstacles,
 				goals,
-				spawn: spawn ? { x: spawn.x, y: spawn.y } : null,
+				spawn: spawn?.transform.position ?? null,
 			},
 			null,
 			2,
@@ -275,11 +273,12 @@ export default class LevelEditor extends GameObject {
 	}
 
 	removeAll() {
-		this.game.objects.removeBy(
-			(obj) =>
-				obj.tags.has(TAG_LEVEL_STRUCTURE) ||
-				obj.tags.has(TAG_LEVEL_OBJECT),
-		);
+		this.game
+			.findObjectsByTag(TAG_LEVEL_STRUCTURE)
+			.forEach((obj) => obj.destroy());
+		this.game
+			.findObjectsByTag(TAG_LEVEL_OBJECT)
+			.forEach((obj) => obj.destroy());
 	}
 
 	loadLevelData(data: string): void {
@@ -289,15 +288,9 @@ export default class LevelEditor extends GameObject {
 			const parsed = JSON.parse(data);
 			if (Array.isArray(parsed.obstacles)) {
 				// Remove existing obstacles
-				const toRemove: GameObject[] = [];
-				for (const obj of this.game.objects) {
-					if (obj instanceof Obstacle) {
-						toRemove.push(obj);
-					}
-				}
-				for (const obj of toRemove) {
-					this.game.objects.remove(obj);
-				}
+				this.game
+					.findObjectsByType(Obstacle)
+					.forEach((obj) => obj.destroy());
 
 				// Add new obstacles
 				for (const obs of parsed.obstacles) {
@@ -308,20 +301,21 @@ export default class LevelEditor extends GameObject {
 						typeof obs.width === 'number' &&
 						typeof obs.height === 'number'
 					) {
-						const newObs = new Obstacle(
-							this.game,
+						this.spawnCollider(
+							Obstacle,
 							obs.x,
 							obs.y,
 							obs.width,
 							obs.height,
 						);
-						this.game.objects.add(newObs);
 					}
 				}
 			}
 			if (Array.isArray(parsed.goals)) {
 				// Remove existing goals
-				this.game.objects.removeBy((obj) => obj instanceof Goal);
+				this.game
+					.findObjectsByType(Goal)
+					.forEach((obj) => obj.destroy());
 
 				// Add new goals
 				for (const goal of parsed.goals) {
@@ -332,29 +326,27 @@ export default class LevelEditor extends GameObject {
 						typeof goal.width === 'number' &&
 						typeof goal.height === 'number'
 					) {
-						const newGoal = new Goal(
-							this.game,
+						this.spawnCollider(
+							Goal,
 							goal.x,
 							goal.y,
 							goal.width,
 							goal.height,
 						);
-						this.game.objects.add(newGoal);
 					}
 				}
 			}
 			if (parsed.spawn) {
-				this.game.objects.removeBy((obj) => obj instanceof SpawnPoint);
+				this.game
+					.findObjectsByType(SpawnPoint)
+					.forEach((obj) => obj.destroy());
 				if (
 					typeof parsed.spawn.x === 'number' &&
 					typeof parsed.spawn.y === 'number'
 				) {
-					const newSpawn = new SpawnPoint(
-						this.game,
-						parsed.spawn.x,
-						parsed.spawn.y,
-					);
-					this.game.objects.add(newSpawn);
+					this.game
+						.spawn(SpawnPoint)
+						.transform.position.set(parsed.spawn.x, parsed.spawn.y);
 				}
 			}
 		} catch (error) {

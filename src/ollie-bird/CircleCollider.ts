@@ -4,8 +4,8 @@ export default class CircleCollider {
 	constructor(
 		public x: number,
 		public y: number,
-		public radius: number
-	) { }
+		public radius: number,
+	) {}
 
 	isCollidingWith(other: CircleCollider): boolean {
 		const dx = this.x - other.x;

@@ -1,6 +1,5 @@
-import { GRID_SIZE, TAG_LEVEL_OBJECT } from '../const';
+import { GRID_SIZE, LAYER_ENEMYS, TAG_LEVEL_OBJECT } from '../const';
 import GameObject from '../GameObject';
-import type IGame from '../IGame';
 import RectangleCollider from '../RectangleCollider';
 import Obstacle from './Obstacle';
 
@@ -8,7 +7,7 @@ import baddie1 from '../../assets/baddie-1.png';
 import baddie2 from '../../assets/baddie-2.png';
 
 export default class Baddie extends GameObject {
-	layer = GameObject.LAYER_ENEMYS;
+	layer = LAYER_ENEMYS;
 	dir = Math.sign(Math.random() - 0.5) || 1;
 	time = 0;
 	speed = 2;
@@ -23,52 +22,50 @@ export default class Baddie extends GameObject {
 		Baddie.sprites.baddie2.src = baddie2;
 	}
 
-	constructor(game: IGame, public x: number, public y: number) {
-		super(game);
+	protected override initialize(): void {
 		this.tags.add(TAG_LEVEL_OBJECT);
 	}
 
 	getCollider(): RectangleCollider {
 		return new RectangleCollider(
-			this.x,
-			this.y + GRID_SIZE * 0.5,
+			this.transform.position.x,
+			this.transform.position.y + GRID_SIZE * 0.5,
 			GRID_SIZE,
 			GRID_SIZE * 0.5,
 		);
 	}
 
-	step() {
+	protected override update() {
 		const collider = new RectangleCollider(
-			this.x + this.dir + this.speed,
-			this.y,
+			this.transform.position.x + this.dir + this.speed,
+			this.transform.position.y,
 			GRID_SIZE,
 			GRID_SIZE,
 		);
 
-		const onGround = [...this.game.objects]
-			.filter((obj) => obj instanceof Obstacle)
-			.some((obj) => {
-				const otherCollider = obj.getCollider();
-				return otherCollider.isCollidingWith(collider);
-			});
+		const onGround = this.game.findObjectsByType(Obstacle).some((obj) => {
+			const otherCollider = obj.getCollider();
+			return otherCollider.isCollidingWith(collider);
+		});
 
-		if (onGround || this.x < 0 || this.x > this.game.canvas.width) {
+		if (
+			onGround ||
+			this.transform.position.x < 0 ||
+			this.transform.position.x > this.game.canvas.width
+		) {
 			this.dir *= -1;
 		} else {
-			this.x += this.dir * this.speed;
+			this.transform.position.x += this.dir * this.speed;
 		}
 
 		this.time += 1;
 	}
 
-	render(context: CanvasRenderingContext2D) {
+	protected override render(context: CanvasRenderingContext2D) {
+		using _ = this.transform.push(context);
+
 		context.fillStyle = 'red';
-		context.fillRect(
-			this.x,
-			this.y + GRID_SIZE / 2,
-			GRID_SIZE,
-			GRID_SIZE / 2,
-		);
+		context.fillRect(0, GRID_SIZE / 2, GRID_SIZE, GRID_SIZE / 2);
 
 		const sprite =
 			this.time % 20 < 10
@@ -77,8 +74,8 @@ export default class Baddie extends GameObject {
 
 		context.drawImage(
 			sprite,
-			this.x - GRID_SIZE * 0.2,
-			this.y - GRID_SIZE * 0.2 + GRID_SIZE / 2,
+			-GRID_SIZE * 0.2,
+			-GRID_SIZE * 0.2 + GRID_SIZE / 2,
 			GRID_SIZE * 1.4,
 			(1.4 * GRID_SIZE) / 2,
 		);

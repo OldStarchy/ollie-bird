@@ -4,12 +4,12 @@ import RectangleTrigger from './RectangleTrigger';
 import wallBottomLeft from '../../assets/wall-bottom-left.png';
 import wallBottomRight from '../../assets/wall-bottom-right.png';
 import wallBottom from '../../assets/wall-bottom.png';
+import wallCenter from '../../assets/wall-center.png';
 import wallLeft from '../../assets/wall-left.png';
 import wallRight from '../../assets/wall-right.png';
 import wallTopLeft from '../../assets/wall-top-left.png';
 import wallTopRight from '../../assets/wall-top-right.png';
 import wallTop from '../../assets/wall-top.png';
-import wallCenter from '../../assets/wall-center.png';
 
 class Obstacle extends RectangleTrigger {
 	static sprites = {
@@ -36,13 +36,13 @@ class Obstacle extends RectangleTrigger {
 		Obstacle.sprites.wallCenter.src = wallCenter;
 	}
 
-	init() {
-		super.init();
+	protected override initialize() {
+		super.initialize();
 		this.style = 'red';
 		this.tags.add(TAG_LEVEL_STRUCTURE);
 	}
 
-	render(context: CanvasRenderingContext2D) {
+	protected override render(context: CanvasRenderingContext2D) {
 		const hg = GRID_SIZE / 2;
 		// Calculate grid dimensions (x, y, width, height are already grid-aligned)
 		const gridWidth = this.width / GRID_SIZE + 1;
@@ -51,8 +51,8 @@ class Obstacle extends RectangleTrigger {
 		// Draw tiles for each grid position covered by this obstacle
 		for (let gx = 0; gx < gridWidth; gx++) {
 			for (let gy = 0; gy < gridHeight; gy++) {
-				const tileX = this.x + gx * GRID_SIZE;
-				const tileY = this.y + gy * GRID_SIZE;
+				const tileX = this.transform.position.x + gx * GRID_SIZE;
+				const tileY = this.transform.position.y + gy * GRID_SIZE;
 
 				// Determine which sprite to use based on position
 				const isLeft = gx === 0;

@@ -3,7 +3,7 @@ import birdRight from '../../assets/bird-right.png';
 import birdUp from '../../assets/bird-up.png';
 import ButtonState from '../ButtonState';
 import CircleCollider from '../CircleCollider';
-import { TAG_LEVEL_OBJECT } from '../const';
+import { LAYER_PLAYER, TAG_LEVEL_OBJECT } from '../const';
 import GameObject from '../GameObject';
 import type IGame from '../IGame';
 import Vec2 from '../Vec2';
@@ -13,8 +13,11 @@ import Goal from './Goal';
 import Obstacle from './Obstacle';
 
 class Bird extends GameObject {
-	layer = GameObject.LAYER_PLAYER;
-	public position = new Vec2();
+	layer = LAYER_PLAYER;
+
+	private get position(): Vec2 {
+		return this.transform.position;
+	}
 
 	public ySpeed: number = 0;
 
@@ -40,7 +43,8 @@ class Bird extends GameObject {
 	togglePause() {
 		this.paused = !this.paused;
 	}
-	step() {
+
+	protected override update() {
 		if (this.paused) {
 			return;
 		}
@@ -69,7 +73,7 @@ class Bird extends GameObject {
 			this.die();
 		}
 
-		for (const obj of this.game.objects) {
+		for (const obj of this.game.getObjects()) {
 			if (obj instanceof Obstacle || obj instanceof Baddie) {
 				if (
 					this.getCollider().isCollidingWithRectangle(
@@ -91,34 +95,38 @@ class Bird extends GameObject {
 						const angle = (i / 12) * Math.PI * 2;
 						const x = this.position.x + Math.cos(angle) * 200;
 						const y = this.position.y + Math.sin(angle) * 200;
-						this.game.objects.add(
-							new Explosion(this.game, x, y, -20, 100, 1),
-						);
+
+						this.createExplosion(x, y, -20, 100, 1);
 					}
 				}
 			}
 		}
 	}
 
+	private createExplosion(
+		x: number,
+		y: number,
+		radius: number,
+		maxRadius: number,
+		expansionRate: number,
+	) {
+		const explosion = this.game.spawn(Explosion);
+		explosion.transform.position.set(x, y);
+		explosion.radius = radius;
+		explosion.maxRadius = maxRadius;
+		explosion.expansionRate = expansionRate;
+	}
+
 	die() {
 		console.log('Collision detected!');
-		this.game.objects.add(
-			new Explosion(
-				this.game,
-				this.position.x,
-				this.position.y,
-				10,
-				50,
-				2,
-			),
-		);
+		this.createExplosion(...this.position.xy, 10, 50, 2);
 		this.destroy();
 	}
 	getCollider(): CircleCollider {
 		return new CircleCollider(...this.position.xy, 20);
 	}
 
-	render(context: CanvasRenderingContext2D) {
+	protected override render(context: CanvasRenderingContext2D) {
 		// context.fillStyle = 'yellow';
 		// context.beginPath();
 		// context.arc(...this.position.xy, 20, 0, Math.PI * 2);
@@ -141,7 +149,7 @@ class Bird extends GameObject {
 		const sprite = Bird.sprites[spriteName as keyof typeof Bird.sprites];
 
 		context.save();
-		context.translate(this.position.x, this.position.y);
+		context.translate(...this.position.xy);
 		if (flip) {
 			context.scale(-1, 1);
 		}

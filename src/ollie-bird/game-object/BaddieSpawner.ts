@@ -1,24 +1,26 @@
-import { GRID_SIZE, TAG_LEVEL_STRUCTURE } from '../const';
+import { GRID_SIZE, LAYER_FOREGROUND, TAG_LEVEL_STRUCTURE } from '../const';
 import GameObject from '../GameObject';
-import type IGame from '../IGame';
 import Baddie from './Baddie';
 
 export default class BaddieSpawner extends GameObject {
-	layer = GameObject.LAYER_FOREGROUND;
+	layer = LAYER_FOREGROUND;
 
-	constructor(game: IGame, public x: number, public y: number) {
-		super(game);
+	protected override initialize(): void {
 		this.tags.add(TAG_LEVEL_STRUCTURE);
 		this.onGameEvent('gameStart', () => {
-			const baddie = new Baddie(this.game, this.x, this.y);
-			this.game.objects.add(baddie);
+			const baddie = this.game.spawn(Baddie);
+			baddie.transform.position.set(this.transform.position);
 		});
 	}
 
-	step() {}
-	render(context: CanvasRenderingContext2D) {
+	protected override render(context: CanvasRenderingContext2D) {
 		context.beginPath();
-		context.rect(this.x, this.y + GRID_SIZE / 2, GRID_SIZE, GRID_SIZE / 2);
+		context.rect(
+			this.transform.position.x,
+			this.transform.position.y + GRID_SIZE / 2,
+			GRID_SIZE,
+			GRID_SIZE / 2,
+		);
 		context.strokeStyle = 'red';
 		context.setLineDash([5, 5]);
 		context.stroke();
