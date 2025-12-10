@@ -83,7 +83,7 @@ class OllieBirdGame implements IGame {
 
 	render() {
 		this.renderQueued = false;
-		this.context.fillStyle = '#ABA7A6';
+		this.context.fillStyle = 'skyblue';
 		this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
 		const layers = new Map<number, GameObject[]>();
