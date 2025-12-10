@@ -9,7 +9,8 @@ export default class Keyboard {
 			'keydown',
 			(event) => {
 				this.pressedKeys.add(event.code);
-				event.preventDefault();
+				if (!event.code.match(/^F[1-9]$|^F1[0-2]$/))
+					event.preventDefault();
 				console.log([...this.pressedKeys.keys()]);
 			},
 			{ signal },
