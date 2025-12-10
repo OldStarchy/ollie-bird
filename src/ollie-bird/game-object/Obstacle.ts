@@ -9,6 +9,7 @@ import wallRight from '../../assets/wall-right.png';
 import wallTopLeft from '../../assets/wall-top-left.png';
 import wallTopRight from '../../assets/wall-top-right.png';
 import wallTop from '../../assets/wall-top.png';
+import wallCenter from '../../assets/wall-center.png';
 
 class Obstacle extends RectangleTrigger {
 	static sprites = {
@@ -20,6 +21,7 @@ class Obstacle extends RectangleTrigger {
 		wallRight: new Image(),
 		wallTop: new Image(),
 		wallBottom: new Image(),
+		wallCenter: new Image(),
 	};
 
 	static {
@@ -31,6 +33,7 @@ class Obstacle extends RectangleTrigger {
 		Obstacle.sprites.wallRight.src = wallRight;
 		Obstacle.sprites.wallTop.src = wallTop;
 		Obstacle.sprites.wallBottom.src = wallBottom;
+		Obstacle.sprites.wallCenter.src = wallCenter;
 	}
 
 	init() {
@@ -84,8 +87,8 @@ class Obstacle extends RectangleTrigger {
 					// Right edge
 					sprite = Obstacle.sprites.wallRight;
 				} else {
-					// Interior tile: skip for now
-					continue;
+					// Interior tile
+					sprite = Obstacle.sprites.wallCenter;
 				}
 
 				// Draw the sprite
