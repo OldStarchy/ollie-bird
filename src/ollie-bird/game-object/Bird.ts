@@ -47,18 +47,8 @@ class Bird extends GameObject {
 		this.paused = !this.paused;
 	}
 
-	protected override update() {
 
-
-		if (this.paused) {
-			return;
-		}
-
-		// Key Initial Pressed
-		// if (this.game.keyboard.getKey('ArrowUp') == ButtonState.Pressed) {
-		// 	this.ySpeed = Math.min(this.ySpeed, this.game.physics.g);
-		// }
-
+	protected handleInput() {
 		// Key Downs
 		if (this.game.keyboard.isKeyDown('ArrowUp')) {
 			this.holdTime += this.game.secondsPerFrame;
@@ -68,7 +58,7 @@ class Bird extends GameObject {
 				this.flappedOnce = true;
 			}
 
-			if(this.ySpeed > this.game.physics.g){
+			if (this.ySpeed > this.game.physics.g) {
 				this.ySpeed /= 2;
 				this.ySpeed = Math.max(this.ySpeed, this.game.physics.g);
 			}
@@ -97,16 +87,9 @@ class Bird extends GameObject {
 		console.log(this.ySpeed, this.gravity, this.game.physics.g);
 		this.ySpeed += this.gravity;
 		this.position.y += this.ySpeed;
+	}
 
-		if (
-			this.position.y > this.game.canvas.height ||
-			this.position.y < 0 ||
-			this.position.x < 0 ||
-			this.position.x > this.game.canvas.width
-		) {
-			this.die();
-		}
-
+	protected checkObjCollisions() {
 		for (const obj of this.game.getObjects()) {
 			if (obj instanceof Obstacle || obj instanceof Baddie) {
 				if (
@@ -135,6 +118,30 @@ class Bird extends GameObject {
 				}
 			}
 		}
+	}
+
+	protected checkOutOfBounds() {
+		if (
+			this.position.y > this.game.canvas.height ||
+			this.position.y < 0 ||
+			this.position.x < 0 ||
+			this.position.x > this.game.canvas.width
+		) {
+			this.die();
+		}
+	}
+
+
+	protected override update() {
+
+		if (this.paused) {
+			return;
+		}
+
+		this.handleInput();
+		this.checkOutOfBounds();
+		this.checkObjCollisions();
+
 	}
 
 	private createExplosion(
