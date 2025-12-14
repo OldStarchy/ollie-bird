@@ -23,6 +23,10 @@ export default abstract class Module implements Disposable, IModular {
 	protected render(context: CanvasRenderingContext2D): void {}
 	protected afterRender(context: CanvasRenderingContext2D): void {}
 
+	protected beforeRenderGizmos(context: CanvasRenderingContext2D): void {}
+	protected renderGizmos(context: CanvasRenderingContext2D): void {}
+	protected afterRenderGizmos(context: CanvasRenderingContext2D): void {}
+
 	getModules<T extends Module>(
 		type: abstract new (owner: GameObject) => T,
 	): Iterable<T> {
@@ -146,6 +150,28 @@ export class ModuleCollection extends Module implements IModular {
 		this.each((module) => {
 			if (module.enabled) {
 				module['afterRender'](context);
+			}
+		});
+	}
+
+	protected beforeRenderGizmos(context: CanvasRenderingContext2D): void {
+		this.each((module) => {
+			if (module.enabled) {
+				module['beforeRenderGizmos'](context);
+			}
+		});
+	}
+	protected renderGizmos(context: CanvasRenderingContext2D): void {
+		this.each((module) => {
+			if (module.enabled) {
+				module['renderGizmos'](context);
+			}
+		});
+	}
+	protected afterRenderGizmos(context: CanvasRenderingContext2D): void {
+		this.each((module) => {
+			if (module.enabled) {
+				module['afterRenderGizmos'](context);
 			}
 		});
 	}

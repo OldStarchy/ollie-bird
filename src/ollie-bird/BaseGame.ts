@@ -20,6 +20,7 @@ abstract class BaseGame implements IGame {
 	public physics = {
 		g: 0.2,
 	};
+	public renderGizmos: boolean = true;
 
 	readonly event: EventSource<GameEventMap>;
 
@@ -148,6 +149,16 @@ abstract class BaseGame implements IGame {
 		sortedObjects.forEach((go) => go['doBeforeRender'](this.context));
 		sortedObjects.forEach((go) => go['doRender'](this.context));
 		sortedObjects.forEach((go) => go['doAfterRender'](this.context));
+
+		if (this.renderGizmos) {
+			sortedObjects.forEach((go) =>
+				go['doBeforeRenderGizmos'](this.context),
+			);
+			sortedObjects.forEach((go) => go['doRenderGizmos'](this.context));
+			sortedObjects.forEach((go) =>
+				go['doAfterRenderGizmos'](this.context),
+			);
+		}
 	}
 
 	private static GameObjectCollection = class implements ICollection<GameObject> {
