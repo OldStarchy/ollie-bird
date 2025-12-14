@@ -59,7 +59,7 @@ export class ModuleCollection extends Module implements IModular {
 
 	public *getModules<T extends Module>(
 		type: abstract new (owner: GameObject) => T,
-	): Iterable<T> {
+	): Generator<T> {
 		for (const module of this.modules) {
 			if (module instanceof type) {
 				yield module as T;

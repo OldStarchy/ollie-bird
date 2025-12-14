@@ -1,10 +1,12 @@
 import { GRID_SIZE, LAYER_ENEMYS, TAG_LEVEL_OBJECT } from '../const';
 import GameObject from '../GameObject';
-import RectangleCollider from '../RectangleCollider';
-import Obstacle from './Obstacle';
+import RectangleCollider2d from '../modules/RectangleCollider2d';
 
 import baddie1 from '../../assets/baddie-1.png';
 import baddie2 from '../../assets/baddie-2.png';
+import RayCollider from '../collider/RayCollider';
+import Collider2d from '../modules/Collider2d';
+import Obstacle from './Obstacle';
 
 export default class Baddie extends GameObject {
 	layer = LAYER_ENEMYS;
@@ -24,38 +26,39 @@ export default class Baddie extends GameObject {
 
 	protected override initialize(): void {
 		this.tags.add(TAG_LEVEL_OBJECT);
-	}
 
-	getCollider(): RectangleCollider {
-		return new RectangleCollider(
-			this.transform.position.x,
-			this.transform.position.y + GRID_SIZE * 0.5,
-			GRID_SIZE,
-			GRID_SIZE * 0.5,
-		);
+		const hurtBox = this.addModule(RectangleCollider2d);
+		hurtBox.left = 0;
+		hurtBox.top = GRID_SIZE * 0.5;
+		hurtBox.width = GRID_SIZE;
+		hurtBox.height = GRID_SIZE * 0.5;
 	}
 
 	protected override update() {
-		const collider = new RectangleCollider(
-			this.transform.position.x + this.dir + this.speed,
-			this.transform.position.y,
-			GRID_SIZE,
-			GRID_SIZE,
+		const ray = new RayCollider(
+			{
+				x: this.transform.position.x + GRID_SIZE * 0.5,
+				y: this.transform.position.y + GRID_SIZE * 0.75,
+			},
+			{ x: this.dir, y: 0 },
+			GRID_SIZE / 2,
 		);
 
-		const onGround = this.game.findObjectsByType(Obstacle).some((obj) => {
-			const otherCollider = obj.getCollider();
-			return otherCollider.isCollidingWith(collider);
-		});
+		const hit =
+			this.game
+				.findObjectsByType(Obstacle)
+				.filter(Collider2d.collidingWith(ray)).length > 0;
 
-		if (
-			onGround ||
-			this.transform.position.x < 0 ||
-			this.transform.position.x > this.game.canvas.width
-		) {
+		if (hit) {
+			this.dir *= -1;
+		}
+
+		const nextX = this.transform.position.x + this.dir * this.speed;
+
+		if (nextX < 0 || nextX > this.game.canvas.width - GRID_SIZE) {
 			this.dir *= -1;
 		} else {
-			this.transform.position.x += this.dir * this.speed;
+			this.transform.position.x = nextX;
 		}
 
 		this.time += 1;

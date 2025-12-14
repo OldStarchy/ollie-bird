@@ -13,6 +13,16 @@ export default abstract class Collider2d extends Module {
 
 	abstract doGizmoPath(context: CanvasRenderingContext2D): void;
 
+	cast(objects: Array<GameObject>): Array<GameObject>;
+	cast(objects: IteratorObject<GameObject>): IteratorObject<GameObject>;
+	cast(
+		objects: IteratorObject<GameObject> | Array<GameObject>,
+	): IteratorObject<GameObject> | Array<GameObject> {
+		const collider = this.getCollider();
+
+		return objects.filter(Collider2d.collidingWith(collider));
+	}
+
 	protected override renderGizmos(context: CanvasRenderingContext2D): void {
 		if (!this.renderWidget) {
 			return;
