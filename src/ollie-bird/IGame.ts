@@ -25,4 +25,7 @@ export default interface IGame {
 	getObjects(): Array<GameObject>;
 
 	restart(): void;
+
+	updatesPerSecond: number;
+	readonly secondsPerFrame: number;
 }

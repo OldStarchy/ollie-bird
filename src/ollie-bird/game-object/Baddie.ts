@@ -62,22 +62,26 @@ export default class Baddie extends GameObject {
 	}
 
 	protected override render(context: CanvasRenderingContext2D) {
-		using _ = this.transform.push(context);
+		const disposable = this.transform.push(context);
 
-		context.fillStyle = 'red';
-		context.fillRect(0, GRID_SIZE / 2, GRID_SIZE, GRID_SIZE / 2);
+		try {
+			context.fillStyle = 'red';
+			context.fillRect(0, GRID_SIZE / 2, GRID_SIZE, GRID_SIZE / 2);
 
-		const sprite =
-			this.time % 20 < 10
-				? Baddie.sprites.baddie1
-				: Baddie.sprites.baddie2;
+			const sprite =
+				this.time % 20 < 10
+					? Baddie.sprites.baddie1
+					: Baddie.sprites.baddie2;
 
-		context.drawImage(
-			sprite,
-			-GRID_SIZE * 0.2,
-			-GRID_SIZE * 0.2 + GRID_SIZE / 2,
-			GRID_SIZE * 1.4,
-			(1.4 * GRID_SIZE) / 2,
-		);
+			context.drawImage(
+				sprite,
+				-GRID_SIZE * 0.2,
+				-GRID_SIZE * 0.2 + GRID_SIZE / 2,
+				GRID_SIZE * 1.4,
+				(1.4 * GRID_SIZE) / 2,
+			);
+		} finally {
+			disposable[Symbol.dispose]();
+		}
 	}
 }
