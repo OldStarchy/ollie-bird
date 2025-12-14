@@ -20,7 +20,7 @@ export default class GameObject implements IModular, Disposable {
 
 	getModules<T extends Module>(
 		type: abstract new (owner: GameObject) => T,
-	): Iterable<T> {
+	): IteratorObject<T> {
 		return this.modules.getModules(type);
 	}
 	getModule<T extends Module>(
