@@ -12,6 +12,7 @@ import Baddie from './Baddie';
 import Explosion from './Explosion';
 import Goal from './Goal';
 import Obstacle from './Obstacle';
+import SequentialGate from './SequentialGate';
 
 class Bird extends GameObject {
 	layer = LAYER_PLAYER;
@@ -102,6 +103,14 @@ class Bird extends GameObject {
 				this.die();
 				return;
 			} else if (obj instanceof Goal) {
+				if (
+					this.game
+						.findObjectsByType(SequentialGate)
+						.some((gate) => gate.state !== 'passed')
+				) {
+					continue;
+				}
+
 				this.togglePause();
 
 				//spawn explosions in a circle

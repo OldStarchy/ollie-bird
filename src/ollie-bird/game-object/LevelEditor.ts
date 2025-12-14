@@ -4,18 +4,21 @@ import { CELL_SIZE, TAG_LEVEL_OBJECT, TAG_LEVEL_STRUCTURE } from '../const';
 import GameObject from '../GameObject';
 import type IGame from '../IGame';
 import Collider2d from '../modules/Collider2d';
+import SequentialGateManager from '../modules/SequentialGateManager';
 import Mouse from '../Mouse';
 import BaddieSpawner from './BaddieSpawner';
 import Bird from './Bird';
 import Goal from './Goal';
 import Obstacle from './Obstacle';
 import type RectangleTrigger from './RectangleTrigger';
+import SequentialGate from './SequentialGate';
 import SpawnPoint from './SpawnPoint';
 
 enum EditorMode {
 	AddObstacle,
 	DeleteObstacle,
 	SetSpawnPoint,
+	AddGate,
 	SetGoal,
 	AddBaddie,
 	LAST = AddBaddie,
@@ -25,6 +28,7 @@ const editorModeLabels = {
 	[EditorMode.AddObstacle]: 'add obstacle',
 	[EditorMode.DeleteObstacle]: 'delete obstacle',
 	[EditorMode.SetSpawnPoint]: 'set spawn point',
+	[EditorMode.AddGate]: 'add gate',
 	[EditorMode.SetGoal]: 'set goal',
 	[EditorMode.AddBaddie]: 'add baddie',
 } as const;
@@ -36,8 +40,11 @@ export default class LevelEditor extends GameObject {
 	gridSize: number = CELL_SIZE;
 
 	dragStart: { x: number; y: number } | null = null;
-	constructor(game: IGame) {
-		super(game);
+
+	protected override initialize(): void {
+		super.initialize();
+
+		this.addModule(SequentialGateManager);
 	}
 
 	alignToGrid(obj: { x: number; y: number }): { x: number; y: number } {
@@ -93,6 +100,7 @@ export default class LevelEditor extends GameObject {
 			case EditorMode.AddObstacle:
 			case EditorMode.DeleteObstacle:
 			case EditorMode.SetGoal:
+			case EditorMode.AddGate:
 				if (this.dragStart === null) {
 					if (
 						this.game.mouse.getButton(Mouse.BUTTON_LEFT) ===
@@ -142,6 +150,16 @@ export default class LevelEditor extends GameObject {
 								}
 								break;
 							}
+
+							case EditorMode.AddGate:
+								const gate = this.spawnCollider(
+									SequentialGate,
+									rect.x,
+									rect.y,
+									rect.width,
+									rect.height,
+								);
+								break;
 
 							case EditorMode.SetGoal:
 								this.game

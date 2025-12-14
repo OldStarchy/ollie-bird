@@ -7,7 +7,7 @@ class RectangleTrigger extends GameObject {
 	public width: number = 0;
 	public height: number = 0;
 
-	private collider = this.addModule(RectangleCollider2d);
+	protected collider = this.addModule(RectangleCollider2d);
 
 	protected override initialize(): void {
 		this.updateCollider();

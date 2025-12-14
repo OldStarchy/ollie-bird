@@ -1,5 +1,5 @@
 import type IGame from './IGame';
-import Module, { ModuleCollection, type IModular } from './IModular';
+import Module, {ModuleCollection, type IModular} from './IModular';
 import Transform2d from './modules/Transform2d';
 
 export default class GameObject implements IModular, Disposable {
@@ -11,7 +11,7 @@ export default class GameObject implements IModular, Disposable {
 
 	readonly transform: Transform2d;
 
-	constructor(protected game: IGame) {
+	constructor(readonly game: IGame) {
 		this.modules = new ModuleCollection(this);
 		this.destructors.push(() => this.modules[Symbol.dispose]());
 
