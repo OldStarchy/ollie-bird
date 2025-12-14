@@ -19,14 +19,16 @@ export default abstract class GameObject implements IModular, Disposable {
 	}
 
 	getModules<T extends Module>(
-		type: new (owner: IModular) => T,
+		type: abstract new (owner: GameObject) => T,
 	): Iterable<T> {
 		return this.modules.getModules(type);
 	}
-	getModule<T extends Module>(type: new (owner: IModular) => T): T | null {
+	getModule<T extends Module>(
+		type: abstract new (owner: GameObject) => T,
+	): T | null {
 		return this.modules.getModule(type);
 	}
-	addModule<T extends Module>(type: new (owner: IModular) => T): T {
+	addModule<T extends Module>(type: new (owner: GameObject) => T): T {
 		return this.modules.addModule(type);
 	}
 	removeModule(module: Module): void {
