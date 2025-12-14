@@ -152,7 +152,7 @@ export default class LevelEditor extends GameObject {
 							}
 
 							case EditorMode.AddGate:
-								const gate = this.spawnCollider(
+								this.spawnCollider(
 									SequentialGate,
 									rect.x,
 									rect.y,
@@ -276,11 +276,22 @@ export default class LevelEditor extends GameObject {
 			});
 		}
 
+		const gates = [];
+		for (const obj of this.game.findObjectsByType(SequentialGate)) {
+			gates.push({
+				type: 'gate_rectangle',
+				...obj.transform.position,
+				width: obj.width,
+				height: obj.height,
+			});
+		}
+
 		return JSON.stringify(
 			{
 				obstacles,
 				goals,
 				spawn: spawn?.transform.position ?? null,
+				gates,
 			},
 			null,
 			2,
@@ -327,11 +338,6 @@ export default class LevelEditor extends GameObject {
 				}
 			}
 			if (Array.isArray(parsed.goals)) {
-				// Remove existing goals
-				this.game
-					.findObjectsByType(Goal)
-					.forEach((obj) => obj.destroy());
-
 				// Add new goals
 				for (const goal of parsed.goals) {
 					if (
@@ -351,6 +357,28 @@ export default class LevelEditor extends GameObject {
 					}
 				}
 			}
+
+			if (parsed.gates && Array.isArray(parsed.gates)) {
+				// Add new gates
+				for (const gate of parsed.gates) {
+					if (
+						gate.type === 'gate_rectangle' &&
+						typeof gate.x === 'number' &&
+						typeof gate.y === 'number' &&
+						typeof gate.width === 'number' &&
+						typeof gate.height === 'number'
+					) {
+						this.spawnCollider(
+							SequentialGate,
+							gate.x,
+							gate.y,
+							gate.width,
+							gate.height,
+						);
+					}
+				}
+			}
+
 			if (parsed.spawn) {
 				this.game
 					.findObjectsByType(SpawnPoint)
