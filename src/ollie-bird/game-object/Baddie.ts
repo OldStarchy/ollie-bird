@@ -1,10 +1,12 @@
+import RectangleCollider from '../collider/RectangleCollider';
 import { GRID_SIZE, LAYER_ENEMYS, TAG_LEVEL_OBJECT } from '../const';
 import GameObject from '../GameObject';
-import RectangleCollider from '../RectangleCollider';
 import Obstacle from './Obstacle';
 
 import baddie1 from '../../assets/baddie-1.png';
 import baddie2 from '../../assets/baddie-2.png';
+import RayCollider from '../collider/RayCollider';
+import Collider2d from '../modules/Collider2d';
 
 export default class Baddie extends GameObject {
 	layer = LAYER_ENEMYS;
@@ -24,32 +26,30 @@ export default class Baddie extends GameObject {
 
 	protected override initialize(): void {
 		this.tags.add(TAG_LEVEL_OBJECT);
-	}
-
-	getCollider(): RectangleCollider {
-		return new RectangleCollider(
-			this.transform.position.x,
-			this.transform.position.y + GRID_SIZE * 0.5,
+		this.addModule(Collider2d).collider = new RectangleCollider(
+			0,
+			GRID_SIZE / 2,
 			GRID_SIZE,
-			GRID_SIZE * 0.5,
+			GRID_SIZE / 2,
 		);
 	}
 
 	protected override update() {
-		const collider = new RectangleCollider(
-			this.transform.position.x + this.dir + this.speed,
-			this.transform.position.y,
-			GRID_SIZE,
-			GRID_SIZE,
-		);
+		const ray = new RayCollider({ x: this.dir, y: 0 }, this.speed);
 
-		const onGround = this.game.findObjectsByType(Obstacle).some((obj) => {
-			const otherCollider = obj.getCollider();
-			return otherCollider.isCollidingWith(collider);
-		});
+		const hit = this.game
+			.findModulesByType(Collider2d)
+			.filter((col) => col.owner instanceof Obstacle)
+			.some((col) => {
+				ray.checkCollision(
+					this.transform.position,
+					col.collider,
+					col.owner.transform.position,
+				);
+			});
 
 		if (
-			onGround ||
+			hit ||
 			this.transform.position.x < 0 ||
 			this.transform.position.x > this.game.canvas.width
 		) {

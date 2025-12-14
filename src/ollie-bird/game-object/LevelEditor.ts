@@ -1,9 +1,10 @@
 import ButtonState from '../ButtonState';
+import RectangleCollider from '../collider/RectangleCollider';
 import { GRID_SIZE, TAG_LEVEL_OBJECT, TAG_LEVEL_STRUCTURE } from '../const';
 import GameObject from '../GameObject';
 import type IGame from '../IGame';
+import Collider2d from '../modules/Collider2d';
 import Mouse from '../Mouse';
-import RectangleCollider from '../RectangleCollider';
 import BaddieSpawner from './BaddieSpawner';
 import Bird from './Bird';
 import Goal from './Goal';
@@ -132,17 +133,18 @@ export default class LevelEditor extends GameObject {
 									rect.height,
 								);
 
-								for (const obj of this.game.findObjectsByType(
-									Obstacle,
-								)) {
-									if (
-										collider.isCollidingWith(
-											obj.getCollider(),
-										)
-									) {
-										obj.destroy();
-									}
-								}
+								this.game
+									.findObjectsByType(Obstacle)
+									.filter((obj) => {
+										const col = obj.getModule(Collider2d);
+										if (!col) return false;
+										return collider.checkCollision(
+											{ x: 0, y: 0 },
+											col.collider,
+											obj.transform.position,
+										);
+									})
+									.forEach((obj) => obj.destroy());
 								break;
 							}
 

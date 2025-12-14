@@ -2,10 +2,10 @@ import birdDown from '../../assets/bird-down.png';
 import birdRight from '../../assets/bird-right.png';
 import birdUp from '../../assets/bird-up.png';
 import ButtonState from '../ButtonState';
-import CircleCollider from '../CircleCollider';
+import CircleCollider from '../collider/CircleCollider';
 import { LAYER_PLAYER, TAG_LEVEL_OBJECT } from '../const';
 import GameObject from '../GameObject';
-import type IGame from '../IGame';
+import Collider2d from '../modules/Collider2d';
 import Vec2 from '../Vec2';
 import Baddie from './Baddie';
 import Explosion from './Explosion';
@@ -33,9 +33,15 @@ class Bird extends GameObject {
 		this.sprites.down.src = birdDown;
 	}
 
-	constructor(game: IGame) {
-		super(game);
+	private collider!: Collider2d;
+
+	public override initialize() {
+		super.initialize();
+
 		this.tags.add(TAG_LEVEL_OBJECT);
+
+		this.collider = this.addModule(Collider2d);
+		this.collider.collider = new CircleCollider(20);
 	}
 
 	private paused: boolean = false;
@@ -73,31 +79,21 @@ class Bird extends GameObject {
 			this.die();
 		}
 
-		for (const obj of this.game.getObjects()) {
+		const collisions = this.collider.findCollisions();
+
+		for (const obj of collisions) {
 			if (obj instanceof Obstacle || obj instanceof Baddie) {
-				if (
-					this.getCollider().isCollidingWithRectangle(
-						obj.getCollider(),
-					)
-				) {
-					this.die();
-				}
+				this.die();
 			} else if (obj instanceof Goal) {
-				if (
-					this.getCollider().isCollidingWithRectangle(
-						obj.getCollider(),
-					)
-				) {
-					this.togglePause();
+				this.togglePause();
 
-					//spawn explosions in a circle
-					for (let i = 0; i < 12; i++) {
-						const angle = (i / 12) * Math.PI * 2;
-						const x = this.position.x + Math.cos(angle) * 200;
-						const y = this.position.y + Math.sin(angle) * 200;
+				//spawn explosions in a circle
+				for (let i = 0; i < 12; i++) {
+					const angle = (i / 12) * Math.PI * 2;
+					const x = this.position.x + Math.cos(angle) * 200;
+					const y = this.position.y + Math.sin(angle) * 200;
 
-						this.createExplosion(x, y, -20, 100, 1);
-					}
+					this.createExplosion(x, y, -20, 100, 1);
 				}
 			}
 		}
@@ -121,9 +117,6 @@ class Bird extends GameObject {
 		console.log('Collision detected!');
 		this.createExplosion(...this.position.xy, 10, 50, 2);
 		this.destroy();
-	}
-	getCollider(): CircleCollider {
-		return new CircleCollider(...this.position.xy, 20);
 	}
 
 	protected override render(context: CanvasRenderingContext2D) {

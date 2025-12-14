@@ -1,0 +1,134 @@
+import type { Vec2Like } from '../Vec2';
+import Vec2 from '../Vec2';
+import CircleCollider from './CircleCollider';
+import type ICollider from './ICollider';
+import RectangleCollider from './RectangleCollider';
+
+export default class RayCollider implements ICollider {
+	readonly direction: Vec2;
+
+	constructor(
+		direction: Vec2Like,
+		public distance: number,
+	) {
+		this.direction = new Vec2(direction);
+	}
+
+	checkCollision(
+		position: Vec2Like,
+		other: ICollider,
+		otherPosition: Vec2Like,
+	): boolean {
+		if (other instanceof RayCollider) {
+			return this.checkCollisionWithRay(position, other, otherPosition);
+		}
+
+		if (other instanceof RectangleCollider) {
+			return this.checkCollisionWithRectangle(
+				position,
+				other,
+				otherPosition,
+			);
+		}
+
+		if (other instanceof CircleCollider) {
+			return this.checkCollisionWithCircle(
+				position,
+				other,
+				otherPosition,
+			);
+		}
+
+		return other.checkCollision(otherPosition, this, position);
+	}
+
+	private checkCollisionWithRay(
+		position: Vec2Like,
+		other: RayCollider,
+		otherPosition: Vec2Like,
+	): boolean {
+		// Ray-ray intersection using parametric line equations
+		const dx = otherPosition.x - position.x;
+		const dy = otherPosition.y - position.y;
+
+		const det =
+			other.direction.x * this.direction.y -
+			other.direction.y * this.direction.x;
+
+		// Rays are parallel if determinant is close to zero
+		if (Math.abs(det) < 1e-10) {
+			return false;
+		}
+
+		const u = (dy * other.direction.x - dx * other.direction.y) / det;
+		const v = (dy * this.direction.x - dx * this.direction.y) / det;
+
+		// Check if intersection point is within both ray distances
+		return u >= 0 && u <= this.distance && v >= 0 && v <= other.distance;
+	}
+
+	private checkCollisionWithRectangle(
+		position: Vec2Like,
+		rect: RectangleCollider,
+		rectPosition: Vec2Like,
+	): boolean {
+		rectPosition = {
+			x: rectPosition.x + rect.left,
+			y: rectPosition.y + rect.top,
+		};
+		// Use slab method for ray-AABB intersection
+		const dirX = this.direction.x;
+		const dirY = this.direction.y;
+
+		// Avoid division by zero
+		const invDirX = dirX === 0 ? Infinity : 1 / dirX;
+		const invDirY = dirY === 0 ? Infinity : 1 / dirY;
+
+		const t1 = (rectPosition.x - position.x) * invDirX;
+		const t2 = (rectPosition.x + rect.width - position.x) * invDirX;
+		const t3 = (rectPosition.y - position.y) * invDirY;
+		const t4 = (rectPosition.y + rect.height - position.y) * invDirY;
+
+		const tmin = Math.max(Math.min(t1, t2), Math.min(t3, t4));
+		const tmax = Math.min(Math.max(t1, t2), Math.max(t3, t4));
+
+		// No intersection if tmax < 0 (ray points away) or tmin > tmax
+		if (tmax < 0 || tmin > tmax) {
+			return false;
+		}
+
+		// Check if intersection is within ray distance
+		const t = tmin >= 0 ? tmin : tmax;
+		return t >= 0 && t <= this.distance;
+	}
+
+	private checkCollisionWithCircle(
+		position: Vec2Like,
+		circle: CircleCollider,
+		circlePosition: Vec2Like,
+	): boolean {
+		// Vector from ray origin to circle center
+		const toCircle = new Vec2(
+			circlePosition.x - position.x,
+			circlePosition.y - position.y,
+		);
+
+		// Project toCircle onto ray direction
+		const dot =
+			toCircle.x * this.direction.x + toCircle.y * this.direction.y;
+
+		// Find closest point on ray to circle center
+		const t = Math.max(0, Math.min(this.distance, dot));
+		const closestPoint = new Vec2(
+			position.x + this.direction.x * t,
+			position.y + this.direction.y * t,
+		);
+
+		// Check if closest point is within circle radius
+		const dx = circlePosition.x - closestPoint.x;
+		const dy = circlePosition.y - closestPoint.y;
+		const distanceSquared = dx * dx + dy * dy;
+
+		return distanceSquared <= circle.radius * circle.radius;
+	}
+}

@@ -1,5 +1,6 @@
 import type EventSource from './EventSource';
 import type GameObject from './GameObject';
+import type Module from './IModular';
 import type Keyboard from './Keyboard';
 import type Mouse from './Mouse';
 
@@ -22,6 +23,10 @@ export default interface IGame {
 	findObjectsByType<T extends GameObject>(
 		type: new (game: IGame) => T,
 	): Array<T>;
+	findModulesByType<T extends Module>(
+		type: new (owner: GameObject) => T,
+	): Array<T>;
+
 	getObjects(): Array<GameObject>;
 
 	restart(): void;
