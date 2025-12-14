@@ -84,7 +84,6 @@ class Bird extends GameObject {
 			this.flappedOnce = false;
 		}
 
-		console.log(this.ySpeed, this.gravity, this.game.physics.g);
 		this.ySpeed += this.gravity;
 		this.position.y += this.ySpeed;
 	}
