@@ -14,12 +14,14 @@ import Obstacle from './Obstacle';
 
 class Bird extends GameObject {
 	layer = LAYER_PLAYER;
+	public ySpeed: number = 0;
+	private holdTime = 0;
+	private gravity: number;
+	private flappedOnce = false;
 
 	private get position(): Vec2 {
 		return this.transform.position;
 	}
-
-	public ySpeed: number = 0;
 
 	static sprites = {
 		right: new Image(),
@@ -36,6 +38,7 @@ class Bird extends GameObject {
 	constructor(game: IGame) {
 		super(game);
 		this.tags.add(TAG_LEVEL_OBJECT);
+		this.gravity = game.physics.g;
 	}
 
 	private paused: boolean = false;
@@ -44,14 +47,23 @@ class Bird extends GameObject {
 		this.paused = !this.paused;
 	}
 
-	protected override update() {
-		if (this.paused) {
-			return;
-		}
-		this.ySpeed += this.game.physics.g;
 
-		if (this.game.keyboard.getKey('ArrowUp') === ButtonState.Pressed) {
-			this.ySpeed = -6;
+	protected handleInput() {
+		// Key Downs
+		if (this.game.keyboard.isKeyDown('ArrowUp')) {
+			this.holdTime += this.game.secondsPerFrame;
+			if (this.holdTime > 0.3 && !this.flappedOnce) {
+				this.ySpeed = -6;
+				this.holdTime %= 0.3;
+				this.flappedOnce = true;
+			}
+
+			if (this.ySpeed > this.game.physics.g) {
+				this.ySpeed /= 2;
+				this.ySpeed = Math.max(this.ySpeed, this.game.physics.g);
+			}
+
+			this.gravity = this.game.physics.g * (this.holdTime / 0.3);
 		}
 
 		if (this.game.keyboard.isKeyDown('ArrowRight')) {
@@ -62,17 +74,21 @@ class Bird extends GameObject {
 			this.position.x -= 5;
 		}
 
-		this.position.y += this.ySpeed;
-
-		if (
-			this.position.y > this.game.canvas.height ||
-			this.position.y < 0 ||
-			this.position.x < 0 ||
-			this.position.x > this.game.canvas.width
-		) {
-			this.die();
+		// Key Releaseds
+		if (this.game.keyboard.getKey("ArrowUp") == ButtonState.Released) {
+			if (!this.flappedOnce) {
+				this.ySpeed = -this.holdTime / 0.3 * 6;
+			}
+			this.holdTime = 0;
+			this.gravity = this.game.physics.g;
+			this.flappedOnce = false;
 		}
 
+		this.ySpeed += this.gravity;
+		this.position.y += this.ySpeed;
+	}
+
+	protected checkObjCollisions() {
 		for (const obj of this.game.getObjects()) {
 			if (obj instanceof Obstacle || obj instanceof Baddie) {
 				if (
@@ -101,6 +117,30 @@ class Bird extends GameObject {
 				}
 			}
 		}
+	}
+
+	protected checkOutOfBounds() {
+		if (
+			this.position.y > this.game.canvas.height ||
+			this.position.y < 0 ||
+			this.position.x < 0 ||
+			this.position.x > this.game.canvas.width
+		) {
+			this.die();
+		}
+	}
+
+
+	protected override update() {
+
+		if (this.paused) {
+			return;
+		}
+
+		this.handleInput();
+		this.checkOutOfBounds();
+		this.checkObjCollisions();
+
 	}
 
 	private createExplosion(
