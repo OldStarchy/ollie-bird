@@ -77,6 +77,24 @@ export default abstract class GameObject implements IModular, Disposable {
 	}
 	protected afterRender(context: CanvasRenderingContext2D): void {}
 
+	private doBeforeRenderGizmos(context: CanvasRenderingContext2D): void {
+		this.beforeRenderGizmos(context);
+		this.modules['beforeRenderGizmos'](context);
+	}
+	protected beforeRenderGizmos(context: CanvasRenderingContext2D): void {}
+
+	private doRenderGizmos(context: CanvasRenderingContext2D): void {
+		this.renderGizmos(context);
+		this.modules['renderGizmos'](context);
+	}
+	protected renderGizmos(context: CanvasRenderingContext2D): void {}
+
+	private doAfterRenderGizmos(context: CanvasRenderingContext2D): void {
+		this.afterRenderGizmos(context);
+		this.modules['afterRenderGizmos'](context);
+	}
+	protected afterRenderGizmos(context: CanvasRenderingContext2D): void {}
+
 	onGameEvent<T extends keyof GameEventMap>(
 		event: T,
 		listener: (args: GameEventMap[T]) => void,
