@@ -1,4 +1,4 @@
-import { TAG_LEVEL_OBJECT } from './const';
+import {TAG_LEVEL_OBJECT} from './const';
 import EventSource from './EventSource';
 import type GameObject from './GameObject';
 import type ICollection from './ICollection';
@@ -21,6 +21,13 @@ abstract class BaseGame implements IGame {
 	};
 
 	readonly event: EventSource<GameEventMap>;
+
+	public updatesPerSecond: number = 60;
+
+	#currentSecondsPerFrame: number = 1 / this.updatesPerSecond;
+	public get secondsPerFrame(): number {
+		return this.#currentSecondsPerFrame;
+	}
 
 	constructor(public canvas: HTMLCanvasElement) {
 		this.abortController = new AbortController();
@@ -45,10 +52,7 @@ abstract class BaseGame implements IGame {
 		this.canvas.width = this.canvas.clientWidth;
 		this.canvas.height = this.canvas.clientHeight;
 
-		const int = setInterval(() => this.step(), 1000 / 60);
-		this.abortController.signal.addEventListener('abort', () => {
-			clearInterval(int);
-		});
+		this.tick();
 
 		this.preStart();
 
@@ -71,6 +75,14 @@ abstract class BaseGame implements IGame {
 		this.abortController.abort();
 	}
 
+	tick() {
+		if (this.abortController.signal.aborted) return;
+
+		this.step();
+
+		this.#currentSecondsPerFrame = 1 / this.updatesPerSecond;
+		setTimeout(() => this.tick(), 1000 / this.updatesPerSecond);
+	}
 	step() {
 		this.objects.forEach((go) => go['doBeforeUpdate']());
 		this.objects.forEach((go) => go['doUpdate']());
