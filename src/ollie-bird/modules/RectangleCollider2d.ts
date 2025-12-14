@@ -1,28 +1,32 @@
+import type GameObject from '../GameObject';
 import type { Vec2Like } from '../math/Vec2';
-import CircleCollider from './CircleCollider';
-import type ICollider from './ICollider';
+import CircleCollider2d from './CircleCollider2d';
+import Collider2d from './Collider2d';
 
-export default class RectangleCollider implements ICollider {
+export default class RectangleCollider2d extends Collider2d {
 	constructor(
+		owner: GameObject,
 		public top: number,
 		public left: number,
 		public width: number,
 		public height: number,
-	) {}
+	) {
+		super(owner);
+	}
 
 	checkCollision(
 		position: Vec2Like,
-		other: ICollider,
+		other: Collider2d,
 		otherPosition: Vec2Like,
 	): boolean {
-		if (other instanceof RectangleCollider) {
+		if (other instanceof RectangleCollider2d) {
 			return this.checkCollisionWithRectangle(
 				position,
 				other,
 				otherPosition,
 			);
 		}
-		if (other instanceof CircleCollider) {
+		if (other instanceof CircleCollider2d) {
 			return this.checkCollisionWithCircle(
 				position,
 				other,
@@ -34,7 +38,7 @@ export default class RectangleCollider implements ICollider {
 
 	private checkCollisionWithRectangle(
 		position: Vec2Like,
-		other: RectangleCollider,
+		other: RectangleCollider2d,
 		otherPosition: Vec2Like,
 	): boolean {
 		position = {
@@ -55,7 +59,7 @@ export default class RectangleCollider implements ICollider {
 
 	private checkCollisionWithCircle(
 		position: Vec2Like,
-		circle: CircleCollider,
+		circle: CircleCollider2d,
 		circlePosition: Vec2Like,
 	): boolean {
 		position = {
@@ -75,5 +79,17 @@ export default class RectangleCollider implements ICollider {
 		const dx = circlePosition.x - closestX;
 		const dy = circlePosition.y - closestY;
 		return dx * dx + dy * dy <= circle.radius * circle.radius;
+	}
+
+	protected override renderColliderGizmo(
+		context: CanvasRenderingContext2D,
+	): void {
+		context.beginPath();
+		context.rect(
+			this.owner.transform.position.x + this.left,
+			this.owner.transform.position.y + this.top,
+			this.width,
+			this.height,
+		);
 	}
 }

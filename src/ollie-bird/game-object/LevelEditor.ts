@@ -173,9 +173,7 @@ export default class LevelEditor extends GameObject {
 					this.game
 						.findObjectsByType(SpawnPoint)
 						.forEach((obj) => obj.destroy());
-					this.game
-						.spawn(SpawnPoint)
-						.transform.position.set(mPos.x, mPos.y);
+					this.game.spawn(SpawnPoint).transform.position.copy(mPos);
 				}
 				break;
 			case EditorMode.AddBaddie:
@@ -185,7 +183,7 @@ export default class LevelEditor extends GameObject {
 				) {
 					this.game
 						.spawn(BaddieSpawner)
-						.transform.position.set(mPos.x, mPos.y);
+						.transform.position.copy(mPos);
 				}
 				break;
 		}
@@ -348,7 +346,7 @@ export default class LevelEditor extends GameObject {
 				) {
 					this.game
 						.spawn(SpawnPoint)
-						.transform.position.set(parsed.spawn.x, parsed.spawn.y);
+						.transform.position.copy(parsed.spawn);
 				}
 			}
 		} catch (error) {

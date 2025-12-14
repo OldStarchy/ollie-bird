@@ -1,29 +1,32 @@
+import type GameObject from '../GameObject';
 import type { Vec2Like } from '../math/Vec2';
 import Vec2 from '../math/Vec2';
-import CircleCollider from './CircleCollider';
-import type ICollider from './ICollider';
-import RectangleCollider from './RectangleCollider';
+import CircleCollider2d from './CircleCollider2d';
+import Collider2d from './Collider2d';
+import RectangleCollider2d from './RectangleCollider2d';
 
-export default class RayCollider implements ICollider {
+export default class RayCollider2d extends Collider2d {
 	readonly direction: Vec2;
 
 	constructor(
+		owner: GameObject,
 		direction: Vec2Like,
 		public distance: number,
 	) {
+		super(owner);
 		this.direction = new Vec2(direction);
 	}
 
 	checkCollision(
 		position: Vec2Like,
-		other: ICollider,
+		other: Collider2d,
 		otherPosition: Vec2Like,
 	): boolean {
-		if (other instanceof RayCollider) {
+		if (other instanceof RayCollider2d) {
 			return this.checkCollisionWithRay(position, other, otherPosition);
 		}
 
-		if (other instanceof RectangleCollider) {
+		if (other instanceof RectangleCollider2d) {
 			return this.checkCollisionWithRectangle(
 				position,
 				other,
@@ -31,7 +34,7 @@ export default class RayCollider implements ICollider {
 			);
 		}
 
-		if (other instanceof CircleCollider) {
+		if (other instanceof CircleCollider2d) {
 			return this.checkCollisionWithCircle(
 				position,
 				other,
@@ -44,7 +47,7 @@ export default class RayCollider implements ICollider {
 
 	private checkCollisionWithRay(
 		position: Vec2Like,
-		other: RayCollider,
+		other: RayCollider2d,
 		otherPosition: Vec2Like,
 	): boolean {
 		// Ray-ray intersection using parametric line equations
@@ -69,7 +72,7 @@ export default class RayCollider implements ICollider {
 
 	private checkCollisionWithRectangle(
 		position: Vec2Like,
-		rect: RectangleCollider,
+		rect: RectangleCollider2d,
 		rectPosition: Vec2Like,
 	): boolean {
 		rectPosition = {
@@ -104,7 +107,7 @@ export default class RayCollider implements ICollider {
 
 	private checkCollisionWithCircle(
 		position: Vec2Like,
-		circle: CircleCollider,
+		circle: CircleCollider2d,
 		circlePosition: Vec2Like,
 	): boolean {
 		// Vector from ray origin to circle center
@@ -130,5 +133,18 @@ export default class RayCollider implements ICollider {
 		const distanceSquared = dx * dx + dy * dy;
 
 		return distanceSquared <= circle.radius * circle.radius;
+	}
+
+	protected override renderColliderGizmo(
+		context: CanvasRenderingContext2D,
+	): void {
+		const startX = this.owner.transform.position.x;
+		const startY = this.owner.transform.position.y;
+		const endX = startX + this.direction.x * this.distance;
+		const endY = startY + this.direction.y * this.distance;
+
+		context.beginPath();
+		context.moveTo(startX, startY);
+		context.lineTo(endX, endY);
 	}
 }

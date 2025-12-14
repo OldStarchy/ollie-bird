@@ -9,7 +9,7 @@ export default class SpawnPoint extends GameObject {
 		this.onGameEvent('gameStart', () => {
 			this.game
 				.spawn(Bird)
-				.transform.position.set(...this.transform.position.xy);
+				.transform.position.copy(this.transform.position);
 		});
 		this.tags.add(TAG_LEVEL_STRUCTURE);
 	}

@@ -1,4 +1,4 @@
-import type { Vec2Like } from '../Vec2';
+import type { Vec2Like } from '../math/Vec2';
 
 export default interface ICollider {
 	checkCollision(

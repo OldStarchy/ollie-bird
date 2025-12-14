@@ -8,7 +8,7 @@ import Module from '../IModular';
 export default class Collider2d extends Module {
 	collider: ICollider = new CircleCollider(20);
 
-	renderWidget: boolean = false;
+	renderWidget: boolean = true;
 	widgetFillStyle: string = 'rgba(0, 255, 0, 0.3)';
 	widgetStrokeStyle: string = 'rgba(0, 255, 0, 1)';
 	widgetLineWidth: number = 1;

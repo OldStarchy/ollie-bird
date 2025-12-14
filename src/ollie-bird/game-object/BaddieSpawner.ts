@@ -9,7 +9,7 @@ export default class BaddieSpawner extends GameObject {
 		this.tags.add(TAG_LEVEL_STRUCTURE);
 		this.onGameEvent('gameStart', () => {
 			const baddie = this.game.spawn(Baddie);
-			baddie.transform.position.set(this.transform.position);
+			baddie.transform.position.copy(this.transform.position);
 		});
 	}
 
