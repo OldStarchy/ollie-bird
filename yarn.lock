@@ -1623,6 +1623,11 @@ supports-color@^7.1.0:
   dependencies:
     has-flag "^4.0.0"
 
+the-new-css-reset@^1.11.3:
+  version "1.11.3"
+  resolved "https://registry.yarnpkg.com/the-new-css-reset/-/the-new-css-reset-1.11.3.tgz#e4a6e7fd808a07f53ee257622e8d7eefde53035c"
+  integrity sha512-61SB81vu9foUyEIqoU1CeqxrdlsVjJojj/CBXoG8BdvlKFsllB0Rza63DblnRqH+3uttPj3FGWo7+c9nu7MT+A==
+
 tinybench@^2.9.0:
   version "2.9.0"
   resolved "https://registry.yarnpkg.com/tinybench/-/tinybench-2.9.0.tgz#103c9f8ba6d7237a47ab6dd1dcff77251863426b"
