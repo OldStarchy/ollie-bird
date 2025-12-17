@@ -51,5 +51,16 @@ export default class SequentialGate extends RectangleTrigger {
 			this.width,
 			this.height,
 		);
+
+		const cx = this.transform.position.x + this.width / 2;
+		const cy = this.transform.position.y + this.height / 2;
+
+		context.save();
+		context.fillStyle = 'black';
+		context.textAlign = 'center';
+		context.textBaseline = 'middle';
+		context.font = '30px sans-serif';
+		context.fillText(this.sequenceNumber.toString(), cx, cy);
+		context.restore();
 	}
 }

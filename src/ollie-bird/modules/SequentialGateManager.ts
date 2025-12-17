@@ -13,9 +13,10 @@ export default class SequentialGateManager extends Module {
 			gates.sort((a, b) => a.sequenceNumber - b.sequenceNumber);
 
 			gates.forEach((gate, index) => {
+				gate.sequenceNumber = index + 1;
 				gate.nextGate = gates[index + 1] || null;
 				gate.state = index === 0 ? 'ready' : 'unavailable';
 			});
-		})
+		});
 	}
 }
