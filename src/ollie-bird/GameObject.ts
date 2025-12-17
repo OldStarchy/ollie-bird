@@ -2,7 +2,7 @@ import type IGame from './IGame';
 import Module, { ModuleCollection, type IModular } from './IModular';
 import Transform2d from './modules/Transform2d';
 
-export default abstract class GameObject implements IModular, Disposable {
+export default class GameObject implements IModular, Disposable {
 	private destructors: (() => void)[] = [];
 	private modules: ModuleCollection;
 
@@ -19,14 +19,16 @@ export default abstract class GameObject implements IModular, Disposable {
 	}
 
 	getModules<T extends Module>(
-		type: new (owner: IModular) => T,
-	): Iterable<T> {
+		type: abstract new (owner: GameObject) => T,
+	): IteratorObject<T> {
 		return this.modules.getModules(type);
 	}
-	getModule<T extends Module>(type: new (owner: IModular) => T): T | null {
+	getModule<T extends Module>(
+		type: abstract new (owner: GameObject) => T,
+	): T | null {
 		return this.modules.getModule(type);
 	}
-	addModule<T extends Module>(type: new (owner: IModular) => T): T {
+	addModule<T extends Module>(type: new (owner: GameObject) => T): T {
 		return this.modules.addModule(type);
 	}
 	removeModule(module: Module): void {
@@ -74,6 +76,24 @@ export default abstract class GameObject implements IModular, Disposable {
 		this.modules['afterRender'](context);
 	}
 	protected afterRender(context: CanvasRenderingContext2D): void {}
+
+	private doBeforeRenderGizmos(context: CanvasRenderingContext2D): void {
+		this.beforeRenderGizmos(context);
+		this.modules['beforeRenderGizmos'](context);
+	}
+	protected beforeRenderGizmos(context: CanvasRenderingContext2D): void {}
+
+	private doRenderGizmos(context: CanvasRenderingContext2D): void {
+		this.renderGizmos(context);
+		this.modules['renderGizmos'](context);
+	}
+	protected renderGizmos(context: CanvasRenderingContext2D): void {}
+
+	private doAfterRenderGizmos(context: CanvasRenderingContext2D): void {
+		this.afterRenderGizmos(context);
+		this.modules['afterRenderGizmos'](context);
+	}
+	protected afterRenderGizmos(context: CanvasRenderingContext2D): void {}
 
 	onGameEvent<T extends keyof GameEventMap>(
 		event: T,

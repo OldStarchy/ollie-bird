@@ -20,6 +20,7 @@ abstract class BaseGame implements IGame {
 	public physics = {
 		g: 0.2,
 	};
+	public renderGizmos: boolean = true;
 
 	readonly event: EventSource<GameEventMap>;
 
@@ -148,6 +149,16 @@ abstract class BaseGame implements IGame {
 		sortedObjects.forEach((go) => go['doBeforeRender'](this.context));
 		sortedObjects.forEach((go) => go['doRender'](this.context));
 		sortedObjects.forEach((go) => go['doAfterRender'](this.context));
+
+		if (this.renderGizmos) {
+			sortedObjects.forEach((go) =>
+				go['doBeforeRenderGizmos'](this.context),
+			);
+			sortedObjects.forEach((go) => go['doRenderGizmos'](this.context));
+			sortedObjects.forEach((go) =>
+				go['doAfterRenderGizmos'](this.context),
+			);
+		}
 	}
 
 	private static GameObjectCollection = class implements ICollection<GameObject> {
@@ -221,14 +232,15 @@ abstract class BaseGame implements IGame {
 	}
 
 	findObjectsByTag(tag: string): Array<GameObject> {
-		return this.objects.filter((obj) => obj.tags.has(tag)) ?? [];
+		return this.objects.filter((obj) => obj.tags.has(tag));
 	}
 
-	findObjectsByType<T extends GameObject>(
-		type: new (game: IGame) => T,
-	): Array<T> {
-		return (
-			this.objects.filter<T>((obj): obj is T => obj instanceof type) ?? []
+	findObjectsByType<T extends (new (game: IGame) => GameObject)[]>(
+		...types: T
+	): Array<InstanceType<T[number]>> {
+		return this.objects.filter<InstanceType<T[number]>>(
+			(obj): obj is InstanceType<T[number]> =>
+				types.some((type) => obj instanceof type),
 		);
 	}
 

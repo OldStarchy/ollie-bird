@@ -1,5 +1,7 @@
+import type GameObject from './GameObject';
+
 export default abstract class Module implements Disposable, IModular {
-	constructor(protected owner: IModular) {}
+	constructor(protected owner: GameObject) {}
 
 	#enabled = true;
 	public get enabled() {
@@ -21,15 +23,21 @@ export default abstract class Module implements Disposable, IModular {
 	protected render(context: CanvasRenderingContext2D): void {}
 	protected afterRender(context: CanvasRenderingContext2D): void {}
 
+	protected beforeRenderGizmos(context: CanvasRenderingContext2D): void {}
+	protected renderGizmos(context: CanvasRenderingContext2D): void {}
+	protected afterRenderGizmos(context: CanvasRenderingContext2D): void {}
+
 	getModules<T extends Module>(
-		type: new (owner: IModular) => T,
+		type: abstract new (owner: GameObject) => T,
 	): Iterable<T> {
 		return this.owner.getModules(type);
 	}
-	getModule<T extends Module>(type: new (owner: IModular) => T): T | null {
+	getModule<T extends Module>(
+		type: abstract new (owner: GameObject) => T,
+	): T | null {
 		return this.owner.getModule(type);
 	}
-	addModule<T extends Module>(type: new (owner: IModular) => T): T {
+	addModule<T extends Module>(type: new (owner: GameObject) => T): T {
 		return this.owner.addModule(type);
 	}
 	removeModule(module: Module): void {
@@ -38,9 +46,11 @@ export default abstract class Module implements Disposable, IModular {
 }
 
 export interface IModular {
-	getModules<T extends Module>(type: new (owner: IModular) => T): Iterable<T>;
-	getModule<T extends Module>(type: new (owner: IModular) => T): T | null;
-	addModule<T extends Module>(type: new (owner: IModular) => T): T;
+	getModules<T extends Module>(
+		type: new (owner: GameObject) => T,
+	): Iterable<T>;
+	getModule<T extends Module>(type: new (owner: GameObject) => T): T | null;
+	addModule<T extends Module>(type: new (owner: GameObject) => T): T;
 	removeModule(module: Module): void;
 }
 
@@ -48,8 +58,8 @@ export class ModuleCollection extends Module implements IModular {
 	private modules: Module[] = [];
 
 	public *getModules<T extends Module>(
-		type: new (owner: IModular) => T,
-	): Iterable<T> {
+		type: abstract new (owner: GameObject) => T,
+	): Generator<T> {
 		for (const module of this.modules) {
 			if (module instanceof type) {
 				yield module as T;
@@ -58,7 +68,7 @@ export class ModuleCollection extends Module implements IModular {
 	}
 
 	public getModule<T extends Module>(
-		type: new (owner: IModular) => T,
+		type: abstract new (owner: GameObject) => T,
 	): T | null {
 		for (const module of this.modules) {
 			if (module instanceof type) {
@@ -68,7 +78,7 @@ export class ModuleCollection extends Module implements IModular {
 		return null;
 	}
 
-	public addModule<T extends Module>(type: new (owner: IModular) => T): T {
+	public addModule<T extends Module>(type: new (owner: GameObject) => T): T {
 		const module = new type(this.owner);
 		this.modules.push(module);
 		return module;
@@ -140,6 +150,28 @@ export class ModuleCollection extends Module implements IModular {
 		this.each((module) => {
 			if (module.enabled) {
 				module['afterRender'](context);
+			}
+		});
+	}
+
+	protected beforeRenderGizmos(context: CanvasRenderingContext2D): void {
+		this.each((module) => {
+			if (module.enabled) {
+				module['beforeRenderGizmos'](context);
+			}
+		});
+	}
+	protected renderGizmos(context: CanvasRenderingContext2D): void {
+		this.each((module) => {
+			if (module.enabled) {
+				module['renderGizmos'](context);
+			}
+		});
+	}
+	protected afterRenderGizmos(context: CanvasRenderingContext2D): void {
+		this.each((module) => {
+			if (module.enabled) {
+				module['afterRenderGizmos'](context);
 			}
 		});
 	}

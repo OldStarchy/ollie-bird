@@ -2,10 +2,11 @@ import birdDown from '../../assets/bird-down.png';
 import birdRight from '../../assets/bird-right.png';
 import birdUp from '../../assets/bird-up.png';
 import ButtonState from '../ButtonState';
-import CircleCollider from '../CircleCollider';
 import { LAYER_PLAYER, TAG_LEVEL_OBJECT } from '../const';
 import GameObject from '../GameObject';
 import type IGame from '../IGame';
+import CircleCollider2d from '../modules/CircleCollider2d';
+import Collider2d from '../modules/Collider2d';
 import Vec2 from '../Vec2';
 import Baddie from './Baddie';
 import Explosion from './Explosion';
@@ -39,6 +40,9 @@ class Bird extends GameObject {
 		super(game);
 		this.tags.add(TAG_LEVEL_OBJECT);
 		this.gravity = game.physics.g;
+
+		const collider = this.addModule(CircleCollider2d);
+		collider.radius = 20;
 	}
 
 	private paused: boolean = false;
@@ -46,7 +50,6 @@ class Bird extends GameObject {
 	togglePause() {
 		this.paused = !this.paused;
 	}
-
 
 	protected handleInput() {
 		// Key Downs
@@ -75,9 +78,9 @@ class Bird extends GameObject {
 		}
 
 		// Key Releaseds
-		if (this.game.keyboard.getKey("ArrowUp") == ButtonState.Released) {
+		if (this.game.keyboard.getKey('ArrowUp') == ButtonState.Released) {
 			if (!this.flappedOnce) {
-				this.ySpeed = -this.holdTime / 0.3 * 6;
+				this.ySpeed = (-this.holdTime / 0.3) * 6;
 			}
 			this.holdTime = 0;
 			this.gravity = this.game.physics.g;
@@ -89,32 +92,27 @@ class Bird extends GameObject {
 	}
 
 	protected checkObjCollisions() {
-		for (const obj of this.game.getObjects()) {
+		const myCollider = this.getModule(CircleCollider2d);
+		if (!myCollider) return;
+
+		for (const obj of this.game
+			.findObjectsByType(Obstacle, Baddie, Goal)
+			.filter(Collider2d.collidingWith(myCollider.getCollider()))) {
 			if (obj instanceof Obstacle || obj instanceof Baddie) {
-				if (
-					this.getCollider().isCollidingWithRectangle(
-						obj.getCollider(),
-					)
-				) {
-					this.die();
-				}
+				this.die();
+				return;
 			} else if (obj instanceof Goal) {
-				if (
-					this.getCollider().isCollidingWithRectangle(
-						obj.getCollider(),
-					)
-				) {
-					this.togglePause();
+				this.togglePause();
 
-					//spawn explosions in a circle
-					for (let i = 0; i < 12; i++) {
-						const angle = (i / 12) * Math.PI * 2;
-						const x = this.position.x + Math.cos(angle) * 200;
-						const y = this.position.y + Math.sin(angle) * 200;
+				//spawn explosions in a circle
+				for (let i = 0; i < 12; i++) {
+					const angle = (i / 12) * Math.PI * 2;
+					const x = this.position.x + Math.cos(angle) * 200;
+					const y = this.position.y + Math.sin(angle) * 200;
 
-						this.createExplosion(x, y, -20, 100, 1);
-					}
+					this.createExplosion(x, y, -20, 100, 1);
 				}
+				return;
 			}
 		}
 	}
@@ -130,9 +128,7 @@ class Bird extends GameObject {
 		}
 	}
 
-
 	protected override update() {
-
 		if (this.paused) {
 			return;
 		}
@@ -140,7 +136,6 @@ class Bird extends GameObject {
 		this.handleInput();
 		this.checkOutOfBounds();
 		this.checkObjCollisions();
-
 	}
 
 	private createExplosion(
@@ -161,9 +156,6 @@ class Bird extends GameObject {
 		console.log('Collision detected!');
 		this.createExplosion(...this.position.xy, 10, 50, 2);
 		this.destroy();
-	}
-	getCollider(): CircleCollider {
-		return new CircleCollider(...this.position.xy, 20);
 	}
 
 	protected override render(context: CanvasRenderingContext2D) {

@@ -51,6 +51,16 @@ export default class Vec2 implements Vec2Like {
 		return new Vec2(this.x / length, this.y / length);
 	}
 
+	inormalize(): Vec2 {
+		const length = this.hypot();
+		if (length === 0) {
+			return this;
+		}
+		this.x /= length;
+		this.y /= length;
+		return this;
+	}
+
 	set(x: number, y: number): void;
 	set(vec: Vec2Like): void;
 
