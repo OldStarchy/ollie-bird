@@ -1,6 +1,6 @@
 import ButtonState from '../ButtonState';
 import RectangleCollider from '../collider/RectangleCollider';
-import { GRID_SIZE, TAG_LEVEL_OBJECT, TAG_LEVEL_STRUCTURE } from '../const';
+import { CELL_SIZE, TAG_LEVEL_OBJECT, TAG_LEVEL_STRUCTURE } from '../const';
 import GameObject from '../GameObject';
 import type IGame from '../IGame';
 import Collider2d from '../modules/Collider2d';
@@ -33,7 +33,7 @@ export default class LevelEditor extends GameObject {
 	layer = 200;
 	mode: EditorMode = EditorMode.AddObstacle;
 
-	gridSize: number = GRID_SIZE;
+	gridSize: number = CELL_SIZE;
 
 	dragStart: { x: number; y: number } | null = null;
 	constructor(game: IGame) {
