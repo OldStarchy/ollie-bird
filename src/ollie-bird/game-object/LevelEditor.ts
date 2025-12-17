@@ -3,19 +3,23 @@ import RectangleCollider from '../collider/RectangleCollider';
 import { CELL_SIZE, TAG_LEVEL_OBJECT, TAG_LEVEL_STRUCTURE } from '../const';
 import GameObject from '../GameObject';
 import type IGame from '../IGame';
+import Rect2 from '../math/Rect2';
 import Collider2d from '../modules/Collider2d';
+import SequentialGateManager from '../modules/SequentialGateManager';
 import Mouse from '../Mouse';
 import BaddieSpawner from './BaddieSpawner';
 import Bird from './Bird';
 import Goal from './Goal';
 import Obstacle from './Obstacle';
 import type RectangleTrigger from './RectangleTrigger';
+import SequentialGate from './SequentialGate';
 import SpawnPoint from './SpawnPoint';
 
 enum EditorMode {
 	AddObstacle,
-	DeleteObstacle,
+	DeleteThings,
 	SetSpawnPoint,
+	AddGate,
 	SetGoal,
 	AddBaddie,
 	LAST = AddBaddie,
@@ -23,8 +27,9 @@ enum EditorMode {
 
 const editorModeLabels = {
 	[EditorMode.AddObstacle]: 'add obstacle',
-	[EditorMode.DeleteObstacle]: 'delete obstacle',
+	[EditorMode.DeleteThings]: 'delete things',
 	[EditorMode.SetSpawnPoint]: 'set spawn point',
+	[EditorMode.AddGate]: 'add gate',
 	[EditorMode.SetGoal]: 'set goal',
 	[EditorMode.AddBaddie]: 'add baddie',
 } as const;
@@ -36,8 +41,11 @@ export default class LevelEditor extends GameObject {
 	gridSize: number = CELL_SIZE;
 
 	dragStart: { x: number; y: number } | null = null;
-	constructor(game: IGame) {
-		super(game);
+
+	protected override initialize(): void {
+		super.initialize();
+
+		this.addModule(SequentialGateManager);
 	}
 
 	alignToGrid(obj: { x: number; y: number }): { x: number; y: number } {
@@ -91,8 +99,9 @@ export default class LevelEditor extends GameObject {
 
 		switch (this.mode) {
 			case EditorMode.AddObstacle:
-			case EditorMode.DeleteObstacle:
+			case EditorMode.DeleteThings:
 			case EditorMode.SetGoal:
+			case EditorMode.AddGate:
 				if (this.dragStart === null) {
 					if (
 						this.game.mouse.getButton(Mouse.BUTTON_LEFT) ===
@@ -102,18 +111,21 @@ export default class LevelEditor extends GameObject {
 					}
 				} else {
 					if (!this.game.mouse.getButtonDown(Mouse.BUTTON_LEFT)) {
-						const x1 = Math.min(this.dragStart.x, mPos.x);
-						const y1 = Math.min(this.dragStart.y, mPos.y);
-						const x2 = Math.max(this.dragStart.x, mPos.x);
-						const y2 = Math.max(this.dragStart.y, mPos.y);
+						const rect = Rect2.fromAABB(
+							this.dragStart.x,
+							this.dragStart.y,
+							mPos.x,
+							mPos.y,
+						);
+
 						this.dragStart = null;
 
-						const rect = {
-							x: x1,
-							y: y1,
-							width: x2 - x1,
-							height: y2 - y1,
-						};
+						if (rect.width === 0 || rect.height === 0) {
+							return;
+						}
+
+						rect.noramlize();
+
 						switch (this.mode) {
 							case EditorMode.AddObstacle:
 								this.spawnCollider(
@@ -124,10 +136,10 @@ export default class LevelEditor extends GameObject {
 									rect.height,
 								);
 								break;
-							case EditorMode.DeleteObstacle: {
+							case EditorMode.DeleteThings: {
 								// Check collision with obstacles in the selection area
 								for (const obj of this.game
-									.findObjectsByType(Obstacle)
+									.findObjectsByType(Obstacle, SequentialGate)
 									.filter(
 										Collider2d.collidingWith(
 											new RectangleCollider(
@@ -142,6 +154,16 @@ export default class LevelEditor extends GameObject {
 								}
 								break;
 							}
+
+							case EditorMode.AddGate:
+								this.spawnCollider(
+									SequentialGate,
+									rect.x,
+									rect.y,
+									rect.width,
+									rect.height,
+								);
+								break;
 
 							case EditorMode.SetGoal:
 								this.game
@@ -258,11 +280,22 @@ export default class LevelEditor extends GameObject {
 			});
 		}
 
+		const gates = [];
+		for (const obj of this.game.findObjectsByType(SequentialGate)) {
+			gates.push({
+				type: 'gate_rectangle',
+				...obj.transform.position,
+				width: obj.width,
+				height: obj.height,
+			});
+		}
+
 		return JSON.stringify(
 			{
 				obstacles,
 				goals,
 				spawn: spawn?.transform.position ?? null,
+				gates,
 			},
 			null,
 			2,
@@ -309,11 +342,6 @@ export default class LevelEditor extends GameObject {
 				}
 			}
 			if (Array.isArray(parsed.goals)) {
-				// Remove existing goals
-				this.game
-					.findObjectsByType(Goal)
-					.forEach((obj) => obj.destroy());
-
 				// Add new goals
 				for (const goal of parsed.goals) {
 					if (
@@ -333,6 +361,28 @@ export default class LevelEditor extends GameObject {
 					}
 				}
 			}
+
+			if (parsed.gates && Array.isArray(parsed.gates)) {
+				// Add new gates
+				for (const gate of parsed.gates) {
+					if (
+						gate.type === 'gate_rectangle' &&
+						typeof gate.x === 'number' &&
+						typeof gate.y === 'number' &&
+						typeof gate.width === 'number' &&
+						typeof gate.height === 'number'
+					) {
+						this.spawnCollider(
+							SequentialGate,
+							gate.x,
+							gate.y,
+							gate.width,
+							gate.height,
+						);
+					}
+				}
+			}
+
 			if (parsed.spawn) {
 				this.game
 					.findObjectsByType(SpawnPoint)
