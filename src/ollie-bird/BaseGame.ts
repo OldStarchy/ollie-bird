@@ -205,14 +205,15 @@ abstract class BaseGame implements IGame {
 	}
 
 	findObjectsByTag(tag: string): Array<GameObject> {
-		return this.objects.filter((obj) => obj.tags.has(tag)) ?? [];
+		return this.objects.filter((obj) => obj.tags.has(tag));
 	}
 
-	findObjectsByType<T extends GameObject>(
-		type: new (game: IGame) => T,
-	): Array<T> {
-		return (
-			this.objects.filter<T>((obj): obj is T => obj instanceof type) ?? []
+	findObjectsByType<T extends (new (game: IGame) => GameObject)[]>(
+		...types: T
+	): Array<InstanceType<T[number]>> {
+		return this.objects.filter<InstanceType<T[number]>>(
+			(obj): obj is InstanceType<T[number]> =>
+				types.some((type) => obj instanceof type),
 		);
 	}
 

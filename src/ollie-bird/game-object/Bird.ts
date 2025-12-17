@@ -96,13 +96,7 @@ class Bird extends GameObject {
 		if (!myCollider) return;
 
 		for (const obj of this.game
-			.getObjects()
-			.filter(
-				(obj) =>
-					obj instanceof Obstacle ||
-					obj instanceof Baddie ||
-					obj instanceof Goal,
-			)
+			.findObjectsByType(Obstacle, Baddie, Goal)
 			.filter(Collider2d.collidingWith(myCollider.getCollider()))) {
 			if (obj instanceof Obstacle || obj instanceof Baddie) {
 				this.die();

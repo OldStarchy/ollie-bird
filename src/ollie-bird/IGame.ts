@@ -19,9 +19,9 @@ export default interface IGame {
 	spawn<T extends GameObject>(type: new (game: IGame) => T): T;
 	destroy<T extends GameObject>(obj: T): void;
 	findObjectsByTag(tag: string): Array<GameObject>;
-	findObjectsByType<T extends GameObject>(
-		type: new (game: IGame) => T,
-	): Array<T>;
+	findObjectsByType<T extends (new (game: IGame) => GameObject)[]>(
+		...types: T
+	): Array<InstanceType<T[number]>>;
 	getObjects(): Array<GameObject>;
 
 	restart(): void;
