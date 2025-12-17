@@ -1,0 +1,4 @@
+{
+	"githubIssues.issueBranchTitle": "feature/${issueNumber}/${sanitizedLowercaseIssueTitle}",
+	"githubIssues.workingIssueFormatScm": "fix: ${issueTitle} \n\nfixes: ${issueNumberLabel}"
+}
