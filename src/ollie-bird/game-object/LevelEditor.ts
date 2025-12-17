@@ -3,6 +3,7 @@ import RectangleCollider from '../collider/RectangleCollider';
 import { CELL_SIZE, TAG_LEVEL_OBJECT, TAG_LEVEL_STRUCTURE } from '../const';
 import GameObject from '../GameObject';
 import type IGame from '../IGame';
+import Rect2 from '../math/Rect2';
 import Collider2d from '../modules/Collider2d';
 import SequentialGateManager from '../modules/SequentialGateManager';
 import Mouse from '../Mouse';
@@ -110,18 +111,21 @@ export default class LevelEditor extends GameObject {
 					}
 				} else {
 					if (!this.game.mouse.getButtonDown(Mouse.BUTTON_LEFT)) {
-						const x1 = Math.min(this.dragStart.x, mPos.x);
-						const y1 = Math.min(this.dragStart.y, mPos.y);
-						const x2 = Math.max(this.dragStart.x, mPos.x);
-						const y2 = Math.max(this.dragStart.y, mPos.y);
+						const rect = Rect2.fromAABB(
+							this.dragStart.x,
+							this.dragStart.y,
+							mPos.x,
+							mPos.y,
+						);
+
 						this.dragStart = null;
 
-						const rect = {
-							x: x1,
-							y: y1,
-							width: x2 - x1,
-							height: y2 - y1,
-						};
+						if (rect.width === 0 || rect.height === 0) {
+							return;
+						}
+
+						rect.noramlize();
+
 						switch (this.mode) {
 							case EditorMode.AddObstacle:
 								this.spawnCollider(
