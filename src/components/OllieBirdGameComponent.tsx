@@ -1,5 +1,8 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { styled } from '@stitches/react';
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import OllieBirdGame from '../ollie-bird/OllieBirdGame';
+import Button from './Button';
+import Card from './Card';
 
 declare global {
 	interface GameEventMap {
@@ -42,7 +45,10 @@ function OllieBirdGameComponent() {
 						zIndex: 1000,
 					}}
 				>
-					<LevelPicker game={game} />
+					<LevelPicker
+						game={game}
+						onClose={() => game.canvas.focus()}
+					/>
 				</div>
 			)}
 
@@ -74,9 +80,36 @@ const localStorageKeyPrefix = 'ollie-bird-level-';
 	}
 })();
 
-function LevelPicker({ game }: { game: OllieBirdGame }) {
+const InputWrapper = styled('div', {
+	padding: '0.25rem',
+	lineHeight: '1',
+	borderRadius: '0.25rem',
+	backgroundColor: '#aeaeae',
+	color: 'black',
+	boxShadow:
+		' -1px -1px 4px rgba(0,0,0,0.8),2px 2px 5px rgba(255, 255, 255,0.3)',
+	overflow: 'hidden',
+});
+
+const Input = styled('input', {
+	backgroundColor: 'transparent',
+	borderBottom: '1px solid black',
+
+	'&:focus': {
+		outline: '0.25rem solid rgba(255, 255, 255, 0.5)',
+	},
+});
+
+function LevelPicker({
+	game,
+	onClose,
+}: {
+	game: OllieBirdGame;
+	onClose?: () => void;
+}) {
 	const [levels, setLevels] = useState<string[]>([]);
 	const [visible, setVisible] = useState<boolean>(false);
+	const [levelName, setLevelName] = useState<string>('');
 
 	const refreshLevels = useCallback(() => {
 		setLevels(
@@ -92,6 +125,7 @@ function LevelPicker({ game }: { game: OllieBirdGame }) {
 		const data = localStorage.getItem(localStorageKeyPrefix + levelName);
 		if (data) {
 			game.event.emit('loadLevel', data);
+			setLevelName(levelName);
 		}
 	};
 	const loadEmpty = () => {
@@ -159,174 +193,153 @@ function LevelPicker({ game }: { game: OllieBirdGame }) {
 
 	if (!visible) {
 		return (
-			<button
-				style={{
+			<Button
+				css={{
 					border: '1px outset black',
-					backgroundColor: 'lightgray',
-					color: 'black',
 					padding: '0.25rem 0.5rem',
+					opacity: 0.5,
+					transition: 'opacity 200ms',
+					'&:hover': {
+						opacity: 1,
+					},
 				}}
-				className="showOnHover"
 				onClick={() => setVisible(true)}
 			>
 				Levels
-			</button>
+			</Button>
 		);
 	}
 
 	levels.sort((a, b) => a.localeCompare(b, 'en', { numeric: true }));
 
 	return (
-		<div
-			style={{
-				backgroundColor: 'white',
-				color: 'black',
-				border: '1px solid black',
-				padding: 10,
-			}}
-		>
-			<button
+		<Card>
+			<div
 				style={{
-					position: 'absolute',
-					right: '0.5rem',
-					top: '0.5rem',
-					width: '1.5rem',
-					height: '1.5rem',
-					textAlign: 'center',
-					border: '1px outset black',
-					backgroundColor: 'lightgray',
+					display: 'flex',
+					flexDirection: 'column',
+					gap: '1rem',
 				}}
-				onClick={() => setVisible(false)}
 			>
-				X
-			</button>
-			<h3>Levels</h3>
-			<ul style={{ paddingLeft: '0.5rem' }}>
-				{levels.map((levelKey) => {
-					const levelName = levelKey.substring(
-						localStorageKeyPrefix.length,
-					);
-					return (
-						<li key={levelKey}>
-							{levelName}
-							<button
-								style={{
-									border: '1px outset black',
-									backgroundColor: 'lightgray',
-									padding: '0 0.25rem',
-									marginLeft: '0.5rem',
-								}}
-								onClick={() => loadLevel(levelName)}
-							>
-								Load
-							</button>
-							<button
-								style={{
-									border: '1px outset black',
-									backgroundColor: 'lightgray',
-									padding: '0 0.25rem',
-									marginLeft: '0.5rem',
-								}}
-								onClick={() => saveLevel(levelName)}
-							>
-								Overwrite
-							</button>
-							<button
-								style={{
-									border: '1px outset black',
-									backgroundColor: 'lightgray',
-									padding: '0 0.25rem',
-									marginLeft: '0.5rem',
-								}}
-								onClick={() => exportLevel(levelName)}
-							>
-								Export
-							</button>
-							<button
-								style={{
-									border: '1px outset black',
-									backgroundColor: 'lightgray',
-									padding: '0 0.25rem',
-									marginLeft: '0.5rem',
-								}}
-								onClick={() => duplicateLevel(levelName)}
-							>
-								Duplicate
-							</button>
-							<button
-								style={{
-									border: '1px outset black',
-									backgroundColor: 'lightgray',
-									padding: '0 0.25rem',
-									marginLeft: '0.5rem',
-								}}
-								onClick={() => deleteLevel(levelName)}
-							>
-								Delete
-							</button>
-						</li>
-					);
-				})}
-			</ul>
-			<div>
-				<input
-					type="text"
-					id="new-level-name"
-					placeholder="Level name"
+				<Button
 					style={{
-						backgroundColor: '#eaeaea',
-						borderBottom: '1px solid black',
-					}}
-				/>
-				<button
-					style={{
-						border: '1px outset black',
-						backgroundColor: 'lightgray',
-						padding: '0 0.25rem',
+						position: 'absolute',
+						right: '0.5rem',
+						top: '0.5rem',
+						width: '1.5rem',
+						height: '1.5rem',
+						textAlign: 'center',
+						borderRadius: '50%',
 					}}
 					onClick={() => {
-						const input = document.getElementById(
-							'new-level-name',
-						) as HTMLInputElement;
-						if (input && input.value) {
-							saveLevel(input.value);
-							input.value = '';
+						setVisible(false);
+						onClose?.();
+					}}
+				>
+					X
+				</Button>
+				<h3>Levels</h3>
+				<div
+					style={{
+						display: 'grid',
+						gridTemplateColumns: '1fr repeat(5, auto)',
+						gap: '0.5rem',
+						marginLeft: '0.5rem',
+					}}
+				>
+					{levels.map((levelKey) => {
+						const levelName = levelKey.substring(
+							localStorageKeyPrefix.length,
+						);
+						return (
+							<Fragment key={levelKey}>
+								<span>{levelName}</span>
+								<Button onClick={() => loadLevel(levelName)}>
+									Load
+								</Button>
+								<Button
+									variant="destructive"
+									onClick={() => saveLevel(levelName)}
+								>
+									Overwrite
+								</Button>
+								<Button onClick={() => exportLevel(levelName)}>
+									Copy
+								</Button>
+								<Button
+									onClick={() => duplicateLevel(levelName)}
+								>
+									Duplicate
+								</Button>
+								<Button
+									variant="destructive"
+									onClick={() => deleteLevel(levelName)}
+								>
+									Delete
+								</Button>
+							</Fragment>
+						);
+					})}
+				</div>
+				<form
+					style={{
+						display: 'flex',
+						gap: '0.5rem',
+					}}
+					onSubmit={(e) => {
+						e.preventDefault();
+
+						if (levelName) {
+							if (
+								levels.includes(
+									localStorageKeyPrefix + levelName,
+								)
+							) {
+								if (
+									!confirm(
+										'A level with this name already exists. Overwrite?',
+									)
+								) {
+									return;
+								}
+							}
+
+							saveLevel(levelName);
 						} else {
 							alert('Please enter a level name.');
 						}
 					}}
 				>
-					Save Current Level
-				</button>
-			</div>
-			<div>
-				<button
+					<InputWrapper>
+						<Input
+							type="text"
+							id="new-level-name"
+							placeholder="Level name"
+							value={levelName}
+							onChange={(e) => setLevelName(e.target.value)}
+						/>
+					</InputWrapper>
+					<Button>Save</Button>
+				</form>
+				<div
 					style={{
-						border: '1px outset black',
-						backgroundColor: 'lightgray',
-						padding: '0 0.25rem',
-						marginLeft: '0.5rem',
+						display: 'flex',
+						gap: '0.5rem',
 					}}
-					onClick={() => importLevel()}
 				>
-					Import Level
-				</button>
+					<Button onClick={() => importLevel()}>Import Level</Button>
 
-				<button
-					style={{
-						border: '1px outset black',
-						backgroundColor: 'lightgray',
-						padding: '0 0.25rem',
-						marginLeft: '0.5rem',
-					}}
-					onClick={() => {
-						loadEmpty();
-					}}
-				>
-					Clear
-				</button>
+					<Button
+						variant="destructive"
+						onClick={() => {
+							loadEmpty();
+						}}
+					>
+						Clear Level
+					</Button>
+				</div>
 			</div>
-		</div>
+		</Card>
 	);
 }
 
