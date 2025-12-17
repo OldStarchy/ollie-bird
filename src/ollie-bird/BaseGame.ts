@@ -1,4 +1,4 @@
-import {TAG_LEVEL_OBJECT} from './const';
+import { TAG_LEVEL_OBJECT } from './const';
 import EventSource from './EventSource';
 import type GameObject from './GameObject';
 import type ICollection from './ICollection';
@@ -13,6 +13,7 @@ abstract class BaseGame implements IGame {
 	private readonly objects: InstanceType<
 		typeof BaseGame.GameObjectCollection
 	>;
+	private shouldRefreshSize: boolean = true;
 
 	public readonly keyboard: Keyboard;
 	public readonly mouse: Mouse;
@@ -39,13 +40,35 @@ abstract class BaseGame implements IGame {
 		this.context = context;
 
 		this.objects = new BaseGame.GameObjectCollection();
-
-		canvas.tabIndex = -1;
-		canvas.focus();
-
 		this.keyboard = new Keyboard(canvas, this.abortController.signal);
 		this.mouse = new Mouse(canvas, this.abortController.signal);
 		this.event = new EventSource<GameEventMap>();
+
+		this.initCanvas();
+	}
+
+	private initCanvas() {
+		this.canvas.tabIndex = -1;
+		this.canvas.focus();
+
+		globalThis.addEventListener(
+			'resize',
+			() => {
+				this.shouldRefreshSize = true;
+			},
+			this.abortController,
+		);
+	}
+
+	private refreshCanvasViewport(): void {
+		this.canvas.style.width = '100vw';
+		this.canvas.style.height = '100vh';
+		this.canvas.width = this.canvas.clientWidth;
+		this.canvas.height = this.canvas.clientHeight;
+		this.canvas.style.width = `${this.canvas.clientWidth}px`;
+		this.canvas.style.height = `${this.canvas.clientHeight}px`;
+
+		this.shouldRefreshSize = false;
 	}
 
 	start() {
@@ -101,6 +124,10 @@ abstract class BaseGame implements IGame {
 	}
 
 	render() {
+		if (this.shouldRefreshSize) {
+			this.refreshCanvasViewport();
+		}
+
 		this.renderQueued = false;
 		this.context.fillStyle = this.backgroundColor;
 		this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
