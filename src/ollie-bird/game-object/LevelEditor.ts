@@ -75,7 +75,6 @@ export default class LevelEditor extends GameObject {
 	}
 
 	protected override update(): void {
-		this.handleSaveKeys();
 		if (this.game.keyboard.getKey('Tab') === ButtonState.Pressed) {
 			this.mode = (this.mode + 1) % (EditorMode.LAST + 1);
 		}
@@ -403,52 +402,6 @@ export default class LevelEditor extends GameObject {
 			}
 		} catch (error) {
 			console.error('Error loading level data:', error);
-		}
-	}
-
-	handleSaveKeys(): void {
-		//shift+number to save level data
-		for (let i = 0; i <= 9; i++) {
-			if (
-				this.game.keyboard.getKey(`Digit${i + 1}`) ===
-					ButtonState.Pressed &&
-				(this.game.keyboard.isKeyDown('ShiftLeft') ||
-					this.game.keyboard.isKeyDown('ShiftRight'))
-			) {
-				const data = this.getLevelData();
-				localStorage.setItem(`level_${i}`, data);
-				console.log(`Level data saved to slot ${i}`);
-				return;
-			}
-		}
-
-		//number to load level data
-		for (let i = 0; i <= 9; i++) {
-			if (
-				this.game.keyboard.getKey(`Digit${i + 1}`) ===
-				ButtonState.Pressed
-			) {
-				const data = localStorage.getItem(`level_${i}`);
-				if (data) {
-					this.loadLevelData(data);
-					console.log(`Level data loaded from slot ${i}`);
-				} else {
-					this.loadLevelData(
-						JSON.stringify({
-							obstacles: [],
-							goals: [],
-							spawn: null,
-						}),
-					);
-					console.log(`No level data found in slot ${i}`);
-				}
-				return;
-			}
-		}
-
-		if (this.game.keyboard.getKey('Backquote') === ButtonState.Pressed) {
-			this.removeAll();
-			console.log('Level data cleared');
 		}
 	}
 }

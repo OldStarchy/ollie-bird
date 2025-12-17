@@ -60,6 +60,20 @@ function OllieBirdGameComponent() {
 
 const localStorageKeyPrefix = 'ollie-bird-level-';
 
+(() => {
+	for (const key in localStorage) {
+		const match = /^level_(?<numeral>\d+)$/.exec(key);
+		if (match) {
+			const numeral = match.groups?.numeral;
+			if (numeral) {
+				const newKey = localStorageKeyPrefix + 'Imported-' + numeral;
+				localStorage.setItem(newKey, localStorage.getItem(key) || '');
+				localStorage.removeItem(key);
+			}
+		}
+	}
+})();
+
 function LevelPicker({ game }: { game: OllieBirdGame }) {
 	const [levels, setLevels] = useState<string[]>([]);
 	const [visible, setVisible] = useState<boolean>(false);
