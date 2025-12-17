@@ -1,4 +1,5 @@
 {
-	"githubIssues.issueBranchTitle": "feature/${issueNumber}/${sanitizedLowercaseIssueTitle}",
-	"githubIssues.workingIssueFormatScm": "fix: ${issueTitle} \n\nfixes: ${issueNumberLabel}"
+	"githubIssues.issueBranchTitle": "feature/${sanitizedLowercaseIssueTitle}",
+	"githubIssues.workingIssueFormatScm": "fix: ${issueTitle} \n\nfixes: ${issueNumberLabel}",
+	"githubPullRequests.createDefaultBaseBranch": "repositoryDefault"
 }
