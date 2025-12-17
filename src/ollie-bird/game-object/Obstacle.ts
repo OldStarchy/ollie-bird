@@ -1,4 +1,4 @@
-import { GRID_SIZE, TAG_LEVEL_STRUCTURE } from '../const';
+import { CELL_SIZE, TAG_LEVEL_STRUCTURE } from '../const';
 import RectangleTrigger from './RectangleTrigger';
 
 import wallBottomLeft from '../../assets/wall-bottom-left.png';
@@ -43,16 +43,16 @@ class Obstacle extends RectangleTrigger {
 	}
 
 	protected override render(context: CanvasRenderingContext2D) {
-		const hg = GRID_SIZE / 2;
+		const hg = CELL_SIZE / 2;
 		// Calculate grid dimensions (x, y, width, height are already grid-aligned)
-		const gridWidth = this.width / GRID_SIZE + 1;
-		const gridHeight = this.height / GRID_SIZE + 1;
+		const gridWidth = this.width / CELL_SIZE + 1;
+		const gridHeight = this.height / CELL_SIZE + 1;
 
 		// Draw tiles for each grid position covered by this obstacle
 		for (let gx = 0; gx < gridWidth; gx++) {
 			for (let gy = 0; gy < gridHeight; gy++) {
-				const tileX = this.transform.position.x + gx * GRID_SIZE;
-				const tileY = this.transform.position.y + gy * GRID_SIZE;
+				const tileX = this.transform.position.x + gx * CELL_SIZE;
+				const tileY = this.transform.position.y + gy * CELL_SIZE;
 
 				// Determine which sprite to use based on position
 				const isLeft = gx === 0;
@@ -96,8 +96,8 @@ class Obstacle extends RectangleTrigger {
 					sprite,
 					tileX - hg,
 					tileY - hg,
-					GRID_SIZE,
-					GRID_SIZE,
+					CELL_SIZE,
+					CELL_SIZE,
 				);
 			}
 		}

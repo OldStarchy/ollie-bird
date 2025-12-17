@@ -1,4 +1,4 @@
-import { GRID_SIZE, LAYER_FOREGROUND, TAG_LEVEL_STRUCTURE } from '../const';
+import { CELL_SIZE, LAYER_FOREGROUND, TAG_LEVEL_STRUCTURE } from '../const';
 import GameObject from '../GameObject';
 import Baddie from './Baddie';
 
@@ -17,9 +17,9 @@ export default class BaddieSpawner extends GameObject {
 		context.beginPath();
 		context.rect(
 			this.transform.position.x,
-			this.transform.position.y + GRID_SIZE / 2,
-			GRID_SIZE,
-			GRID_SIZE / 2,
+			this.transform.position.y + CELL_SIZE / 2,
+			CELL_SIZE,
+			CELL_SIZE / 2,
 		);
 		context.strokeStyle = 'red';
 		context.setLineDash([5, 5]);

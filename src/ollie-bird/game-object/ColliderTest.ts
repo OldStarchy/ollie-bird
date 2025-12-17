@@ -1,4 +1,4 @@
-import { GRID_SIZE } from '../const';
+import { CELL_SIZE } from '../const';
 import GameObject from '../GameObject';
 import Module from '../IModular';
 import CircleCollider2d from '../modules/CircleCollider2d';
@@ -31,10 +31,10 @@ export default class ColliderTest extends GameObject {
 		collider.renderWidget = true;
 
 		const createRandomRectCollider = () => {
-			const x = Math.floor((Math.random() * 800) / GRID_SIZE) * GRID_SIZE;
-			const y = Math.floor((Math.random() * 600) / GRID_SIZE) * GRID_SIZE;
-			const width = (Math.round(Math.random() * 5) + 1) * GRID_SIZE;
-			const height = (Math.round(Math.random() * 5) + 1) * GRID_SIZE;
+			const x = Math.floor((Math.random() * 800) / CELL_SIZE) * CELL_SIZE;
+			const y = Math.floor((Math.random() * 600) / CELL_SIZE) * CELL_SIZE;
+			const width = (Math.round(Math.random() * 5) + 1) * CELL_SIZE;
+			const height = (Math.round(Math.random() * 5) + 1) * CELL_SIZE;
 
 			const obj = this.game.spawn(GameObject);
 			obj.transform.position.x = x;
