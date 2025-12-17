@@ -30,7 +30,10 @@ export default class Mouse {
 	private previousX: number = 0;
 	private previousY: number = 0;
 
-	constructor(private element: HTMLElement, signal: AbortSignal) {
+	constructor(
+		private element: HTMLElement,
+		signal: AbortSignal,
+	) {
 		this.element.addEventListener(
 			'mousedown',
 			(e) => {
@@ -49,7 +52,7 @@ export default class Mouse {
 
 		this.element.addEventListener(
 			'mouseleave',
-			(e) => {
+			(_e) => {
 				this.buttonsPressed.clear();
 			},
 			{ signal },

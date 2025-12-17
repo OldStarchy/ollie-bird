@@ -1,5 +1,5 @@
 import type IGame from './IGame';
-import Module, {ModuleCollection, type IModular} from './IModular';
+import Module, { ModuleCollection, type IModular } from './IModular';
 import Transform2d from './modules/Transform2d';
 
 export default class GameObject implements IModular, Disposable {
@@ -35,65 +35,75 @@ export default class GameObject implements IModular, Disposable {
 		return this.modules.removeModule(module);
 	}
 
+	// @ts-expect-error
 	private doInitialize() {
 		this.initialize();
 		this.modules['initialize']();
 	}
 	protected initialize(): void {}
 
+	// @ts-expect-error
 	private doBeforeUpdate(): void {
 		this.beforeUpdate();
 		this.modules['beforeUpdate']();
 	}
 	protected beforeUpdate(): void {}
 
+	// @ts-expect-error
 	private doUpdate(): void {
 		this.update();
 		this.modules['update']();
 	}
 	protected update(): void {}
 
+	// @ts-expect-error
 	private doAfterUpdate(): void {
 		this.afterUpdate();
 		this.modules['afterUpdate']();
 	}
 	protected afterUpdate(): void {}
 
+	// @ts-expect-error
 	private doBeforeRender(context: CanvasRenderingContext2D): void {
 		this.beforeRender(context);
 		this.modules['beforeRender'](context);
 	}
-	protected beforeRender(context: CanvasRenderingContext2D): void {}
+	protected beforeRender(_context: CanvasRenderingContext2D): void {}
 
+	// @ts-expect-error
 	private doRender(context: CanvasRenderingContext2D): void {
 		this.render(context);
 		this.modules['render'](context);
 	}
-	protected render(context: CanvasRenderingContext2D): void {}
+	protected render(_context: CanvasRenderingContext2D): void {}
 
+	// @ts-expect-error
 	private doAfterRender(context: CanvasRenderingContext2D): void {
 		this.afterRender(context);
 		this.modules['afterRender'](context);
 	}
-	protected afterRender(context: CanvasRenderingContext2D): void {}
+	protected afterRender(_context: CanvasRenderingContext2D): void {}
 
+	// @ts-expect-error
 	private doBeforeRenderGizmos(context: CanvasRenderingContext2D): void {
 		this.beforeRenderGizmos(context);
 		this.modules['beforeRenderGizmos'](context);
 	}
-	protected beforeRenderGizmos(context: CanvasRenderingContext2D): void {}
+	protected beforeRenderGizmos(_context: CanvasRenderingContext2D): void {}
 
+	// @ts-expect-error
 	private doRenderGizmos(context: CanvasRenderingContext2D): void {
 		this.renderGizmos(context);
 		this.modules['renderGizmos'](context);
 	}
-	protected renderGizmos(context: CanvasRenderingContext2D): void {}
+	protected renderGizmos(_context: CanvasRenderingContext2D): void {}
 
+	// @ts-expect-error
 	private doAfterRenderGizmos(context: CanvasRenderingContext2D): void {
 		this.afterRenderGizmos(context);
 		this.modules['afterRenderGizmos'](context);
 	}
-	protected afterRenderGizmos(context: CanvasRenderingContext2D): void {}
+	protected afterRenderGizmos(_context: CanvasRenderingContext2D): void {}
 
 	onGameEvent<T extends keyof GameEventMap>(
 		event: T,

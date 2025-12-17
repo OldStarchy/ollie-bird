@@ -19,13 +19,13 @@ export default abstract class Module implements Disposable, IModular {
 	protected update(): void {}
 	protected afterUpdate(): void {}
 
-	protected beforeRender(context: CanvasRenderingContext2D): void {}
-	protected render(context: CanvasRenderingContext2D): void {}
-	protected afterRender(context: CanvasRenderingContext2D): void {}
+	protected beforeRender(_context: CanvasRenderingContext2D): void {}
+	protected render(_context: CanvasRenderingContext2D): void {}
+	protected afterRender(_context: CanvasRenderingContext2D): void {}
 
-	protected beforeRenderGizmos(context: CanvasRenderingContext2D): void {}
-	protected renderGizmos(context: CanvasRenderingContext2D): void {}
-	protected afterRenderGizmos(context: CanvasRenderingContext2D): void {}
+	protected beforeRenderGizmos(_context: CanvasRenderingContext2D): void {}
+	protected renderGizmos(_context: CanvasRenderingContext2D): void {}
+	protected afterRenderGizmos(_context: CanvasRenderingContext2D): void {}
 
 	getModules<T extends Module>(
 		type: abstract new (owner: GameObject) => T,
