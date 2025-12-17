@@ -44,7 +44,7 @@ jobs:
   # Single deploy job since we're just deploying
   deploy:
     environment:
-      # references the 'page_url' output of the actions/deploy-pages step (id'd as 'deployment')
+      # references the 'page_url' output of the actions/deploy-pages step (identified as 'deployment')
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
