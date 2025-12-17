@@ -173,6 +173,9 @@ function LevelPicker({ game }: { game: OllieBirdGame }) {
 			</button>
 		);
 	}
+
+	levels.sort((a, b) => a.localeCompare(b, 'en', { numeric: true }));
+
 	return (
 		<div
 			style={{
