@@ -45,6 +45,11 @@ export default class LevelEditor extends GameObject {
 	protected override initialize(): void {
 		super.initialize();
 
+		this.onGameEvent('getLevelData', (callback) =>
+			callback(this.getLevelData()),
+		);
+		this.onGameEvent('loadLevel', (data) => this.loadLevelData(data));
+
 		this.addModule(SequentialGateManager);
 	}
 
