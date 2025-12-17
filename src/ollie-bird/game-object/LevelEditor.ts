@@ -17,7 +17,7 @@ import SpawnPoint from './SpawnPoint';
 
 enum EditorMode {
 	AddObstacle,
-	DeleteObstacle,
+	DeleteThings,
 	SetSpawnPoint,
 	AddGate,
 	SetGoal,
@@ -27,7 +27,7 @@ enum EditorMode {
 
 const editorModeLabels = {
 	[EditorMode.AddObstacle]: 'add obstacle',
-	[EditorMode.DeleteObstacle]: 'delete obstacle',
+	[EditorMode.DeleteThings]: 'delete things',
 	[EditorMode.SetSpawnPoint]: 'set spawn point',
 	[EditorMode.AddGate]: 'add gate',
 	[EditorMode.SetGoal]: 'set goal',
@@ -99,7 +99,7 @@ export default class LevelEditor extends GameObject {
 
 		switch (this.mode) {
 			case EditorMode.AddObstacle:
-			case EditorMode.DeleteObstacle:
+			case EditorMode.DeleteThings:
 			case EditorMode.SetGoal:
 			case EditorMode.AddGate:
 				if (this.dragStart === null) {
@@ -136,10 +136,10 @@ export default class LevelEditor extends GameObject {
 									rect.height,
 								);
 								break;
-							case EditorMode.DeleteObstacle: {
+							case EditorMode.DeleteThings: {
 								// Check collision with obstacles in the selection area
 								for (const obj of this.game
-									.findObjectsByType(Obstacle)
+									.findObjectsByType(Obstacle, SequentialGate)
 									.filter(
 										Collider2d.collidingWith(
 											new RectangleCollider(
