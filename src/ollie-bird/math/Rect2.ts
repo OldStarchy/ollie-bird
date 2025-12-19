@@ -22,6 +22,22 @@ export default class Rect2 implements Rect2Like {
 		return new Rect2(minX, minY, maxX - minX, maxY - minY);
 	}
 
+	copy(rect: Rect2Like): this {
+		this.x = rect.x;
+		this.y = rect.y;
+		this.width = rect.width;
+		this.height = rect.height;
+		return this;
+	}
+
+	set(x: number, y: number, width: number, height: number): this {
+		this.x = x;
+		this.y = y;
+		this.width = width;
+		this.height = height;
+		return this;
+	}
+
 	noramlize(): this {
 		if (this.width <= 0) {
 			this.x += this.width;
