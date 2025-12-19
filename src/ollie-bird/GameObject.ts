@@ -28,8 +28,13 @@ export default class GameObject implements IModular, Disposable {
 	): T | null {
 		return this.modules.getModule(type);
 	}
-	addModule<T extends Module>(type: new (owner: GameObject) => T): T {
-		return this.modules.addModule(type);
+	addModule<Clazz extends new (owner: GameObject, ...args: any[]) => any>(
+		type: Clazz,
+		...args: ConstructorParameters<Clazz> extends [GameObject, ...infer P]
+			? P
+			: []
+	): InstanceType<Clazz> {
+		return this.modules.addModule(type, ...args);
 	}
 	removeModule(module: Module): void {
 		return this.modules.removeModule(module);
