@@ -5,24 +5,17 @@ import RectangleCollider2d from '../modules/RectangleCollider2d';
 import baddie1 from '../../assets/baddie-1.png';
 import baddie2 from '../../assets/baddie-2.png';
 import RayCollider from '../collider/RayCollider';
+import Animation from '../modules/Animation';
 import Collider2d from '../modules/Collider2d';
+import Sprite from '../Sprite';
 import Obstacle from './Obstacle';
 
 export default class Baddie extends GameObject {
 	layer = LAYER_ENEMYS;
 	dir = Math.sign(Math.random() - 0.5) || 1;
-	time = 0;
 	speed = 2;
 
-	static sprites = {
-		baddie1: new Image(),
-		baddie2: new Image(),
-	};
-
-	static {
-		Baddie.sprites.baddie1.src = baddie1;
-		Baddie.sprites.baddie2.src = baddie2;
-	}
+	static frames = [baddie1, baddie2].map((src) => new Sprite(src));
 
 	protected override initialize(): void {
 		this.tags.add(TAG_LEVEL_OBJECT);
@@ -32,6 +25,9 @@ export default class Baddie extends GameObject {
 		hurtBox.top = CELL_SIZE * 0.5;
 		hurtBox.width = CELL_SIZE;
 		hurtBox.height = CELL_SIZE * 0.5;
+
+		const anim = this.addModule(Animation, Baddie.frames, 0.3);
+		anim.rectangle.set(0, CELL_SIZE / 2, CELL_SIZE, CELL_SIZE / 2);
 	}
 
 	protected override update() {
@@ -60,27 +56,5 @@ export default class Baddie extends GameObject {
 		} else {
 			this.transform.position.x = nextX;
 		}
-
-		this.time += 1;
-	}
-
-	protected override render(context: CanvasRenderingContext2D) {
-		using _ = this.transform.push(context);
-
-		context.fillStyle = 'red';
-		context.fillRect(0, CELL_SIZE / 2, CELL_SIZE, CELL_SIZE / 2);
-
-		const sprite =
-			this.time % 20 < 10
-				? Baddie.sprites.baddie1
-				: Baddie.sprites.baddie2;
-
-		context.drawImage(
-			sprite,
-			-CELL_SIZE * 0.2,
-			-CELL_SIZE * 0.2 + CELL_SIZE / 2,
-			CELL_SIZE * 1.4,
-			(1.4 * CELL_SIZE) / 2,
-		);
 	}
 }
