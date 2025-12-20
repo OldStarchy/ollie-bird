@@ -4,6 +4,7 @@ import RectangleCollider2d from '../modules/RectangleCollider2d';
 class RectangleTrigger extends GameObject {
 	layer = 0;
 	style: string | null = null;
+
 	public width: number = 0;
 	public height: number = 0;
 

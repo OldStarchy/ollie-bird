@@ -3,6 +3,7 @@ import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import OllieBirdGame from '../ollie-bird/OllieBirdGame';
 import Button from './Button';
 import Card from './Card';
+import { TestModelForm } from './ModelForm';
 
 declare global {
 	interface GameEventMap {
@@ -338,6 +339,9 @@ function LevelPicker({
 						Clear Level
 					</Button>
 				</div>
+			</div>
+			<div>
+				<TestModelForm />
 			</div>
 		</Card>
 	);
