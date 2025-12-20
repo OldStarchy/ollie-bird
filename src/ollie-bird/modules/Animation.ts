@@ -21,6 +21,9 @@ export default class Animation extends Module {
 		public frameDuration: number,
 		public loop: boolean = true,
 	) {
+		if (images.length <= 1) {
+			throw new Error('Animation must have at least two frames.');
+		}
 		super(owner);
 	}
 
@@ -30,12 +33,13 @@ export default class Animation extends Module {
 		this.time += this.owner.game.secondsPerFrame;
 		const totalDuration = this.frameDuration * this.images.length;
 
-		if (this.time > totalDuration) {
+		if (this.time > totalDuration || this.time < 0) {
 			if (this.loop) {
 				this.events.emit('looped', void 0);
-				this.time = this.time % totalDuration;
+				this.time = (this.time + totalDuration) % totalDuration;
 			} else {
-				this.time = totalDuration;
+				if (this.frameDuration > 0) this.time = totalDuration;
+				else this.time = 0;
 				this.events.emit('ended', void 0);
 				this.paused = true;
 			}
@@ -43,7 +47,13 @@ export default class Animation extends Module {
 	}
 
 	protected override render(context: CanvasRenderingContext2D): void {
-		const frameIndex = Math.floor(this.time / this.frameDuration);
+		let frameIndex = Math.floor(this.time / this.frameDuration);
+
+		if (frameIndex >= this.images.length) {
+			frameIndex = this.images.length - 1;
+		} else if (frameIndex < 0) {
+			frameIndex = 0;
+		}
 
 		if (frameIndex < this.images.length) {
 			const image = this.images[frameIndex]!;

@@ -7,7 +7,7 @@ export default class Sprite {
 	constructor(image: HTMLImageElement, sourceRect?: Rect2Like);
 	constructor(src: string, sourceRect?: Rect2Like);
 
-	constructor(imageOrSrc: HTMLImageElement | string, sourceRect: Rect2Like) {
+	constructor(imageOrSrc: HTMLImageElement | string, sourceRect?: Rect2Like) {
 		this.image = Sprite.toImage(imageOrSrc);
 
 		if (sourceRect) {
