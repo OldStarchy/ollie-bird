@@ -78,8 +78,15 @@ export class ModuleCollection extends Module implements IModular {
 		return null;
 	}
 
-	public addModule<T extends Module>(type: new (owner: GameObject) => T): T {
-		const module = new type(this.owner);
+	public addModule<
+		Clazz extends new (owner: GameObject, ...args: any[]) => any,
+	>(
+		type: Clazz,
+		...args: ConstructorParameters<Clazz> extends [GameObject, ...infer P]
+			? P
+			: []
+	): InstanceType<Clazz> {
+		const module = new type(this.owner, ...args);
 		this.modules.push(module);
 		return module;
 	}

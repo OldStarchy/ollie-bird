@@ -7,6 +7,7 @@ import GameObject from '../GameObject';
 import type IGame from '../IGame';
 import CircleCollider2d from '../modules/CircleCollider2d';
 import Collider2d from '../modules/Collider2d';
+import Sprite from '../Sprite';
 import Vec2 from '../Vec2';
 import Baddie from './Baddie';
 import Explosion from './Explosion';
@@ -26,16 +27,10 @@ class Bird extends GameObject {
 	}
 
 	static sprites = {
-		right: new Image(),
-		up: new Image(),
-		down: new Image(),
+		right: new Sprite(birdRight),
+		up: new Sprite(birdUp),
+		down: new Sprite(birdDown),
 	};
-
-	static {
-		this.sprites.right.src = birdRight;
-		this.sprites.up.src = birdUp;
-		this.sprites.down.src = birdDown;
-	}
 
 	constructor(game: IGame) {
 		super(game);
@@ -194,7 +189,7 @@ class Bird extends GameObject {
 		if (flip) {
 			context.scale(-1, 1);
 		}
-		context.drawImage(sprite, -30, -30, 60, 60);
+		sprite.blit(context, -30, -30, 60, 60);
 		context.restore();
 	}
 }
