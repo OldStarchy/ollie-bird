@@ -55,15 +55,13 @@ export default class Animation extends Module {
 			frameIndex = 0;
 		}
 
-		if (frameIndex < this.images.length) {
-			const image = this.images[frameIndex]!;
-			image.blit(
-				context,
-				this.owner.transform.position.x + this.rectangle.x,
-				this.owner.transform.position.y + this.rectangle.y,
-				this.rectangle.width,
-				this.rectangle.height,
-			);
-		}
+		const image = this.images[frameIndex]!;
+		image.blit(
+			context,
+			this.owner.transform.position.x + this.rectangle.x,
+			this.owner.transform.position.y + this.rectangle.y,
+			this.rectangle.width,
+			this.rectangle.height,
+		);
 	}
 }
