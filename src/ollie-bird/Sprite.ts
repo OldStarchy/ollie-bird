@@ -22,7 +22,6 @@ export default class Sprite {
 						this.image.naturalWidth,
 						this.image.naturalHeight,
 					);
-					return false;
 				},
 				{ once: true },
 			);
