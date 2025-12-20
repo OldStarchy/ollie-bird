@@ -53,7 +53,9 @@ export default abstract class Collider2d extends Module {
 		collider: ColliderShape,
 	): (obj: GameObject) => boolean {
 		return (obj: GameObject) => {
-			const colliderModule = obj.getModules(Collider2d);
+			const colliderModule = obj
+				.getModules(Collider2d)
+				.filter((m) => m.enabled);
 
 			for (const otherCollider of colliderModule) {
 				if (collider.checkCollision(otherCollider.getCollider())) {

@@ -50,21 +50,24 @@ export default class Sprite {
 
 	static fromGrid(
 		imageOrSrc: HTMLImageElement | string,
-		cellWidth: number,
-		cellHeight: number,
+		tilesX: number,
+		tilesY: number,
 		imageWidth: number,
 		imageHeight: number,
 	): Sprite[] {
 		const image = Sprite.toImage(imageOrSrc);
 		const sprites: Sprite[] = [];
-		for (let y = 0; y < imageHeight; y += cellHeight) {
-			for (let x = 0; x < imageWidth; x += cellWidth) {
+		const width = imageWidth / tilesX;
+		const height = imageHeight / tilesY;
+
+		for (let y = 0; y < tilesY; y++) {
+			for (let x = 0; x < tilesX; x++) {
 				sprites.push(
 					new Sprite(image, {
-						x: x,
-						y: y,
-						width: cellWidth,
-						height: cellHeight,
+						x: x * width,
+						y: y * height,
+						width: width,
+						height: height,
 					}),
 				);
 			}
