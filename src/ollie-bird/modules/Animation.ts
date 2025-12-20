@@ -36,7 +36,7 @@ export default class Animation extends Module {
 		if (this.time > totalDuration || this.time < 0) {
 			if (this.loop) {
 				this.events.emit('looped', void 0);
-				this.time = (this.time + totalDuration) % totalDuration;
+				this.time = ((this.time % totalDuration) + totalDuration) % totalDuration;
 			} else {
 				if (this.frameDuration > 0) this.time = totalDuration;
 				else this.time = 0;
