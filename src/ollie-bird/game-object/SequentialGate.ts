@@ -1,7 +1,17 @@
 import { LAYER_ITEMS, TAG_LEVEL_STRUCTURE } from '../const';
+import type IGame from '../IGame';
 import Collider2d from '../modules/Collider2d';
+import { z } from 'zod';
 import Bird from './Bird';
-import RectangleTrigger from './RectangleTrigger';
+import RectangleTrigger, {
+	rectangleTriggerDtoSchema,
+} from './RectangleTrigger';
+
+export const sequentialGateDtoSchema = rectangleTriggerDtoSchema.extend({
+	sequenceNumber: z.number(),
+});
+
+export type SequentialGateDto = z.infer<typeof sequentialGateDtoSchema>;
 
 export default class SequentialGate extends RectangleTrigger {
 	layer = LAYER_ITEMS;
@@ -62,5 +72,33 @@ export default class SequentialGate extends RectangleTrigger {
 		context.font = '30px sans-serif';
 		context.fillText(this.sequenceNumber.toString(), cx, cy);
 		context.restore();
+	}
+
+	override serialize(): SequentialGateDto {
+		return {
+			...super.serialize(),
+			sequenceNumber: this.sequenceNumber,
+		};
+	}
+
+	static spawnDeserialize(
+		game: IGame,
+		data: unknown,
+	): SequentialGate | null {
+		const parseResult = sequentialGateDtoSchema.safeParse(data);
+		if (!parseResult.success) {
+			console.error(
+				'Failed to parse SequentialGate data:',
+				parseResult.error,
+			);
+			return null;
+		}
+
+		const { x, y, width, height, sequenceNumber } = parseResult.data;
+		const gate = game.spawn(SequentialGate);
+		gate.transform.position.set(x, y);
+		gate.setSize(width, height);
+		gate.sequenceNumber = sequenceNumber;
+		return gate;
 	}
 }

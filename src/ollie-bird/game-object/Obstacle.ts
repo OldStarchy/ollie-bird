@@ -1,5 +1,7 @@
 import { CELL_SIZE, TAG_DEADLY, TAG_LEVEL_STRUCTURE } from '../const';
-import RectangleTrigger from './RectangleTrigger';
+import RectangleTrigger, {
+	rectangleTriggerDtoSchema,
+} from './RectangleTrigger';
 
 import wallBottomLeft from '../../assets/wall-bottom-left.png';
 import wallBottomRight from '../../assets/wall-bottom-right.png';
@@ -10,6 +12,7 @@ import wallRight from '../../assets/wall-right.png';
 import wallTopLeft from '../../assets/wall-top-left.png';
 import wallTopRight from '../../assets/wall-top-right.png';
 import wallTop from '../../assets/wall-top.png';
+import type IGame from '../IGame';
 
 class Obstacle extends RectangleTrigger {
 	static sprites = {
@@ -102,6 +105,20 @@ class Obstacle extends RectangleTrigger {
 				);
 			}
 		}
+	}
+
+	static spawnDeserialize(game: IGame, data: unknown): Obstacle | null {
+		const parseResult = rectangleTriggerDtoSchema.safeParse(data);
+		if (!parseResult.success) {
+			console.error('Failed to parse Obstacle data:', parseResult.error);
+			return null;
+		}
+
+		const { x, y, width, height } = parseResult.data;
+		const obstacle = game.spawn(Obstacle);
+		obstacle.transform.position.set(x, y);
+		obstacle.setSize(width, height);
+		return obstacle;
 	}
 }
 

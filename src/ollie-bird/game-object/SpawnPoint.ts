@@ -1,8 +1,19 @@
 import { LAYER_FOREGROUND, TAG_LEVEL_STRUCTURE } from '../const';
 import GameObject from '../GameObject';
+import type IGame from '../IGame';
+import type { ISerializable } from '../LevelStore';
+import { z } from 'zod';
 import Bird from './Bird';
 
-export default class SpawnPoint extends GameObject {
+export const spawnPointDtoSchema = z.object({
+	$type: z.string(),
+	x: z.number(),
+	y: z.number(),
+});
+
+export type SpawnPointDto = z.infer<typeof spawnPointDtoSchema>;
+
+export default class SpawnPoint extends GameObject implements ISerializable {
 	layer = LAYER_FOREGROUND;
 
 	protected override initialize() {
@@ -21,5 +32,26 @@ export default class SpawnPoint extends GameObject {
 		context.setLineDash([5, 5]);
 		context.stroke();
 		context.setLineDash([]);
+	}
+
+	serialize(): SpawnPointDto {
+		return {
+			$type: this.constructor.name,
+			x: this.transform.position.x,
+			y: this.transform.position.y,
+		};
+	}
+
+	static spawnDeserialize(game: IGame, data: unknown): SpawnPoint | null {
+		const parseResult = spawnPointDtoSchema.safeParse(data);
+		if (!parseResult.success) {
+			console.error('Failed to parse SpawnPoint data:', parseResult.error);
+			return null;
+		}
+
+		const { x, y } = parseResult.data;
+		const spawnPoint = game.spawn(SpawnPoint);
+		spawnPoint.transform.position.set(x, y);
+		return spawnPoint;
 	}
 }

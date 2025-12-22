@@ -1,7 +1,19 @@
 import GameObject from '../GameObject';
+import type { ISerializable } from '../LevelStore';
 import RectangleCollider2d from '../modules/RectangleCollider2d';
+import { z } from 'zod';
 
-class RectangleTrigger extends GameObject {
+export const rectangleTriggerDtoSchema = z.object({
+	$type: z.string(),
+	x: z.number(),
+	y: z.number(),
+	width: z.number(),
+	height: z.number(),
+});
+
+export type RectangleTriggerDto = z.infer<typeof rectangleTriggerDtoSchema>;
+
+class RectangleTrigger extends GameObject implements ISerializable {
 	layer = 0;
 	style: string | null = null;
 	public width: number = 0;
@@ -36,6 +48,16 @@ class RectangleTrigger extends GameObject {
 				this.height,
 			);
 		}
+	}
+
+	serialize(): RectangleTriggerDto {
+		return {
+			$type: this.constructor.name,
+			x: this.transform.position.x,
+			y: this.transform.position.y,
+			width: this.width,
+			height: this.height,
+		};
 	}
 }
 

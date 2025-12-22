@@ -3,6 +3,7 @@ import RectangleCollider from '../collider/RectangleCollider';
 import { CELL_SIZE, TAG_LEVEL_OBJECT, TAG_LEVEL_STRUCTURE } from '../const';
 import GameObject from '../GameObject';
 import type IGame from '../IGame';
+import LevelStore, { type ISerializable } from '../LevelStore';
 import Rect2 from '../math/Rect2';
 import Collider2d from '../modules/Collider2d';
 import SequentialGateManager from '../modules/SequentialGateManager';
@@ -47,6 +48,13 @@ export default class LevelEditor extends GameObject {
 
 	protected override initialize(): void {
 		super.initialize();
+
+		// Register all serializable types
+		LevelStore.register('Obstacle', Obstacle);
+		LevelStore.register('Goal', Goal);
+		LevelStore.register('SequentialGate', SequentialGate);
+		LevelStore.register('SpawnPoint', SpawnPoint);
+		LevelStore.register('BaddieSpawner', BaddieSpawner);
 
 		this.onGameEvent('getLevelData', (callback) =>
 			callback(this.getLevelData()),
@@ -275,48 +283,18 @@ export default class LevelEditor extends GameObject {
 	}
 
 	getLevelData(): string {
-		const obstacles = [];
-		for (const obj of this.game.findObjectsByType(Obstacle)) {
-			obstacles.push({
-				type: 'obstacle_rectangle',
-				...obj.transform.position,
-				width: obj.width,
-				height: obj.height,
-			});
-		}
+		const objects = this.game
+			.findObjectsByTag(TAG_LEVEL_STRUCTURE)
+			.map((obj) => {
+				if ('serialize' in obj && typeof obj.serialize === 'function') {
+					return (obj as ISerializable).serialize();
+				}
+				console.warn('Object does not implement serialize:', obj);
+				return null;
+			})
+			.filter((obj) => obj !== null);
 
-		const spawn = this.game.findObjectsByType(SpawnPoint)[0];
-
-		const goals = [];
-		for (const obj of this.game.findObjectsByType(Goal)) {
-			goals.push({
-				type: 'goal_rectangle',
-				...obj.transform.position,
-				width: obj.width,
-				height: obj.height,
-			});
-		}
-
-		const gates = [];
-		for (const obj of this.game.findObjectsByType(SequentialGate)) {
-			gates.push({
-				type: 'gate_rectangle',
-				...obj.transform.position,
-				width: obj.width,
-				height: obj.height,
-			});
-		}
-
-		return JSON.stringify(
-			{
-				obstacles,
-				goals,
-				spawn: spawn?.transform.position ?? null,
-				gates,
-			},
-			null,
-			2,
-		);
+		return JSON.stringify({ objects }, null, 2);
 	}
 
 	removeAll() {
@@ -333,13 +311,36 @@ export default class LevelEditor extends GameObject {
 
 		try {
 			const parsed = JSON.parse(data);
-			if (Array.isArray(parsed.obstacles)) {
-				// Remove existing obstacles
-				this.game
-					.findObjectsByType(Obstacle)
-					.forEach((obj) => obj.destroy());
 
-				// Add new obstacles
+			// Handle new format with $type field
+			if (Array.isArray(parsed.objects)) {
+				for (const obj of parsed.objects) {
+					if (
+						typeof obj === 'object' &&
+						obj !== null &&
+						'$type' in obj
+					) {
+						const Class = LevelStore.get(obj.$type as string);
+						if (Class && 'spawnDeserialize' in Class) {
+							const spawned = Class.spawnDeserialize(this.game, obj);
+							if (!spawned) {
+								console.warn(
+									'Failed to deserialize level object',
+									obj,
+								);
+							}
+						} else {
+							console.warn(
+								`Unknown or unregistered type: ${obj.$type}`,
+							);
+						}
+					}
+				}
+				return;
+			}
+
+			// Legacy format support - handle old save format
+			if (Array.isArray(parsed.obstacles)) {
 				for (const obs of parsed.obstacles) {
 					if (
 						obs.type === 'obstacle_rectangle' &&
@@ -359,7 +360,6 @@ export default class LevelEditor extends GameObject {
 				}
 			}
 			if (Array.isArray(parsed.goals)) {
-				// Add new goals
 				for (const goal of parsed.goals) {
 					if (
 						goal.type === 'goal_rectangle' &&
@@ -380,7 +380,6 @@ export default class LevelEditor extends GameObject {
 			}
 
 			if (parsed.gates && Array.isArray(parsed.gates)) {
-				// Add new gates
 				for (const gate of parsed.gates) {
 					if (
 						gate.type === 'gate_rectangle' &&
@@ -401,9 +400,6 @@ export default class LevelEditor extends GameObject {
 			}
 
 			if (parsed.spawn) {
-				this.game
-					.findObjectsByType(SpawnPoint)
-					.forEach((obj) => obj.destroy());
 				if (
 					typeof parsed.spawn.x === 'number' &&
 					typeof parsed.spawn.y === 'number'
