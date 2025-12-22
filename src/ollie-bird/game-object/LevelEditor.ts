@@ -3,7 +3,10 @@ import RectangleCollider from '../collider/RectangleCollider';
 import { CELL_SIZE, TAG_LEVEL_OBJECT, TAG_LEVEL_STRUCTURE } from '../const';
 import GameObject from '../GameObject';
 import type IGame from '../IGame';
-import LevelStore, { type ISerializable } from '../LevelStore';
+import LevelStore, {
+	type ISerializable,
+	type SerializableClass,
+} from '../LevelStore';
 import Rect2 from '../math/Rect2';
 import Collider2d from '../modules/Collider2d';
 import SequentialGateManager from '../modules/SequentialGateManager';
@@ -50,15 +53,17 @@ export default class LevelEditor extends GameObject {
 		super.initialize();
 
 		// Register all serializable types (only if not already registered)
-		if (!LevelStore.has('Obstacle'))
-			LevelStore.register('Obstacle', Obstacle);
-		if (!LevelStore.has('Goal')) LevelStore.register('Goal', Goal);
-		if (!LevelStore.has('SequentialGate'))
-			LevelStore.register('SequentialGate', SequentialGate);
-		if (!LevelStore.has('SpawnPoint'))
-			LevelStore.register('SpawnPoint', SpawnPoint);
-		if (!LevelStore.has('BaddieSpawner'))
-			LevelStore.register('BaddieSpawner', BaddieSpawner);
+		const types: Array<[string, SerializableClass]> = [
+			['Obstacle', Obstacle],
+			['Goal', Goal],
+			['SequentialGate', SequentialGate],
+			['SpawnPoint', SpawnPoint],
+			['BaddieSpawner', BaddieSpawner],
+		];
+		types.forEach(
+			([name, cls]) =>
+				!LevelStore.has(name) && LevelStore.register(name, cls),
+		);
 
 		this.onGameEvent('getLevelData', (callback) =>
 			callback(this.getLevelData()),

@@ -9,7 +9,7 @@ export interface IDeserializableClass {
 	spawnDeserialize(game: IGame, data: unknown): GameObject | null;
 }
 
-type SerializableClass = (new (game: IGame) => GameObject) &
+export type SerializableClass = (new (game: IGame) => GameObject) &
 	IDeserializableClass;
 
 class LevelStore {
