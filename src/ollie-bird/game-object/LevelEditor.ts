@@ -49,12 +49,16 @@ export default class LevelEditor extends GameObject {
 	protected override initialize(): void {
 		super.initialize();
 
-		// Register all serializable types
-		LevelStore.register('Obstacle', Obstacle);
-		LevelStore.register('Goal', Goal);
-		LevelStore.register('SequentialGate', SequentialGate);
-		LevelStore.register('SpawnPoint', SpawnPoint);
-		LevelStore.register('BaddieSpawner', BaddieSpawner);
+		// Register all serializable types (only if not already registered)
+		if (!LevelStore.has('Obstacle'))
+			LevelStore.register('Obstacle', Obstacle);
+		if (!LevelStore.has('Goal')) LevelStore.register('Goal', Goal);
+		if (!LevelStore.has('SequentialGate'))
+			LevelStore.register('SequentialGate', SequentialGate);
+		if (!LevelStore.has('SpawnPoint'))
+			LevelStore.register('SpawnPoint', SpawnPoint);
+		if (!LevelStore.has('BaddieSpawner'))
+			LevelStore.register('BaddieSpawner', BaddieSpawner);
 
 		this.onGameEvent('getLevelData', (callback) =>
 			callback(this.getLevelData()),
