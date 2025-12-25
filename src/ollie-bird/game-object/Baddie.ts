@@ -1,4 +1,9 @@
-import { CELL_SIZE, LAYER_ENEMYS, TAG_LEVEL_OBJECT } from '../const';
+import {
+	CELL_SIZE,
+	LAYER_ENEMYS,
+	TAG_DEADLY,
+	TAG_LEVEL_OBJECT,
+} from '../const';
 import GameObject from '../GameObject';
 import RectangleCollider2d from '../modules/RectangleCollider2d';
 
@@ -19,6 +24,7 @@ export default class Baddie extends GameObject {
 
 	protected override initialize(): void {
 		this.tags.add(TAG_LEVEL_OBJECT);
+		this.tags.add(TAG_DEADLY);
 
 		const hurtBox = this.addModule(RectangleCollider2d);
 		hurtBox.left = 0;

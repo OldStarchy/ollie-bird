@@ -13,6 +13,14 @@ export default class Animation extends Module {
 	public paused = false;
 	readonly rectangle = new Rect2(0, 0, 16, 16);
 
+	get currentFrame(): number {
+		return Math.floor(this.time / this.frameDuration);
+	}
+
+	set currentFrame(frame: number) {
+		this.time = frame * this.frameDuration;
+	}
+
 	readonly events: EventSource<AnimationEventsMap> = new EventSource();
 
 	constructor(

@@ -1,4 +1,4 @@
-import { CELL_SIZE, TAG_LEVEL_STRUCTURE } from '../const';
+import { CELL_SIZE, TAG_DEADLY, TAG_LEVEL_STRUCTURE } from '../const';
 import RectangleTrigger from './RectangleTrigger';
 
 import wallBottomLeft from '../../assets/wall-bottom-left.png';
@@ -40,6 +40,7 @@ class Obstacle extends RectangleTrigger {
 		super.initialize();
 		this.style = 'red';
 		this.tags.add(TAG_LEVEL_STRUCTURE);
+		this.tags.add(TAG_DEADLY);
 	}
 
 	protected override render(context: CanvasRenderingContext2D) {

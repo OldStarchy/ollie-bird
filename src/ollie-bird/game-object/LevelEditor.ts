@@ -9,6 +9,7 @@ import SequentialGateManager from '../modules/SequentialGateManager';
 import Mouse from '../Mouse';
 import BaddieSpawner from './BaddieSpawner';
 import Bird from './Bird';
+import Bomb from './Bomb';
 import Goal from './Goal';
 import Obstacle from './Obstacle';
 import type RectangleTrigger from './RectangleTrigger';
@@ -19,6 +20,7 @@ enum EditorMode {
 	AddObstacle,
 	DeleteThings,
 	SetSpawnPoint,
+	CreateBomb,
 	AddGate,
 	SetGoal,
 	AddBaddie,
@@ -29,6 +31,7 @@ const editorModeLabels = {
 	[EditorMode.AddObstacle]: 'add obstacle',
 	[EditorMode.DeleteThings]: 'delete things',
 	[EditorMode.SetSpawnPoint]: 'set spawn point',
+	[EditorMode.CreateBomb]: 'create bomb',
 	[EditorMode.AddGate]: 'add gate',
 	[EditorMode.SetGoal]: 'set goal',
 	[EditorMode.AddBaddie]: 'add baddie',
@@ -196,6 +199,16 @@ export default class LevelEditor extends GameObject {
 						.forEach((obj) => obj.destroy());
 					this.game
 						.spawn(SpawnPoint)
+						.transform.position.set(mPos.x, mPos.y);
+				}
+				break;
+			case EditorMode.CreateBomb:
+				if (
+					this.game.mouse.getButton(Mouse.BUTTON_LEFT) ===
+					ButtonState.Pressed
+				) {
+					this.game
+						.spawn(Bomb)
 						.transform.position.set(mPos.x, mPos.y);
 				}
 				break;
