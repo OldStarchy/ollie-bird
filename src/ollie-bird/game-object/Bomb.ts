@@ -1,12 +1,28 @@
+import { z } from 'zod';
 import { CELL_SIZE, TAG_DEADLY, TAG_LEVEL_STRUCTURE } from '../const';
 import GameObject from '../GameObject';
+import type IGame from '../IGame';
+import type { ISerializable } from '../LevelStore';
+import LevelStore from '../LevelStore';
 import Animation from '../modules/Animation';
 import CircleCollider2d from '../modules/CircleCollider2d';
 import Collider2d from '../modules/Collider2d';
 import Resources from '../Resources';
 import Bird from './Bird';
 
-export default class Bomb extends GameObject {
+export const bombDtoSchema = z.object({
+	$type: z.string(),
+	x: z.number(),
+	y: z.number(),
+});
+
+export type BombDto = z.infer<typeof bombDtoSchema>;
+
+export default class Bomb extends GameObject implements ISerializable {
+	static {
+		LevelStore.register(Bomb.name, Bomb);
+	}
+
 	private anim!: Animation;
 	private collider!: CircleCollider2d;
 	private triggerCollider!: CircleCollider2d;
@@ -72,5 +88,26 @@ export default class Bomb extends GameObject {
 		if (hitBird) {
 			this.anim.paused = false;
 		}
+	}
+
+	serialize(): BombDto {
+		return {
+			$type: this.constructor.name,
+			x: this.transform.position.x,
+			y: this.transform.position.y,
+		};
+	}
+
+	static spawnDeserialize(game: IGame, data: unknown): Bomb | null {
+		const parseResult = bombDtoSchema.safeParse(data);
+		if (!parseResult.success) {
+			console.error('Failed to parse Bomb data:', parseResult.error);
+			return null;
+		}
+
+		const { x, y } = parseResult.data;
+		const bomb = game.spawn(Bomb);
+		bomb.transform.position.set(x, y);
+		return bomb;
 	}
 }
