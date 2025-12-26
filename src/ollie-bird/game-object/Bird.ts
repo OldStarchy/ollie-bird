@@ -12,7 +12,11 @@ import Vec2 from '../Vec2';
 import Explosion from './Explosion';
 import Goal from './Goal';
 import SequentialGate from './SequentialGate';
-
+declare global {
+	interface GameEventMap {
+		gameOver: void;
+	}
+}
 class Bird extends GameObject {
 	layer = LAYER_PLAYER;
 	public ySpeed: number = 0;
@@ -110,6 +114,7 @@ class Bird extends GameObject {
 				return;
 			}
 
+			this.game.event.emit('gameOver', void 0);
 			this.togglePause();
 
 			//spawn explosions in a circle
@@ -160,6 +165,7 @@ class Bird extends GameObject {
 	}
 
 	die() {
+		this.game.event.emit('gameOver', void 0);
 		console.log('Collision detected!');
 		this.createExplosion(...this.position.xy, 10, 50, 2);
 		this.destroy();

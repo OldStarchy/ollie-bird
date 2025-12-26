@@ -9,6 +9,7 @@ import LevelStore, {
 } from '../LevelStore';
 import Rect2 from '../math/Rect2';
 import Collider2d from '../modules/Collider2d';
+import GameTimer from '../modules/GameTimer';
 import SequentialGateManager from '../modules/SequentialGateManager';
 import Mouse from '../Mouse';
 import BaddieSpawner from './BaddieSpawner';
@@ -71,6 +72,7 @@ export default class LevelEditor extends GameObject {
 		this.onGameEvent('loadLevel', (data) => this.loadLevelData(data));
 
 		this.addModule(SequentialGateManager);
+		this.addModule(GameTimer);
 	}
 
 	alignToGrid(obj: { x: number; y: number }): { x: number; y: number } {
@@ -331,7 +333,10 @@ export default class LevelEditor extends GameObject {
 					) {
 						const Class = LevelStore.get(obj.$type as string);
 						if (Class && 'spawnDeserialize' in Class) {
-							const spawned = Class.spawnDeserialize(this.game, obj);
+							const spawned = Class.spawnDeserialize(
+								this.game,
+								obj,
+							);
 							if (!spawned) {
 								console.warn(
 									'Failed to deserialize level object',
