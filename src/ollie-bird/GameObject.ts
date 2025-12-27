@@ -7,7 +7,7 @@ export default class GameObject implements IModular, Disposable {
 	private modules: ModuleCollection;
 
 	layer: number = 0;
-	tags: Set<string> = new Set();
+	tags: Set<string | Symbol> = new Set();
 
 	readonly transform: Transform2d;
 
@@ -28,12 +28,12 @@ export default class GameObject implements IModular, Disposable {
 	): T | null {
 		return this.modules.getModule(type);
 	}
-	addModule<Clazz extends new (owner: GameObject, ...args: any[]) => any>(
-		type: Clazz,
-		...args: ConstructorParameters<Clazz> extends [GameObject, ...infer P]
-			? P
-			: []
-	): InstanceType<Clazz> {
+	addModule<
+		Constructor extends new (owner: GameObject, ...args: any[]) => Module,
+	>(
+		type: Constructor,
+		...args: Tail<ConstructorParameters<Constructor>>
+	): InstanceType<Constructor> {
 		return this.modules.addModule(type, ...args);
 	}
 	removeModule(module: Module): void {

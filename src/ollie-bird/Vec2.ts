@@ -6,21 +6,21 @@ export default class Vec2 implements Vec2Like {
 	public x: number;
 	public y: number;
 
-	constructor();
-	constructor(x: number, y: number);
-	constructor(obj: Vec2Like);
+	constructor(x: number, y: number) {
+		this.x = x;
+		this.y = y;
+	}
 
-	constructor(xOrObj?: number | Vec2Like, y?: number) {
-		if (typeof xOrObj === 'number' && typeof y === 'number') {
-			this.x = xOrObj;
-			this.y = y;
-		} else if (typeof xOrObj === 'object' && xOrObj !== null) {
-			this.x = xOrObj.x;
-			this.y = xOrObj.y;
-		} else {
-			this.x = 0;
-			this.y = 0;
-		}
+	static from(other: Vec2Like): Vec2 {
+		return new Vec2(other.x, other.y);
+	}
+
+	static get zero(): Vec2 {
+		return new Vec2(0, 0);
+	}
+
+	static get one(): Vec2 {
+		return new Vec2(1, 1);
 	}
 
 	add(vec: Vec2Like): Vec2 {
@@ -61,17 +61,14 @@ export default class Vec2 implements Vec2Like {
 		return this;
 	}
 
-	set(x: number, y: number): void;
-	set(vec: Vec2Like): void;
+	set(x: number, y: number): void {
+		this.x = x;
+		this.y = y;
+	}
 
-	set(xOrObj: number | Vec2Like, y?: number): void {
-		if (typeof xOrObj === 'number' && typeof y === 'number') {
-			this.x = xOrObj;
-			this.y = y;
-		} else if (typeof xOrObj === 'object' && xOrObj !== null) {
-			this.x = xOrObj.x;
-			this.y = xOrObj.y;
-		}
+	copy(vec: Vec2Like): void {
+		this.x = vec.x;
+		this.y = vec.y;
 	}
 
 	get xy(): [number, number] {

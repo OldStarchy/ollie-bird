@@ -1,8 +1,8 @@
+import { z } from 'zod';
 import { CELL_SIZE, LAYER_FOREGROUND, TAG_LEVEL_STRUCTURE } from '../const';
 import GameObject from '../GameObject';
 import type IGame from '../IGame';
 import type { ISerializable } from '../LevelStore';
-import { z } from 'zod';
 import Baddie from './Baddie';
 
 export const baddieSpawnerDtoSchema = z.object({
@@ -13,17 +13,14 @@ export const baddieSpawnerDtoSchema = z.object({
 
 export type BaddieSpawnerDto = z.infer<typeof baddieSpawnerDtoSchema>;
 
-export default class BaddieSpawner
-	extends GameObject
-	implements ISerializable
-{
+export default class BaddieSpawner extends GameObject implements ISerializable {
 	layer = LAYER_FOREGROUND;
 
 	protected override initialize(): void {
 		this.tags.add(TAG_LEVEL_STRUCTURE);
 		this.onGameEvent('gameStart', () => {
 			const baddie = this.game.spawn(Baddie);
-			baddie.transform.position.set(this.transform.position);
+			baddie.transform.position.copy(this.transform.position);
 		});
 	}
 
@@ -49,10 +46,7 @@ export default class BaddieSpawner
 		};
 	}
 
-	static spawnDeserialize(
-		game: IGame,
-		data: unknown,
-	): BaddieSpawner | null {
+	static spawnDeserialize(game: IGame, data: unknown): BaddieSpawner | null {
 		const parseResult = baddieSpawnerDtoSchema.safeParse(data);
 		if (!parseResult.success) {
 			console.error(

@@ -216,9 +216,7 @@ export default class LevelEditor extends GameObject {
 					this.game
 						.findObjectsByType(SpawnPoint)
 						.forEach((obj) => obj.destroy());
-					this.game
-						.spawn(SpawnPoint)
-						.transform.position.set(mPos.x, mPos.y);
+					this.game.spawn(SpawnPoint).transform.position.copy(mPos);
 				}
 				break;
 			case EditorMode.CreateBomb:
@@ -226,9 +224,7 @@ export default class LevelEditor extends GameObject {
 					this.game.mouse.getButton(Mouse.BUTTON_LEFT) ===
 					ButtonState.Pressed
 				) {
-					this.game
-						.spawn(Bomb)
-						.transform.position.set(mPos.x, mPos.y);
+					this.game.spawn(Bomb).transform.position.copy(mPos);
 				}
 				break;
 			case EditorMode.AddBaddie:
@@ -238,7 +234,7 @@ export default class LevelEditor extends GameObject {
 				) {
 					this.game
 						.spawn(BaddieSpawner)
-						.transform.position.set(mPos.x, mPos.y);
+						.transform.position.copy(mPos);
 				}
 				break;
 		}

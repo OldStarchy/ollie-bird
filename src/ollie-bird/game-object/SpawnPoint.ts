@@ -1,8 +1,8 @@
+import { z } from 'zod';
 import { LAYER_FOREGROUND, TAG_LEVEL_STRUCTURE } from '../const';
 import GameObject from '../GameObject';
 import type IGame from '../IGame';
 import type { ISerializable } from '../LevelStore';
-import { z } from 'zod';
 import Bird from './Bird';
 
 export const spawnPointDtoSchema = z.object({
@@ -20,7 +20,7 @@ export default class SpawnPoint extends GameObject implements ISerializable {
 		this.onGameEvent('gameStart', () => {
 			this.game
 				.spawn(Bird)
-				.transform.position.set(...this.transform.position.xy);
+				.transform.position.copy(this.transform.position);
 		});
 		this.tags.add(TAG_LEVEL_STRUCTURE);
 	}
@@ -45,7 +45,10 @@ export default class SpawnPoint extends GameObject implements ISerializable {
 	static spawnDeserialize(game: IGame, data: unknown): SpawnPoint | null {
 		const parseResult = spawnPointDtoSchema.safeParse(data);
 		if (!parseResult.success) {
-			console.error('Failed to parse SpawnPoint data:', parseResult.error);
+			console.error(
+				'Failed to parse SpawnPoint data:',
+				parseResult.error,
+			);
 			return null;
 		}
 

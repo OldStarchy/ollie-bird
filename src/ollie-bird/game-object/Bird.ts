@@ -37,7 +37,7 @@ class Bird extends GameObject {
 	constructor(game: IGame) {
 		super(game);
 		this.tags.add(TAG_LEVEL_OBJECT);
-		this.gravity = game.physics.g;
+		this.gravity = game.physics.gravity;
 
 		const collider = this.addModule(CircleCollider2d);
 		collider.radius = 20;
@@ -59,12 +59,12 @@ class Bird extends GameObject {
 				this.flappedOnce = true;
 			}
 
-			if (this.ySpeed > this.game.physics.g) {
+			if (this.ySpeed > this.game.physics.gravity) {
 				this.ySpeed /= 2;
-				this.ySpeed = Math.max(this.ySpeed, this.game.physics.g);
+				this.ySpeed = Math.max(this.ySpeed, this.game.physics.gravity);
 			}
 
-			this.gravity = this.game.physics.g * (this.holdTime / 0.3);
+			this.gravity = this.game.physics.gravity * (this.holdTime / 0.3);
 		}
 
 		if (this.game.keyboard.isKeyDown('ArrowRight')) {
@@ -81,7 +81,7 @@ class Bird extends GameObject {
 				this.ySpeed = (-this.holdTime / 0.3) * 6;
 			}
 			this.holdTime = 0;
-			this.gravity = this.game.physics.g;
+			this.gravity = this.game.physics.gravity;
 			this.flappedOnce = false;
 		}
 

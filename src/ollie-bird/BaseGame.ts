@@ -1,7 +1,6 @@
 import { TAG_LEVEL_OBJECT } from './const';
 import EventSource from './EventSource';
 import type GameObject from './GameObject';
-import type ICollection from './ICollection';
 import type IGame from './IGame';
 import Keyboard from './Keyboard';
 import Mouse from './Mouse';
@@ -10,15 +9,13 @@ abstract class BaseGame implements IGame {
 	private abortController: AbortController;
 
 	private context: CanvasRenderingContext2D;
-	private readonly objects: InstanceType<
-		typeof BaseGame.GameObjectCollection
-	>;
+	private readonly objects: GameObject[];
 	private shouldRefreshSize: boolean = true;
 
 	public readonly keyboard: Keyboard;
 	public readonly mouse: Mouse;
 	public physics = {
-		g: 0.2,
+		gravity: 0.2,
 	};
 	public renderGizmos: boolean = true;
 
@@ -40,7 +37,7 @@ abstract class BaseGame implements IGame {
 		}
 		this.context = context;
 
-		this.objects = new BaseGame.GameObjectCollection();
+		this.objects = [];
 		this.keyboard = new Keyboard(canvas, this.abortController.signal);
 		this.mouse = new Mouse(canvas, this.abortController.signal);
 		this.event = new EventSource<GameEventMap>();
@@ -91,7 +88,7 @@ abstract class BaseGame implements IGame {
 		this.context.fillStyle = this.backgroundColor;
 		this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-		this.objects.removeBy((obj) => obj.tags.has(TAG_LEVEL_OBJECT));
+		this.destroySome((obj) => obj.tags.has(TAG_LEVEL_OBJECT));
 		this.event.emit('gameStart', undefined);
 	}
 
@@ -161,73 +158,30 @@ abstract class BaseGame implements IGame {
 		}
 	}
 
-	private static GameObjectCollection = class implements ICollection<GameObject> {
-		private items: GameObject[] = [];
-
-		count(): number {
-			return this.items.length;
-		}
-		add(item: GameObject): void {
-			if (!this.items.includes(item)) this.items.push(item);
-		}
-		remove(item: GameObject): boolean {
-			const index = this.items.indexOf(item);
-			if (index >= 0) {
-				this.items.splice(index, 1);
-				return true;
-			}
-			return false;
-		}
-		contains(item: GameObject): boolean {
-			return this.items.includes(item);
-		}
-
-		removeBy(predicate: (item: GameObject) => boolean): number {
-			let removed = 0;
-			for (let i = this.items.length - 1; i >= 0; i--) {
-				const item = this.items[i]!;
-				if (predicate(item)) {
-					item[Symbol.dispose]();
-					this.items.splice(i, 1);
-					removed++;
-				}
-			}
-			return removed;
-		}
-
-		[Symbol.iterator](): Iterator<GameObject, void, void> {
-			return this.items[Symbol.iterator]();
-		}
-
-		forEach(callback: (item: GameObject) => void): void {
-			const snapshot = [...this.items];
-			for (const item of snapshot) {
-				callback(item);
-			}
-		}
-
-		find(predicate: (item: GameObject) => boolean): GameObject | undefined {
-			return this.items.find(predicate);
-		}
-
-		filter(predicate: (item: GameObject) => boolean): Array<GameObject>;
-		filter<U extends GameObject>(
-			predicate: (item: GameObject) => item is U,
-		): Array<U>;
-		filter(predicate: (item: GameObject) => boolean): Array<GameObject> {
-			return this.items.filter(predicate);
-		}
-	};
-
-	spawn<T extends GameObject>(type: new (game: IGame) => T): T {
-		const obj = new type(this);
-		this.objects.add(obj);
+	spawn<Constructor extends new (game: IGame, ...args: any[]) => GameObject>(
+		type: Constructor,
+		...args: Tail<ConstructorParameters<Constructor>>
+	): InstanceType<Constructor> {
+		const obj = new type(this, ...args) as InstanceType<Constructor>;
+		this.objects.push(obj);
 		obj['doInitialize']();
 		return obj;
 	}
 
-	destroy<T extends GameObject>(obj: T): void {
-		this.objects.remove(obj);
+	destroySome(cb: (obj: GameObject) => boolean): void {
+		for (let i = this.objects.length - 1; i >= 0; i--) {
+			const obj = this.objects[i]!;
+			if (cb(obj)) {
+				this.objects.splice(i, 1);
+				obj[Symbol.dispose]();
+			}
+		}
+	}
+	destroy(obj: GameObject): void {
+		const index = this.objects.indexOf(obj);
+		if (index !== -1) {
+			this.objects.splice(index, 1);
+		}
 		obj[Symbol.dispose]();
 	}
 

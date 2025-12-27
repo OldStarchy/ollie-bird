@@ -22,6 +22,10 @@ export default class Rect2 implements Rect2Like {
 		return new Rect2(minX, minY, maxX - minX, maxY - minY);
 	}
 
+	static get one(): Rect2 {
+		return new Rect2(0, 0, 1, 1);
+	}
+
 	copy(rect: Rect2Like): this {
 		this.x = rect.x;
 		this.y = rect.y;

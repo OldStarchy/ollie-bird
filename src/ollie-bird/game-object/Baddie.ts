@@ -26,11 +26,12 @@ export default class Baddie extends GameObject {
 		this.tags.add(TAG_LEVEL_OBJECT);
 		this.tags.add(TAG_DEADLY);
 
-		const hurtBox = this.addModule(RectangleCollider2d);
-		hurtBox.left = 0;
-		hurtBox.top = CELL_SIZE * 0.5;
-		hurtBox.width = CELL_SIZE;
-		hurtBox.height = CELL_SIZE * 0.5;
+		const hurtBox = this.addModule(RectangleCollider2d, {
+			x: 0,
+			y: CELL_SIZE * 0.5,
+			width: CELL_SIZE,
+			height: CELL_SIZE * 0.5,
+		});
 
 		const anim = this.addModule(Animation, Baddie.frames, 0.3);
 		anim.rectangle.set(0, CELL_SIZE / 2, CELL_SIZE, CELL_SIZE / 2);

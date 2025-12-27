@@ -79,14 +79,15 @@ export class ModuleCollection extends Module implements IModular {
 	}
 
 	public addModule<
-		Clazz extends new (owner: GameObject, ...args: any[]) => any,
+		Constructor extends new (owner: GameObject, ...args: any[]) => Module,
 	>(
-		type: Clazz,
-		...args: ConstructorParameters<Clazz> extends [GameObject, ...infer P]
-			? P
-			: []
-	): InstanceType<Clazz> {
-		const module = new type(this.owner, ...args);
+		type: Constructor,
+		...args: Tail<ConstructorParameters<Constructor>>
+	): InstanceType<Constructor> {
+		const module = new type(
+			this.owner,
+			...args,
+		) as InstanceType<Constructor>;
 		this.modules.push(module);
 		return module;
 	}

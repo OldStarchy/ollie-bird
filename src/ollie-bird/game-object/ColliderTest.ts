@@ -39,13 +39,14 @@ export default class ColliderTest extends GameObject {
 			const obj = this.game.spawn(GameObject);
 			obj.transform.position.x = x;
 			obj.transform.position.y = y;
-			const collider = obj.addModule(RectangleCollider2d);
 			obj.addModule(ResetColors);
 
-			collider.left = 0;
-			collider.top = 0;
-			collider.width = width;
-			collider.height = height;
+			const collider = obj.addModule(RectangleCollider2d, {
+				x: 0,
+				y: 0,
+				width: width,
+				height: height,
+			});
 			collider.renderWidget = true;
 		};
 

@@ -1,7 +1,8 @@
+import { z } from 'zod';
 import GameObject from '../GameObject';
 import type { ISerializable } from '../LevelStore';
+import Rect2 from '../math/Rect2';
 import RectangleCollider2d from '../modules/RectangleCollider2d';
-import { z } from 'zod';
 
 export const rectangleTriggerDtoSchema = z.object({
 	$type: z.string(),
@@ -19,7 +20,7 @@ class RectangleTrigger extends GameObject implements ISerializable {
 	public width: number = 0;
 	public height: number = 0;
 
-	protected collider = this.addModule(RectangleCollider2d);
+	protected collider = this.addModule(RectangleCollider2d, Rect2.one);
 
 	protected override initialize(): void {
 		this.updateCollider();
@@ -27,8 +28,8 @@ class RectangleTrigger extends GameObject implements ISerializable {
 
 	private updateCollider(): void {
 		const collider = this.collider;
-		collider.left = 0;
-		collider.top = 0;
+		collider.x = 0;
+		collider.y = 0;
 		collider.width = this.width;
 		collider.height = this.height;
 	}
