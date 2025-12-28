@@ -42,6 +42,10 @@ export default class Rect2 implements Rect2Like {
 		return this;
 	}
 
+	aspectRatio(): number {
+		return this.width / this.height;
+	}
+
 	noramlize(): this {
 		if (this.width <= 0) {
 			this.x += this.width;

@@ -1,6 +1,7 @@
 import birdDown from '../../assets/bird-down.png';
 import birdRight from '../../assets/bird-right.png';
 import birdUp from '../../assets/bird-up.png';
+import ContextSave from '../../ContextSave';
 import ButtonState from '../ButtonState';
 import { LAYER_PLAYER, TAG_DEADLY, TAG_LEVEL_OBJECT } from '../const';
 import GameObject from '../GameObject';
@@ -131,10 +132,10 @@ class Bird extends GameObject {
 
 	protected checkOutOfBounds() {
 		if (
-			this.position.y > this.game.canvas.height ||
+			this.position.y > this.game.physics.height ||
 			this.position.y < 0 ||
 			this.position.x < 0 ||
-			this.position.x > this.game.canvas.width
+			this.position.x > this.game.physics.width
 		) {
 			this.die();
 		}
@@ -193,13 +194,12 @@ class Bird extends GameObject {
 
 		const sprite = Bird.sprites[spriteName as keyof typeof Bird.sprites];
 
-		context.save();
+		using _ = new ContextSave(context);
 		context.translate(...this.position.xy);
 		if (flip) {
 			context.scale(-1, 1);
 		}
 		sprite.blit(context, -30, -30, 60, 60);
-		context.restore();
 	}
 }
 

@@ -1,3 +1,4 @@
+import ContextSave from '../../ContextSave';
 import Module from '../IModular';
 import type { Rect2Like } from '../math/Rect2';
 import Vec2, { type Vec2Like } from '../Vec2';
@@ -6,14 +7,10 @@ class Transform2d extends Module {
 	readonly position: Vec2 = Vec2.zero;
 
 	push(context: CanvasRenderingContext2D): Disposable {
-		context.save();
+		const save = new ContextSave(context);
 		context.translate(...this.position.xy);
 
-		return {
-			[Symbol.dispose]: () => {
-				context.restore();
-			},
-		};
+		return save;
 	}
 
 	transformPoint(point: Vec2Like): Vec2Like {

@@ -1,21 +1,24 @@
+import ContextSave from '../ContextSave';
 import { TAG_LEVEL_OBJECT } from './const';
 import EventSource from './EventSource';
 import type GameObject from './GameObject';
 import type IGame from './IGame';
 import Keyboard from './Keyboard';
+import Rect2 from './math/Rect2';
 import Mouse from './Mouse';
+import type { Vec2Like } from './Vec2';
 
 abstract class BaseGame implements IGame {
 	private abortController: AbortController;
 
-	private context: CanvasRenderingContext2D;
 	private readonly objects: GameObject[];
-	private shouldRefreshSize: boolean = true;
 
 	public readonly keyboard: Keyboard;
 	public readonly mouse: Mouse;
 	public physics = {
 		gravity: 0.2,
+		width: 1920,
+		height: 1080,
 	};
 	public renderGizmos: boolean = true;
 
@@ -28,51 +31,30 @@ abstract class BaseGame implements IGame {
 		return this.#currentSecondsPerFrame;
 	}
 
-	constructor(public canvas: HTMLCanvasElement) {
+	constructor() {
 		this.abortController = new AbortController();
 
-		const context = canvas.getContext('2d');
-		if (!context) {
-			throw new Error('Could not get canvas context');
-		}
-		this.context = context;
-
 		this.objects = [];
-		this.keyboard = new Keyboard(canvas, this.abortController.signal);
-		this.mouse = new Mouse(canvas, this.abortController.signal);
+		this.keyboard = new Keyboard();
+		this.mouse = new Mouse();
 		this.event = new EventSource<GameEventMap>();
-
-		this.initCanvas();
 	}
 
-	private initCanvas() {
-		this.canvas.tabIndex = -1;
-		this.canvas.focus();
+	private canvases: Set<GameCanvas> = new Set();
 
-		globalThis.addEventListener(
-			'resize',
-			() => {
-				this.shouldRefreshSize = true;
-			},
-			this.abortController,
-		);
-	}
+	addCanvas(canvas: HTMLCanvasElement): GameCanvas {
+		const gameCanvas = new GameCanvas(this, canvas);
 
-	private refreshCanvasViewport(): void {
-		this.canvas.style.width = '100%';
-		this.canvas.style.height = '100%';
-		this.canvas.width = this.canvas.clientWidth;
-		this.canvas.height = this.canvas.clientHeight;
-		this.canvas.style.width = `${this.canvas.clientWidth}px`;
-		this.canvas.style.height = `${this.canvas.clientHeight}px`;
+		this.canvases.add(gameCanvas);
 
-		this.shouldRefreshSize = false;
+		this.abortController.signal.addEventListener('abort', () => {
+			gameCanvas[Symbol.dispose]();
+		});
+
+		return gameCanvas;
 	}
 
 	start() {
-		this.canvas.width = this.canvas.clientWidth;
-		this.canvas.height = this.canvas.clientHeight;
-
 		this.tick();
 
 		this.preStart();
@@ -85,9 +67,6 @@ abstract class BaseGame implements IGame {
 	public backgroundColor: string = 'skyblue';
 
 	restart() {
-		this.context.fillStyle = this.backgroundColor;
-		this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
-
 		this.destroySome((obj) => obj.tags.has(TAG_LEVEL_OBJECT));
 		this.event.emit('gameStart', undefined);
 	}
@@ -122,47 +101,42 @@ abstract class BaseGame implements IGame {
 	}
 
 	render() {
-		if (this.shouldRefreshSize) {
-			this.refreshCanvasViewport();
-		}
-
 		this.renderQueued = false;
-		this.context.fillStyle = this.backgroundColor;
-		this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-		const layers = new Map<number, GameObject[]>();
+		this.renderAll((context) => {
+			context.fillStyle = this.backgroundColor;
+			context.fillRect(0, 0, this.physics.width, this.physics.height);
 
-		this.objects.forEach((go) => {
-			if (!layers.has(go.layer)) {
-				layers.set(go.layer, []);
+			const layers = new Map<number, GameObject[]>();
+
+			this.objects.forEach((go) => {
+				if (!layers.has(go.layer)) {
+					layers.set(go.layer, []);
+				}
+				layers.get(go.layer)!.push(go);
+			});
+
+			const sortedObjects = Array.from(layers.keys())
+				.sort((a, b) => a - b)
+				.flatMap((layer) => layers.get(layer) ?? []);
+
+			sortedObjects.forEach((go) => go['doBeforeRender'](context));
+			sortedObjects.forEach((go) => go['doRender'](context));
+			sortedObjects.forEach((go) => go['doAfterRender'](context));
+
+			if (this.renderGizmos) {
+				sortedObjects.forEach((go) =>
+					go['doBeforeRenderGizmos'](context),
+				);
+				sortedObjects.forEach((go) => go['doRenderGizmos'](context));
+				sortedObjects.forEach((go) =>
+					go['doAfterRenderGizmos'](context),
+				);
 			}
-			layers.get(go.layer)!.push(go);
+
+			context.strokeStyle = 'red';
+			context.strokeRect(0, 0, this.physics.width, this.physics.height);
 		});
-
-		const sortedObjects = Array.from(layers.keys())
-			.sort((a, b) => a - b)
-			.flatMap((layer) => layers.get(layer) ?? []);
-
-		sortedObjects.forEach((go) => go['doBeforeRender'](this.context));
-		sortedObjects.forEach((go) => go['doRender'](this.context));
-		sortedObjects.forEach((go) => go['doAfterRender'](this.context));
-
-		if (this.renderGizmos) {
-			sortedObjects.forEach((go) =>
-				go['doBeforeRenderGizmos'](this.context),
-			);
-			sortedObjects.forEach((go) => go['doRenderGizmos'](this.context));
-			sortedObjects.forEach((go) =>
-				go['doAfterRenderGizmos'](this.context),
-			);
-		}
-
-		this.context.strokeRect(
-			10,
-			10,
-			this.canvas.width - 20,
-			this.canvas.height - 20,
-		);
 	}
 
 	spawn<Constructor extends new (game: IGame, ...args: any[]) => GameObject>(
@@ -208,6 +182,107 @@ abstract class BaseGame implements IGame {
 	getObjects(): Array<GameObject> {
 		return Array.from(this.objects);
 	}
+
+	private renderAll(
+		worldSpaceRender: (context: CanvasRenderingContext2D) => void,
+	) {
+		this.canvases.forEach((gameCanvas) => {
+			gameCanvas.doRender(worldSpaceRender);
+		});
+	}
 }
 
 export default BaseGame;
+
+export class GameCanvas implements Disposable {
+	shouldRefreshSize: { width: number; height: number } | null = null;
+
+	context: CanvasRenderingContext2D;
+
+	readonly abort: AbortController;
+
+	constructor(
+		public game: BaseGame,
+		public canvas: HTMLCanvasElement,
+	) {
+		this.abort = new AbortController();
+
+		const context = canvas.getContext('2d');
+		if (!context) {
+			throw new Error('Could not get canvas context');
+		}
+
+		this.context = context;
+		this.requestResize();
+
+		game.keyboard.attachTo(canvas, this.abort.signal);
+		game.mouse.attachTo(canvas, this.abort.signal, (e) =>
+			this.projectMouseCoordinates(e),
+		);
+	}
+
+	[Symbol.dispose](): void {
+		this.abort.abort();
+		this.game['canvases'].delete(this);
+	}
+
+	lastTransform: DOMMatrix = new DOMMatrix();
+	private projectMouseCoordinates(e: MouseEvent): Vec2Like {
+		const rect = this.canvas.getBoundingClientRect();
+		const x = e.clientX - rect.left;
+		const y = e.clientY - rect.top;
+
+		const inverted = this.lastTransform.inverse();
+		const transformedPoint = inverted.transformPoint(new DOMPoint(x, y));
+
+		return transformedPoint;
+	}
+
+	doRender(
+		renderCallback: (context: CanvasRenderingContext2D) => void,
+	): void {
+		if (this.shouldRefreshSize) {
+			this.canvas.width = this.shouldRefreshSize.width;
+			this.canvas.height = this.shouldRefreshSize.height;
+			this.shouldRefreshSize = null;
+		}
+
+		using _ = new ContextSave(this.context);
+
+		const box = new Rect2(
+			0,
+			0,
+			this.game.physics.width,
+			this.game.physics.height,
+		);
+		const ratio = box.aspectRatio();
+
+		const canvasRatio = this.canvas.width / this.canvas.height;
+
+		let scale: number;
+		if (canvasRatio > ratio) {
+			scale = this.canvas.height / box.height;
+		} else {
+			scale = this.canvas.width / box.width;
+		}
+
+		const renderWidth = box.width * scale;
+		const renderHeight = box.height * scale;
+
+		const offsetX = (this.canvas.width - renderWidth) / 2;
+		const offsetY = (this.canvas.height - renderHeight) / 2;
+
+		this.context.translate(offsetX, offsetY);
+		this.context.scale(scale, scale);
+
+		this.lastTransform = this.context.getTransform();
+		renderCallback(this.context);
+	}
+
+	requestResize() {
+		this.shouldRefreshSize = {
+			width: this.canvas.clientWidth,
+			height: this.canvas.clientHeight,
+		};
+	}
+}

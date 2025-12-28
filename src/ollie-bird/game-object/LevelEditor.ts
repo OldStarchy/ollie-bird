@@ -275,16 +275,16 @@ export default class LevelEditor extends GameObject {
 		const gridSize = this.gridSize;
 		context.strokeStyle = '#e0e0e0';
 		context.lineWidth = 1;
-		for (let x = 0; x < this.game.canvas.width; x += gridSize) {
+		for (let x = 0; x < this.game.physics.width; x += gridSize) {
 			context.beginPath();
 			context.moveTo(x, 0);
-			context.lineTo(x, this.game.canvas.height);
+			context.lineTo(x, this.game.physics.height);
 			context.stroke();
 		}
-		for (let y = 0; y < this.game.canvas.height; y += gridSize) {
+		for (let y = 0; y < this.game.physics.height; y += gridSize) {
 			context.beginPath();
 			context.moveTo(0, y);
-			context.lineTo(this.game.canvas.width, y);
+			context.lineTo(this.game.physics.width, y);
 			context.stroke();
 		}
 	}

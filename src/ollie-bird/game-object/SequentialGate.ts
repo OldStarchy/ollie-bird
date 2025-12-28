@@ -1,7 +1,8 @@
+import { z } from 'zod';
+import ContextSave from '../../ContextSave';
 import { LAYER_ITEMS, TAG_LEVEL_STRUCTURE } from '../const';
 import type IGame from '../IGame';
 import Collider2d from '../modules/Collider2d';
-import { z } from 'zod';
 import Bird from './Bird';
 import RectangleTrigger, {
 	rectangleTriggerDtoSchema,
@@ -65,13 +66,12 @@ export default class SequentialGate extends RectangleTrigger {
 		const cx = this.transform.position.x + this.width / 2;
 		const cy = this.transform.position.y + this.height / 2;
 
-		context.save();
+		using _ = new ContextSave(context);
 		context.fillStyle = 'black';
 		context.textAlign = 'center';
 		context.textBaseline = 'middle';
 		context.font = '30px sans-serif';
 		context.fillText(this.sequenceNumber.toString(), cx, cy);
-		context.restore();
 	}
 
 	override serialize(): SequentialGateDto {
@@ -81,10 +81,7 @@ export default class SequentialGate extends RectangleTrigger {
 		};
 	}
 
-	static spawnDeserialize(
-		game: IGame,
-		data: unknown,
-	): SequentialGate | null {
+	static spawnDeserialize(game: IGame, data: unknown): SequentialGate | null {
 		const parseResult = sequentialGateDtoSchema.safeParse(data);
 		if (!parseResult.success) {
 			console.error(

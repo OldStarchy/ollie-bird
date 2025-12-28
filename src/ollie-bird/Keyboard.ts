@@ -4,7 +4,7 @@ export default class Keyboard {
 	private pressedKeys: Set<string> = new Set();
 	private wasPressedKeys: Set<string> = new Set();
 
-	constructor(element: HTMLElement, signal: AbortSignal) {
+	attachTo(element: HTMLElement, signal: AbortSignal) {
 		element.addEventListener(
 			'keydown',
 			(event) => {

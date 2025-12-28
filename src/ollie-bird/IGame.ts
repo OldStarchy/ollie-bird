@@ -12,11 +12,15 @@ export default interface IGame {
 	readonly mouse: Mouse;
 	readonly physics: {
 		gravity: number;
+		width: number;
+		height: number;
 	};
-	readonly canvas: HTMLCanvasElement;
 	readonly event: EventSource<GameEventMap>;
 
-	spawn<Class extends new(game: IGame, ...args: any[]) => GameObject>(type: Class, ...args: Tail<ConstructorParameters<Class>>): InstanceType<Class>;
+	spawn<Class extends new (game: IGame, ...args: any[]) => GameObject>(
+		type: Class,
+		...args: Tail<ConstructorParameters<Class>>
+	): InstanceType<Class>;
 	destroy(obj: GameObject): void;
 	destroySome(cb: (obj: GameObject) => boolean): void;
 
