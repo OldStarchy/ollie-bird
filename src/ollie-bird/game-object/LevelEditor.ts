@@ -1,5 +1,5 @@
 import ButtonState from '../ButtonState';
-import RectangleCollider from '../collider/RectangleCollider';
+import Rectangle from '../collider/Rectangle';
 import { CELL_SIZE, TAG_LEVEL_OBJECT, TAG_LEVEL_STRUCTURE } from '../const';
 import GameObject from '../GameObject';
 import type IGame from '../IGame';
@@ -168,7 +168,7 @@ export default class LevelEditor extends GameObject {
 									.findObjectsByType(Obstacle, SequentialGate)
 									.filter(
 										Collider2d.collidingWith(
-											new RectangleCollider(
+											new Rectangle(
 												rect.x,
 												rect.y,
 												rect.width,

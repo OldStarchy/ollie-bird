@@ -1,4 +1,4 @@
-import RayCollider from '../collider/RayCollider';
+import Ray from '../collider/Ray';
 import type { Vec2Like } from '../Vec2';
 import Vec2 from '../Vec2';
 import Collider2d from './Collider2d';
@@ -10,7 +10,7 @@ export default class RayCollider2d extends Collider2d {
 
 	override getCollider() {
 		const { x, y } = this.owner.transform.position;
-		return new RayCollider(
+		return new Ray(
 			{ x: x + this.origin.x, y: y + this.origin.y },
 			this.direction,
 			this.distance,

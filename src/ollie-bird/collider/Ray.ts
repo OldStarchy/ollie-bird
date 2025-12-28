@@ -1,10 +1,11 @@
 import type { Vec2Like } from '../Vec2';
 import Vec2 from '../Vec2';
-import CircleCollider from './CircleCollider';
+import Circle from './Circle';
 import type ColliderShape from './ColliderShape';
-import RectangleCollider from './RectangleCollider';
+import type { Collision } from './ColliderShape';
+import Rectangle from './Rectangle';
 
-export default class RayCollider implements ColliderShape {
+export default class Ray implements ColliderShape {
 	readonly precedence = 3;
 
 	constructor(
@@ -18,22 +19,44 @@ export default class RayCollider implements ColliderShape {
 			return other.checkCollision(this);
 		}
 
-		if (other instanceof RayCollider) {
+		if (other instanceof Ray) {
 			return this.checkCollisionWithRay(other);
 		}
 
-		if (other instanceof RectangleCollider) {
+		if (other instanceof Rectangle) {
 			return this.checkCollisionWithRectangle(other);
 		}
 
-		if (other instanceof CircleCollider) {
+		if (other instanceof Circle) {
 			return this.checkCollisionWithCircle(other);
 		}
 
 		throw new Error('Unsupported collider shape');
 	}
 
-	private checkCollisionWithRay(other: RayCollider): boolean {
+	getCollision(other: ColliderShape): Collision | null {
+		if (this.precedence < other.precedence) {
+			return other.getCollision(this);
+		}
+
+		throw new Error('Method not implemented.');
+
+		// if (other instanceof RayCollider) {
+		// 	return this.getCollisionWithRay(other);
+		// }
+
+		// if (other instanceof RectangleCollider) {
+		// 	return this.getCollisionWithRectangle(other);
+		// }
+
+		// if (other instanceof Circle) {
+		// 	return this.getCollisionWithCircle(other);
+		// }
+
+		// throw new Error('Unsupported collider shape');
+	}
+
+	private checkCollisionWithRay(other: Ray): boolean {
 		// Ray-ray intersection using parametric line equations
 		const dx = other.origin.x - this.origin.x;
 		const dy = other.origin.y - this.origin.y;
@@ -54,7 +77,7 @@ export default class RayCollider implements ColliderShape {
 		return u >= 0 && u <= this.distance && v >= 0 && v <= other.distance;
 	}
 
-	private checkCollisionWithRectangle(rect: RectangleCollider): boolean {
+	private checkCollisionWithRectangle(rect: Rectangle): boolean {
 		// Use slab method for ray-AABB intersection
 		const dirX = this.direction.x;
 		const dirY = this.direction.y;
@@ -83,7 +106,7 @@ export default class RayCollider implements ColliderShape {
 		return t >= 0 && t <= this.distance;
 	}
 
-	private checkCollisionWithCircle(circle: CircleCollider): boolean {
+	private checkCollisionWithCircle(circle: Circle): boolean {
 		// Normalize direction vector for proper distance calculations
 		const dirLength = Math.sqrt(
 			this.direction.x * this.direction.x +

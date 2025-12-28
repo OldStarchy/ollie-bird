@@ -1,7 +1,8 @@
-import CircleCollider from './CircleCollider';
+import Circle from './Circle';
 import type ColliderShape from './ColliderShape';
+import type { Collision } from './ColliderShape';
 
-export default class RectangleCollider implements ColliderShape {
+export default class Rectangle implements ColliderShape {
 	readonly precedence = 2;
 
 	constructor(
@@ -16,17 +17,34 @@ export default class RectangleCollider implements ColliderShape {
 			return other.checkCollision(this);
 		}
 
-		if (other instanceof RectangleCollider) {
+		if (other instanceof Rectangle) {
 			return this.checkCollisionWithRectangle(other);
 		}
-		if (other instanceof CircleCollider) {
+		if (other instanceof Circle) {
 			return this.checkCollisionWithCircle(other);
 		}
 
 		throw new Error('Unsupported collider shape');
 	}
 
-	private checkCollisionWithRectangle(other: RectangleCollider): boolean {
+	getCollision(other: ColliderShape): Collision | null {
+		if (this.precedence < other.precedence) {
+			return other.getCollision(this);
+		}
+
+		throw new Error('Method not implemented.');
+
+		// if (other instanceof RectangleCollider) {
+		// 	return this.getCollisionWithRectangle(other);
+		// }
+		// if (other instanceof Circle) {
+		// 	return this.getCollisionWithCircle(other);
+		// }
+
+		// throw new Error('Unsupported collider shape');
+	}
+
+	private checkCollisionWithRectangle(other: Rectangle): boolean {
 		return !(
 			this.x + this.width < other.x ||
 			this.x > other.x + other.width ||
@@ -35,7 +53,7 @@ export default class RectangleCollider implements ColliderShape {
 		);
 	}
 
-	private checkCollisionWithCircle(circle: CircleCollider): boolean {
+	private checkCollisionWithCircle(circle: Circle): boolean {
 		const closestX = Math.max(
 			this.x,
 			Math.min(circle.x, this.x + this.width),

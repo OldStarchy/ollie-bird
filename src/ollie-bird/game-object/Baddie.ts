@@ -9,7 +9,7 @@ import RectangleCollider2d from '../modules/RectangleCollider2d';
 
 import baddie1 from '../../assets/baddie-1.png';
 import baddie2 from '../../assets/baddie-2.png';
-import RayCollider from '../collider/RayCollider';
+import Ray from '../collider/Ray';
 import Animation from '../modules/Animation';
 import Collider2d from '../modules/Collider2d';
 import Sprite from '../Sprite';
@@ -38,7 +38,7 @@ export default class Baddie extends GameObject {
 	}
 
 	protected override update() {
-		const ray = new RayCollider(
+		const ray = new Ray(
 			{
 				x: this.transform.position.x + CELL_SIZE * 0.5,
 				y: this.transform.position.y + CELL_SIZE * 0.75,

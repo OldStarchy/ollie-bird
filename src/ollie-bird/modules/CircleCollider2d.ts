@@ -1,4 +1,4 @@
-import CircleCollider from '../collider/CircleCollider';
+import Circle from '../collider/Circle';
 import type { Vec2Like } from '../Vec2';
 import Collider2d from './Collider2d';
 
@@ -8,11 +8,7 @@ export default class CircleCollider2d extends Collider2d {
 
 	override getCollider() {
 		const { x, y } = this.owner.transform.position;
-		return new CircleCollider(
-			x + this.center.x,
-			y + this.center.y,
-			this.radius,
-		);
+		return new Circle(x + this.center.x, y + this.center.y, this.radius);
 	}
 
 	override doGizmoPath(context: CanvasRenderingContext2D): void {

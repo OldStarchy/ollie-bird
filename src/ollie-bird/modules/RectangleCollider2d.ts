@@ -1,4 +1,4 @@
-import RectangleCollider from '../collider/RectangleCollider';
+import Rectangle from '../collider/Rectangle';
 import type GameObject from '../GameObject';
 import type { Rect2Like } from '../math/Rect2';
 import Collider2d from './Collider2d';
@@ -20,12 +20,7 @@ export default class RectangleCollider2d extends Collider2d {
 
 	override getCollider() {
 		const { x, y } = this.owner.transform.position;
-		return new RectangleCollider(
-			x + this.x,
-			y + this.y,
-			this.width,
-			this.height,
-		);
+		return new Rectangle(x + this.x, y + this.y, this.width, this.height);
 	}
 
 	override doGizmoPath(context: CanvasRenderingContext2D): void {
