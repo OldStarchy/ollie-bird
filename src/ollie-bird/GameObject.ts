@@ -7,7 +7,7 @@ export default class GameObject implements IModular, Disposable {
 	private modules: ModuleCollection;
 
 	layer: number = 0;
-	tags: Set<string | Symbol> = new Set();
+	tags: Set<string | symbol> = new Set();
 
 	readonly transform: Transform2d;
 
