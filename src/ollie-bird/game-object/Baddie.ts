@@ -26,7 +26,7 @@ export default class Baddie extends GameObject {
 		this.tags.add(TAG_LEVEL_OBJECT);
 		this.tags.add(TAG_DEADLY);
 
-		const hurtBox = this.addModule(RectangleCollider2d, {
+		this.addModule(RectangleCollider2d, {
 			x: 0,
 			y: CELL_SIZE * 0.5,
 			width: CELL_SIZE,
