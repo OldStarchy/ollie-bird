@@ -119,7 +119,7 @@ function LevelPicker({
 		);
 	}, []);
 
-	useEffect(() => refreshLevels(), []);
+	useEffect(() => refreshLevels(), [refreshLevels]);
 
 	const loadLevel = (levelName: string) => {
 		const data = localStorage.getItem(localStorageKeyPrefix + levelName);
