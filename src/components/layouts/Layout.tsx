@@ -7,6 +7,7 @@ import {
 	type CSSProperties,
 	type ReactNode,
 } from 'react';
+import Button from '../Button';
 
 interface LayoutContext {
 	showSidebar: boolean;
@@ -103,7 +104,17 @@ export default function Layout({
 							gridArea: 'sidebar',
 						}}
 					>
-						Sidebar Content
+						<p>Sidebar Content</p>
+						<Button
+							onClick={() => {
+								setShowSidebar(false);
+								setShowAside(false);
+								setShowHeader(false);
+								setShowFooter(false);
+							}}
+						>
+							Hide all the decorations
+						</Button>
 					</aside>
 				)}
 				<div
