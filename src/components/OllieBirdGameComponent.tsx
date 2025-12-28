@@ -33,7 +33,6 @@ function OllieBirdGameComponent() {
 			style={{
 				width: '100%',
 				height: '100%',
-				display: 'block',
 			}}
 		>
 			{game && (

@@ -59,8 +59,8 @@ abstract class BaseGame implements IGame {
 	}
 
 	private refreshCanvasViewport(): void {
-		this.canvas.style.width = '100vw';
-		this.canvas.style.height = '100vh';
+		this.canvas.style.width = '100%';
+		this.canvas.style.height = '100%';
 		this.canvas.width = this.canvas.clientWidth;
 		this.canvas.height = this.canvas.clientHeight;
 		this.canvas.style.width = `${this.canvas.clientWidth}px`;
@@ -156,6 +156,13 @@ abstract class BaseGame implements IGame {
 				go['doAfterRenderGizmos'](this.context),
 			);
 		}
+
+		this.context.strokeRect(
+			10,
+			10,
+			this.canvas.width - 20,
+			this.canvas.height - 20,
+		);
 	}
 
 	spawn<Constructor extends new (game: IGame, ...args: any[]) => GameObject>(
