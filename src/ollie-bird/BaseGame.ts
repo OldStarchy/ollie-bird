@@ -256,26 +256,32 @@ export class GameCanvas implements Disposable {
 			this.game.physics.height,
 		);
 		const ratio = box.aspectRatio();
+		if (
+			ratio !== undefined &&
+			ratio !== 0 &&
+			this.canvas.width !== 0 &&
+			this.canvas.height !== 0
+		) {
+			const canvasRatio = this.canvas.width / this.canvas.height;
 
-		const canvasRatio = this.canvas.width / this.canvas.height;
+			let scale: number;
+			if (canvasRatio > ratio) {
+				scale = this.canvas.height / box.height;
+			} else {
+				scale = this.canvas.width / box.width;
+			}
 
-		let scale: number;
-		if (canvasRatio > ratio) {
-			scale = this.canvas.height / box.height;
-		} else {
-			scale = this.canvas.width / box.width;
+			const renderWidth = box.width * scale;
+			const renderHeight = box.height * scale;
+
+			const offsetX = (this.canvas.width - renderWidth) / 2;
+			const offsetY = (this.canvas.height - renderHeight) / 2;
+
+			this.context.translate(offsetX, offsetY);
+			this.context.scale(scale, scale);
+
+			this.lastTransform = this.context.getTransform();
 		}
-
-		const renderWidth = box.width * scale;
-		const renderHeight = box.height * scale;
-
-		const offsetX = (this.canvas.width - renderWidth) / 2;
-		const offsetY = (this.canvas.height - renderHeight) / 2;
-
-		this.context.translate(offsetX, offsetY);
-		this.context.scale(scale, scale);
-
-		this.lastTransform = this.context.getTransform();
 		renderCallback(this.context);
 	}
 

@@ -150,7 +150,7 @@ export default class LevelEditor extends GameObject {
 							return;
 						}
 
-						rect.noramlize();
+						rect.normalize();
 
 						switch (this.mode) {
 							case EditorMode.AddObstacle:
