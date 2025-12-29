@@ -1,32 +1,12 @@
 import {
-	createContext,
 	useCallback,
-	useContext,
 	useMemo,
 	useState,
 	type CSSProperties,
 	type ReactNode,
 } from 'react';
 import Button from '../Button';
-
-interface LayoutContext {
-	showSidebar: boolean;
-	toggleSidebar: () => void;
-
-	showAside: boolean;
-	toggleAside: () => void;
-
-	showHeader: boolean;
-	toggleHeader: () => void;
-
-	showFooter: boolean;
-	toggleFooter: () => void;
-}
-const LayoutContext = createContext<LayoutContext | null>(null);
-
-export function useLayoutContext() {
-	return useContext(LayoutContext);
-}
+import { LayoutContext } from './LayoutContext';
 
 export default function Layout({
 	children,
