@@ -1,4 +1,5 @@
 import type ButtonState from './ButtonState';
+import type { Vec2Like } from './Vec2';
 
 export default class Mouse {
 	static BUTTON_LEFT = 0;
@@ -30,11 +31,12 @@ export default class Mouse {
 	private previousX: number = 0;
 	private previousY: number = 0;
 
-	constructor(
-		private element: HTMLElement,
+	attachTo(
+		element: HTMLElement,
 		signal: AbortSignal,
+		projectMouse: (e: MouseEvent) => Vec2Like,
 	) {
-		this.element.addEventListener(
+		element.addEventListener(
 			'mousedown',
 			(e) => {
 				this.buttonsPressed.add(e.button);
@@ -42,7 +44,7 @@ export default class Mouse {
 			{ signal },
 		);
 
-		this.element.addEventListener(
+		element.addEventListener(
 			'mouseup',
 			(e) => {
 				this.buttonsPressed.delete(e.button);
@@ -50,7 +52,7 @@ export default class Mouse {
 			{ signal },
 		);
 
-		this.element.addEventListener(
+		element.addEventListener(
 			'mouseleave',
 			(_e) => {
 				this.buttonsPressed.clear();
@@ -58,22 +60,22 @@ export default class Mouse {
 			{ signal },
 		);
 
-		this.element.addEventListener(
+		element.addEventListener(
 			'mousemove',
 			(e) => {
-				const rect = this.element.getBoundingClientRect();
-				this.#x = e.clientX - rect.left;
-				this.#y = e.clientY - rect.top;
+				const { x, y } = projectMouse(e);
+				this.#x = x;
+				this.#y = y;
 			},
 			{ signal },
 		);
 
-		this.element.addEventListener(
+		element.addEventListener(
 			'mouseenter',
 			(e) => {
-				const rect = this.element.getBoundingClientRect();
-				this.#x = e.clientX - rect.left;
-				this.#y = e.clientY - rect.top;
+				const { x, y } = projectMouse(e);
+				this.#x = x;
+				this.#y = y;
 				this.previousX = this.#x;
 				this.previousY = this.#y;
 			},

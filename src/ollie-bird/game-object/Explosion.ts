@@ -16,6 +16,9 @@ export default class Explosion extends GameObject {
 	}
 
 	protected override render(context: CanvasRenderingContext2D): void {
+		if (this.radius <= 0) {
+			return;
+		}
 		context.strokeStyle = 'orange';
 		context.beginPath();
 		context.arc(...this.transform.position.xy, this.radius, 0, Math.PI * 2);

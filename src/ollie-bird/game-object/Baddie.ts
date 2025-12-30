@@ -58,7 +58,7 @@ export default class Baddie extends GameObject {
 
 		const nextX = this.transform.position.x + this.dir * this.speed;
 
-		if (nextX < 0 || nextX > this.game.canvas.width - CELL_SIZE) {
+		if (nextX < 0 || nextX > this.game.physics.width - CELL_SIZE) {
 			this.dir *= -1;
 		} else {
 			this.transform.position.x = nextX;
