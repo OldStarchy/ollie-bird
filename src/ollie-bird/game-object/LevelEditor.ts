@@ -306,6 +306,7 @@ export default class LevelEditor extends GameObject {
 				objects,
 				width: this.game.width,
 				height: this.game.height,
+				background: this.game.backgroundColor,
 			},
 			null,
 			2,
@@ -336,6 +337,12 @@ export default class LevelEditor extends GameObject {
 				this.game.height = parsed.height;
 			} else {
 				this.game.height = 1080;
+			}
+
+			if (typeof parsed.background === 'string') {
+				this.game.backgroundColor = parsed.background;
+			} else {
+				this.game.backgroundColor = 'skyblue';
 			}
 			// Handle new format with $type field
 			if (Array.isArray(parsed.objects)) {

@@ -16,6 +16,7 @@ export default interface IGame {
 	readonly event: EventSource<GameEventMap>;
 	width: number;
 	height: number;
+	backgroundColor: string;
 
 	spawn<Class extends new (game: IGame, ...args: any[]) => GameObject>(
 		type: Class,

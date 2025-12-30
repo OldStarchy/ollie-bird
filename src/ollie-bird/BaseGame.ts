@@ -1,5 +1,7 @@
 import z from 'zod';
 import ContextSave from '../ContextSave';
+import notify from '../property/notify';
+import type { NotifyPropertyChanged } from '../property/NotifyPropertyChanged';
 import { property } from '../property/property';
 import { CELL_SIZE, TAG_LEVEL_OBJECT } from './const';
 import EventSource from './EventSource';
@@ -11,6 +13,7 @@ import Mouse from './Mouse';
 import type { Vec2Like } from './Vec2';
 
 const bgColors = [
+	'custom',
 	'skyblue',
 	'black',
 	'white',
@@ -19,7 +22,7 @@ const bgColors = [
 	'darkgray',
 ] as const;
 
-abstract class BaseGame implements IGame {
+abstract class BaseGame implements IGame, NotifyPropertyChanged {
 	private abortController: AbortController;
 
 	private readonly objects: GameObject[];
@@ -58,7 +61,7 @@ abstract class BaseGame implements IGame {
 	private canvases: Set<GameCanvas> = new Set();
 
 	readonly propertyChanged = new EventSource<{
-		change: { name: PropertyKey; newValue: any };
+		change: { name: PropertyKey };
 	}>();
 
 	addCanvas(canvas: HTMLCanvasElement): GameCanvas {
@@ -84,7 +87,23 @@ abstract class BaseGame implements IGame {
 	protected preStart(): void {}
 
 	@property(z.enum(bgColors).describe('Background Color'))
-	accessor backgroundColor: (typeof bgColors)[number] = 'skyblue';
+	set color(value: (typeof bgColors)[number]) {
+		if (value === 'custom') {
+			this.backgroundColor = '#857';
+			return;
+		}
+		this.backgroundColor = value;
+	}
+	get color(): (typeof bgColors)[number] {
+		if (!bgColors.includes(this.backgroundColor as any)) {
+			return 'custom';
+		}
+		return this.backgroundColor as (typeof bgColors)[number];
+	}
+
+	@notify('color')
+	@property(z.string().describe('Custom Color'))
+	accessor backgroundColor: string = 'skyblue';
 
 	restart() {
 		this.destroySome((obj) => obj.tags.has(TAG_LEVEL_OBJECT));
