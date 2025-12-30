@@ -6,6 +6,9 @@ import {
 	type ReactNode,
 } from 'react';
 import Button from '../Button';
+import { useGameContext } from '../OllieBirdGameComponent';
+import PropertiesPanel from '../PropertiesPanel';
+import Rule from '../Rule';
 import { LayoutContext } from './LayoutContext';
 
 export default function Layout({
@@ -24,6 +27,8 @@ export default function Layout({
 	const toggleAside = useCallback(() => setShowAside((v) => !v), []);
 	const toggleHeader = useCallback(() => setShowHeader((v) => !v), []);
 	const toggleFooter = useCallback(() => setShowFooter((v) => !v), []);
+
+	const game = useGameContext();
 
 	const ctx = useMemo(
 		() => ({
@@ -48,6 +53,7 @@ export default function Layout({
 		],
 	);
 
+	if (!game) return;
 	return (
 		<LayoutContext.Provider value={ctx}>
 			<div
@@ -84,10 +90,13 @@ export default function Layout({
 							gridArea: 'sidebar',
 						}}
 					>
-						<p>Sidebar Content</p>
+						<p>Game Config</p>
+						<PropertiesPanel model={game} />
+						<Rule orientation="horizontal" />
+						{/* <p>Sidebar Content</p>
+						<PropertiesPanelTest /> */}
 						<Button
 							onClick={() => {
-								setShowSidebar(false);
 								setShowAside(false);
 								setShowHeader(false);
 								setShowFooter(false);

@@ -1,5 +1,7 @@
+import z from 'zod';
 import ContextSave from '../ContextSave';
-import { TAG_LEVEL_OBJECT } from './const';
+import { property } from '../property/property';
+import { CELL_SIZE, TAG_LEVEL_OBJECT } from './const';
 import EventSource from './EventSource';
 import type GameObject from './GameObject';
 import type IGame from './IGame';
@@ -7,6 +9,15 @@ import Keyboard from './Keyboard';
 import Rect2 from './math/Rect2';
 import Mouse from './Mouse';
 import type { Vec2Like } from './Vec2';
+
+const bgColors = [
+	'skyblue',
+	'black',
+	'white',
+	'lightgray',
+	'gray',
+	'darkgray',
+] as const;
 
 abstract class BaseGame implements IGame {
 	private abortController: AbortController;
@@ -31,6 +42,22 @@ abstract class BaseGame implements IGame {
 		return this.#currentSecondsPerFrame;
 	}
 
+	@property(z.number().min(CELL_SIZE).describe('Width'))
+	set width(value: number) {
+		this.physics.width = value;
+	}
+	get width(): number {
+		return this.physics.width;
+	}
+
+	@property(z.number().min(CELL_SIZE).describe('Height'))
+	set height(value: number) {
+		this.physics.height = value;
+	}
+	get height(): number {
+		return this.physics.height;
+	}
+
 	constructor() {
 		this.abortController = new AbortController();
 
@@ -41,6 +68,10 @@ abstract class BaseGame implements IGame {
 	}
 
 	private canvases: Set<GameCanvas> = new Set();
+
+	readonly propertyChanged = new EventSource<{
+		change: { name: PropertyKey; newValue: any };
+	}>();
 
 	addCanvas(canvas: HTMLCanvasElement): GameCanvas {
 		const gameCanvas = new GameCanvas(this, canvas);
@@ -64,7 +95,8 @@ abstract class BaseGame implements IGame {
 
 	protected preStart(): void {}
 
-	public backgroundColor: string = 'skyblue';
+	@property(z.enum(bgColors).describe('Background Color'))
+	accessor backgroundColor: (typeof bgColors)[number] = 'skyblue';
 
 	restart() {
 		this.destroySome((obj) => obj.tags.has(TAG_LEVEL_OBJECT));
