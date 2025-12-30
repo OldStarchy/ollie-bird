@@ -52,7 +52,6 @@ export function property<This extends NotifyPropertyChanged, Value>(
 
 						this.propertyChanged.emit('change', {
 							name: context.name.toString(),
-							newValue,
 						});
 					},
 				};
@@ -69,7 +68,6 @@ export function property<This extends NotifyPropertyChanged, Value>(
 
 					this.propertyChanged.emit('change', {
 						name: context.name.toString(),
-						newValue,
 					});
 				};
 			}
