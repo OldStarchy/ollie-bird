@@ -28,8 +28,6 @@ abstract class BaseGame implements IGame {
 	public readonly mouse: Mouse;
 	public physics = {
 		gravity: 0.2,
-		width: 1920,
-		height: 1080,
 	};
 	public renderGizmos: boolean = true;
 
@@ -43,20 +41,10 @@ abstract class BaseGame implements IGame {
 	}
 
 	@property(z.number().min(CELL_SIZE).describe('Width'))
-	set width(value: number) {
-		this.physics.width = value;
-	}
-	get width(): number {
-		return this.physics.width;
-	}
+	accessor width = 1920;
 
 	@property(z.number().min(CELL_SIZE).describe('Height'))
-	set height(value: number) {
-		this.physics.height = value;
-	}
-	get height(): number {
-		return this.physics.height;
-	}
+	accessor height = 1080;
 
 	constructor() {
 		this.abortController = new AbortController();
@@ -137,7 +125,7 @@ abstract class BaseGame implements IGame {
 
 		this.renderAll((context) => {
 			context.fillStyle = this.backgroundColor;
-			context.fillRect(0, 0, this.physics.width, this.physics.height);
+			context.fillRect(0, 0, this.width, this.height);
 
 			const layers = new Map<number, GameObject[]>();
 
@@ -167,7 +155,7 @@ abstract class BaseGame implements IGame {
 			}
 
 			context.strokeStyle = 'red';
-			context.strokeRect(0, 0, this.physics.width, this.physics.height);
+			context.strokeRect(0, 0, this.width, this.height);
 		});
 	}
 
@@ -281,12 +269,7 @@ export class GameCanvas implements Disposable {
 
 		using _ = new ContextSave(this.context);
 
-		const box = new Rect2(
-			0,
-			0,
-			this.game.physics.width,
-			this.game.physics.height,
-		);
+		const box = new Rect2(0, 0, this.game.width, this.game.height);
 		const ratio = box.aspectRatio();
 		if (
 			ratio !== undefined &&

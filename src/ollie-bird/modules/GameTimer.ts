@@ -53,7 +53,7 @@ export default class GameTimer extends Module {
 
 		context.font = '20px Arial';
 		context.fillStyle = 'black';
-		const centerX = this.owner.game.physics.width / 2;
+		const centerX = this.owner.game.width / 2;
 		context.textAlign = 'center';
 		context.fillText(timeString, centerX, 30);
 		context.textAlign = 'left';

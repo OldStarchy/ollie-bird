@@ -132,10 +132,10 @@ class Bird extends GameObject {
 
 	protected checkOutOfBounds() {
 		if (
-			this.position.y > this.game.physics.height ||
+			this.position.y > this.game.height ||
 			this.position.y < 0 ||
 			this.position.x < 0 ||
-			this.position.x > this.game.physics.width
+			this.position.x > this.game.width
 		) {
 			this.die();
 		}

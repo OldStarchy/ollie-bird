@@ -12,10 +12,10 @@ export default interface IGame {
 	readonly mouse: Mouse;
 	readonly physics: {
 		gravity: number;
-		width: number;
-		height: number;
 	};
 	readonly event: EventSource<GameEventMap>;
+	width: number;
+	height: number;
 
 	spawn<Class extends new (game: IGame, ...args: any[]) => GameObject>(
 		type: Class,
