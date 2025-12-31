@@ -286,6 +286,8 @@ export class GameCanvas implements Disposable {
 			this.shouldRefreshSize = null;
 		}
 
+		this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
 		using _ = new ContextSave(this.context);
 
 		const box = new Rect2(0, 0, this.game.width, this.game.height);
