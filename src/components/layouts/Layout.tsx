@@ -93,8 +93,6 @@ export default function Layout({
 						<p>Game Config</p>
 						<PropertiesPanel model={game} />
 						<Rule orientation="horizontal" />
-						{/* <p>Sidebar Content</p>
-						<PropertiesPanelTest /> */}
 						<Button
 							onClick={() => {
 								setShowAside(false);

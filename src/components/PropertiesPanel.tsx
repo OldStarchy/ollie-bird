@@ -1,13 +1,9 @@
 import { useCallback, useEffect, useId, useMemo, useState } from 'react';
 import z from 'zod';
-import EventSource from '../ollie-bird/EventSource';
 import getPropertiesSchema from '../property/getPropertiesSchema';
 import type { NotifyPropertyChanged } from '../property/NotifyPropertyChanged';
-import { property } from '../property/property';
 import Input from './Input';
 import Select from './Select';
-
-const debugStuff = false;
 
 export default function PropertiesPanel<T extends NotifyPropertyChanged>({
 	model,
@@ -149,44 +145,5 @@ function ZodField({
 			})()}
 			{warning ?? <label>{warning}</label>}
 		</div>
-	);
-}
-
-class MyConfigurableClass {
-	@property(z.number())
-	accessor width = 100;
-
-	@property(z.number())
-	accessor height = 200;
-
-	@property(z.string().describe('TItle'))
-	accessor title = 'My Configurable Class';
-
-	propertyChanged = new EventSource<{
-		change: { name: PropertyKey; newValue: any };
-	}>();
-}
-
-export function PropertiesPanelTest() {
-	const model = useMemo(() => new MyConfigurableClass(), []);
-	const schema = useMemo(() => getPropertiesSchema(MyConfigurableClass), []);
-
-	const [, rerender] = useState({});
-
-	useEffect(() =>
-		model.propertyChanged.on('change', () => {
-			rerender({});
-		}),
-	);
-
-	if (schema === null) {
-		return <div>No properties schema found.</div>;
-	}
-
-	return (
-		<>
-			<PropertiesPanel model={model} />
-			{debugStuff && <pre>{JSON.stringify(model, null, 2)}</pre>}
-		</>
 	);
 }
