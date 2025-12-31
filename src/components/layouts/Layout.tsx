@@ -6,7 +6,7 @@ import {
 	type ReactNode,
 } from 'react';
 import Button from '../Button';
-import { useGameContext } from '../OllieBirdGameComponent';
+import useGameContext from '../GameContext';
 import PropertiesPanel from '../PropertiesPanel';
 import Rule from '../Rule';
 import { LayoutContext } from './LayoutContext';

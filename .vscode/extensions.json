@@ -1,3 +1,7 @@
 {
-	"recommendations": ["vitest.explorer", "prettier.prettier-vscode"]
+	"recommendations": [
+		"vitest.explorer",
+		"prettier.prettier-vscode",
+		"dbaeumer.vscode-eslint"
+	]
 }

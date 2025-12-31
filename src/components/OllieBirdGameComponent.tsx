@@ -1,7 +1,7 @@
-import { createContext, useContext, useEffect, useRef, useState } from 'react';
-import BaseGame from '../ollie-bird/BaseGame';
+import { useEffect, useRef, useState } from 'react';
 import OllieBirdGame from '../ollie-bird/OllieBirdGame';
 import GameCanvas from './GameCanvas';
+import { GameContext } from './GameContext';
 import LevelPicker from './LevelPicker';
 import Layout from './layouts/Layout';
 
@@ -10,12 +10,6 @@ declare global {
 		loadLevel: string;
 		getLevelData: (data: string) => void;
 	}
-}
-
-const GameContext = createContext<BaseGame | null>(null);
-
-export function useGameContext() {
-	return useContext(GameContext);
 }
 
 function OllieBirdGameComponent() {

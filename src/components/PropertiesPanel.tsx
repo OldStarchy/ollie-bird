@@ -112,7 +112,7 @@ function ZodField({
 								onBlur={onBlur}
 							/>
 						);
-					case 'enum':
+					case 'enum': {
 						const options = Object.entries(
 							(schema as z.ZodEnum<any>).def.entries,
 						);
@@ -125,13 +125,14 @@ function ZodField({
 									onBlur();
 								}}
 							>
-								{options.map(([k, v]: [string, unknown]) => (
+								{options.map(([k, _v]: [string, unknown]) => (
 									<option key={k} value={k}>
 										{k}
 									</option>
 								))}
 							</Select>
 						);
+					}
 					case 'boolean':
 						return (
 							<Input
