@@ -1,5 +1,5 @@
 import { LAYER_FOREGROUND } from '../const';
-import GameObject from '../GameObject';
+import GameObject from '../core/GameObject';
 
 export default class Explosion extends GameObject {
 	layer = LAYER_FOREGROUND;

@@ -1,8 +1,9 @@
-import ButtonState from '../ButtonState';
 import RectangleCollider from '../collider/RectangleCollider';
 import { CELL_SIZE, TAG_LEVEL_OBJECT, TAG_LEVEL_STRUCTURE } from '../const';
-import GameObject from '../GameObject';
-import type IGame from '../IGame';
+import GameObject from '../core/GameObject';
+import type IGame from '../core/IGame';
+import ButtonState from '../core/input/ButtonState';
+import Mouse from '../core/input/Mouse';
 import LevelStore, {
 	type ISerializable,
 	type SerializableClass,
@@ -11,7 +12,6 @@ import Rect2 from '../math/Rect2';
 import Collider2d from '../modules/Collider2d';
 import GameTimer from '../modules/GameTimer';
 import SequentialGateManager from '../modules/SequentialGateManager';
-import Mouse from '../Mouse';
 import BaddieSpawner from './BaddieSpawner';
 import Bird from './Bird';
 import Bomb from './Bomb';

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { LAYER_FOREGROUND, TAG_LEVEL_STRUCTURE } from '../const';
-import GameObject from '../GameObject';
-import type IGame from '../IGame';
+import GameObject from '../core/GameObject';
+import type IGame from '../core/IGame';
 import type { ISerializable } from '../LevelStore';
 import Bird from './Bird';
 

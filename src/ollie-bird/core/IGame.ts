@@ -1,7 +1,7 @@
-import type EventSource from './EventSource';
+import type EventSource from '../EventSource';
 import type GameObject from './GameObject';
-import type Keyboard from './Keyboard';
-import type Mouse from './Mouse';
+import type Keyboard from './input/Keyboard';
+import type Mouse from './input/Mouse';
 
 declare global {
 	interface GameEventMap {}
@@ -14,9 +14,13 @@ export default interface IGame {
 		gravity: number;
 	};
 	readonly event: EventSource<GameEventMap>;
+
 	width: number;
 	height: number;
 	backgroundColor: string;
+
+	updatesPerSecond: number;
+	readonly secondsPerFrame: number;
 
 	spawn<Class extends new (game: IGame, ...args: any[]) => GameObject>(
 		type: Class,
@@ -32,7 +36,4 @@ export default interface IGame {
 	getObjects(): Array<GameObject>;
 
 	restart(): void;
-
-	updatesPerSecond: number;
-	readonly secondsPerFrame: number;
 }

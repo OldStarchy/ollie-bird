@@ -1,16 +1,16 @@
 import z from 'zod';
-import ContextSave from '../ContextSave';
-import notify from '../property/notify';
-import type { NotifyPropertyChanged } from '../property/NotifyPropertyChanged';
-import { property } from '../property/property';
-import { CELL_SIZE, TAG_LEVEL_OBJECT } from './const';
-import EventSource from './EventSource';
+import ContextSave from '../../ContextSave';
+import notify from '../../property/notify';
+import type { NotifyPropertyChanged } from '../../property/NotifyPropertyChanged';
+import { property } from '../../property/property';
+import { CELL_SIZE, TAG_LEVEL_OBJECT } from '../const';
+import EventSource from '../EventSource';
+import Rect2 from '../math/Rect2';
+import type { Vec2Like } from '../math/Vec2';
 import type GameObject from './GameObject';
 import type IGame from './IGame';
-import Keyboard from './Keyboard';
-import Rect2 from './math/Rect2';
-import Mouse from './Mouse';
-import type { Vec2Like } from './Vec2';
+import Keyboard from './input/Keyboard';
+import Mouse from './input/Mouse';
 
 const bgColors = [
 	'custom',
@@ -23,23 +23,28 @@ const bgColors = [
 ] as const;
 
 abstract class BaseGame implements IGame, NotifyPropertyChanged {
-	private abortController: AbortController;
+	private abortController = new AbortController();
+	private readonly objects: GameObject[] = [];
+	private readonly canvases: Set<GameCanvas> = new Set();
 
-	private readonly objects: GameObject[];
+	constructor() {}
 
-	public readonly keyboard: Keyboard;
-	public readonly mouse: Mouse;
-	public physics = {
+	readonly propertyChanged = new EventSource<{
+		change: { name: PropertyKey };
+	}>();
+	readonly event = new EventSource<GameEventMap>();
+	readonly keyboard = new Keyboard();
+	readonly mouse = new Mouse();
+
+	updatesPerSecond: number = 60;
+	physics = {
 		gravity: 0.2,
 	};
-	public renderGizmos: boolean = true;
 
-	readonly event: EventSource<GameEventMap>;
-
-	public updatesPerSecond: number = 60;
+	renderGizmos: boolean = true;
 
 	#currentSecondsPerFrame: number = 1 / this.updatesPerSecond;
-	public get secondsPerFrame(): number {
+	get secondsPerFrame(): number {
 		return this.#currentSecondsPerFrame;
 	}
 
@@ -49,20 +54,24 @@ abstract class BaseGame implements IGame, NotifyPropertyChanged {
 	@property(z.number().min(CELL_SIZE).describe('Height'))
 	accessor height = 1080;
 
-	constructor() {
-		this.abortController = new AbortController();
-
-		this.objects = [];
-		this.keyboard = new Keyboard();
-		this.mouse = new Mouse();
-		this.event = new EventSource<GameEventMap>();
+	@property(z.enum(bgColors).describe('Background Color'))
+	set color(value: (typeof bgColors)[number]) {
+		if (value === 'custom') {
+			this.backgroundColor = '#857';
+			return;
+		}
+		this.backgroundColor = value;
+	}
+	get color(): (typeof bgColors)[number] {
+		if (!bgColors.includes(this.backgroundColor as any)) {
+			return 'custom';
+		}
+		return this.backgroundColor as (typeof bgColors)[number];
 	}
 
-	private canvases: Set<GameCanvas> = new Set();
-
-	readonly propertyChanged = new EventSource<{
-		change: { name: PropertyKey };
-	}>();
+	@notify('color')
+	@property(z.string().describe('Custom Color'))
+	accessor backgroundColor: string = 'skyblue';
 
 	addCanvas(canvas: HTMLCanvasElement): GameCanvas {
 		const gameCanvas = new GameCanvas(this, canvas);
@@ -85,25 +94,6 @@ abstract class BaseGame implements IGame, NotifyPropertyChanged {
 	}
 
 	protected preStart(): void {}
-
-	@property(z.enum(bgColors).describe('Background Color'))
-	set color(value: (typeof bgColors)[number]) {
-		if (value === 'custom') {
-			this.backgroundColor = '#857';
-			return;
-		}
-		this.backgroundColor = value;
-	}
-	get color(): (typeof bgColors)[number] {
-		if (!bgColors.includes(this.backgroundColor as any)) {
-			return 'custom';
-		}
-		return this.backgroundColor as (typeof bgColors)[number];
-	}
-
-	@notify('color')
-	@property(z.string().describe('Custom Color'))
-	accessor backgroundColor: string = 'skyblue';
 
 	restart() {
 		this.destroySome((obj) => obj.tags.has(TAG_LEVEL_OBJECT));

@@ -1,5 +1,5 @@
 import ContextSave from '../../ContextSave';
-import Module from '../IModular';
+import Module from '../core/IModular';
 
 export default class GameTimer extends Module {
 	private elapsedTime: number = 0;
