@@ -44,7 +44,7 @@ class Bird extends GameObject {
 		collider.radius = 20;
 	}
 
-	private paused: boolean = false;
+	paused: boolean = false;
 
 	togglePause() {
 		this.paused = !this.paused;

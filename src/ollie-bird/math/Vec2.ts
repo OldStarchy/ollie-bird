@@ -27,6 +27,12 @@ export default class Vec2 implements Vec2Like {
 		return new Vec2(this.x + vec.x, this.y + vec.y);
 	}
 
+	iadd(vec: Vec2Like): this {
+		this.x += vec.x;
+		this.y += vec.y;
+		return this;
+	}
+
 	subtract(vec: Vec2Like): Vec2 {
 		return new Vec2(this.x - vec.x, this.y - vec.y);
 	}

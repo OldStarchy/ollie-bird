@@ -19,6 +19,7 @@ import Goal from './Goal';
 import Obstacle from './Obstacle';
 import type RectangleTrigger from './RectangleTrigger';
 import SequentialGate from './SequentialGate';
+import Shooter from './Shooter';
 import SpawnPoint from './SpawnPoint';
 
 enum EditorMode {
@@ -26,6 +27,7 @@ enum EditorMode {
 	DeleteThings,
 	SetSpawnPoint,
 	CreateBomb,
+	CreateShooter,
 	AddGate,
 	SetGoal,
 	AddBaddie,
@@ -37,6 +39,7 @@ const editorModeLabels = {
 	[EditorMode.DeleteThings]: 'delete things',
 	[EditorMode.SetSpawnPoint]: 'set spawn point',
 	[EditorMode.CreateBomb]: 'create bomb',
+	[EditorMode.CreateShooter]: 'create shooter',
 	[EditorMode.AddGate]: 'add gate',
 	[EditorMode.SetGoal]: 'set goal',
 	[EditorMode.AddBaddie]: 'add baddie',
@@ -227,6 +230,14 @@ export default class LevelEditor extends GameObject {
 					this.game.spawn(Bomb).transform.position.copy(mPos);
 				}
 				break;
+			case EditorMode.CreateShooter:
+				if (
+					this.game.mouse.getButton(Mouse.BUTTON_LEFT) ===
+					ButtonState.Pressed
+				) {
+					this.game.spawn(Shooter).transform.position.copy(mPos);
+				}
+				break;
 			case EditorMode.AddBaddie:
 				if (
 					this.game.mouse.getButton(Mouse.BUTTON_LEFT) ===
@@ -273,7 +284,7 @@ export default class LevelEditor extends GameObject {
 	}
 	renderGrid(context: CanvasRenderingContext2D): void {
 		const gridSize = this.gridSize;
-		context.strokeStyle = '#e0e0e0';
+		context.strokeStyle = '#e0e0e040';
 		context.lineWidth = 1;
 		for (let x = 0; x < this.game.width; x += gridSize) {
 			context.beginPath();
