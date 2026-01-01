@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { CELL_SIZE, LAYER_FOREGROUND, TAG_LEVEL_STRUCTURE } from '../const';
+import { CELL_SIZE, Layer, TAG_LEVEL_STRUCTURE } from '../const';
 import GameObject from '../core/GameObject';
 import type IGame from '../core/IGame';
 import type { ISerializable } from '../LevelStore';
@@ -14,7 +14,7 @@ export const baddieSpawnerDtoSchema = z.object({
 export type BaddieSpawnerDto = z.infer<typeof baddieSpawnerDtoSchema>;
 
 export default class BaddieSpawner extends GameObject implements ISerializable {
-	layer = LAYER_FOREGROUND;
+	layer = Layer.Foreground;
 
 	protected override initialize(): void {
 		this.tags.add(TAG_LEVEL_STRUCTURE);

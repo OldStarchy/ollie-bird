@@ -2,7 +2,7 @@ import birdDown from '../../assets/bird-down.png';
 import birdRight from '../../assets/bird-right.png';
 import birdUp from '../../assets/bird-up.png';
 import ContextSave from '../../ContextSave';
-import { LAYER_PLAYER, TAG_DEADLY, TAG_LEVEL_OBJECT } from '../const';
+import { Layer, TAG_DEADLY, TAG_LEVEL_OBJECT } from '../const';
 import GameObject from '../core/GameObject';
 import type IGame from '../core/IGame';
 import ButtonState from '../core/input/ButtonState';
@@ -19,7 +19,7 @@ declare global {
 	}
 }
 class Bird extends GameObject {
-	layer = LAYER_PLAYER;
+	layer = Layer.Player;
 	public ySpeed: number = 0;
 	private holdTime = 0;
 	private gravity: number;

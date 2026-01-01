@@ -1,9 +1,4 @@
-import {
-	CELL_SIZE,
-	LAYER_ENEMYS,
-	TAG_DEADLY,
-	TAG_LEVEL_OBJECT,
-} from '../const';
+import { CELL_SIZE, Layer, TAG_DEADLY, TAG_LEVEL_OBJECT } from '../const';
 import GameObject from '../core/GameObject';
 import RectangleCollider2d from '../modules/RectangleCollider2d';
 
@@ -16,7 +11,7 @@ import Collider2d from '../modules/Collider2d';
 import Obstacle from './Obstacle';
 
 export default class Baddie extends GameObject {
-	layer = LAYER_ENEMYS;
+	layer = Layer.Enemys;
 	dir = Math.sign(Math.random() - 0.5) || 1;
 	speed = 2;
 

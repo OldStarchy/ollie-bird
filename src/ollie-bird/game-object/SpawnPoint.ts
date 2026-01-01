@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { LAYER_FOREGROUND, TAG_LEVEL_STRUCTURE } from '../const';
+import { Layer, TAG_LEVEL_STRUCTURE } from '../const';
 import GameObject from '../core/GameObject';
 import type IGame from '../core/IGame';
 import type { ISerializable } from '../LevelStore';
@@ -14,7 +14,7 @@ export const spawnPointDtoSchema = z.object({
 export type SpawnPointDto = z.infer<typeof spawnPointDtoSchema>;
 
 export default class SpawnPoint extends GameObject implements ISerializable {
-	layer = LAYER_FOREGROUND;
+	layer = Layer.Foreground;
 
 	protected override initialize() {
 		this.onGameEvent('gameStart', () => {
