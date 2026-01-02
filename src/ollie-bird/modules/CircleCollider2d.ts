@@ -1,5 +1,5 @@
 import CircleCollider from '../collider/CircleCollider';
-import type { Vec2Like } from '../Vec2';
+import type { Vec2Like } from '../math/Vec2';
 import Collider2d from './Collider2d';
 
 export default class CircleCollider2d extends Collider2d {

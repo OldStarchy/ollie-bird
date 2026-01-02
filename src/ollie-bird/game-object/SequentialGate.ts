@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import ContextSave from '../../ContextSave';
-import { LAYER_ITEMS, TAG_LEVEL_STRUCTURE } from '../const';
-import type IGame from '../IGame';
+import { Layer, TAG_LEVEL_STRUCTURE } from '../const';
+import type IGame from '../core/IGame';
 import Collider2d from '../modules/Collider2d';
 import Bird from './Bird';
 import RectangleTrigger, {
@@ -15,7 +15,7 @@ export const sequentialGateDtoSchema = rectangleTriggerDtoSchema.extend({
 export type SequentialGateDto = z.infer<typeof sequentialGateDtoSchema>;
 
 export default class SequentialGate extends RectangleTrigger {
-	layer = LAYER_ITEMS;
+	layer = Layer.Items;
 
 	state: 'unavailable' | 'ready' | 'passed' = 'unavailable';
 

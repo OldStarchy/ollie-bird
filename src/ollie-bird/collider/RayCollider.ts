@@ -1,5 +1,5 @@
-import type { Vec2Like } from '../Vec2';
-import Vec2 from '../Vec2';
+import type { Vec2Like } from '../math/Vec2';
+import Vec2 from '../math/Vec2';
 import CircleCollider from './CircleCollider';
 import type ColliderShape from './ColliderShape';
 import RectangleCollider from './RectangleCollider';

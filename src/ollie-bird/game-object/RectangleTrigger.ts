@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import GameObject from '../GameObject';
+import GameObject from '../core/GameObject';
 import type { ISerializable } from '../LevelStore';
 import Rect2 from '../math/Rect2';
 import RectangleCollider2d from '../modules/RectangleCollider2d';

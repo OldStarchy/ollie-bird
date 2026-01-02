@@ -1,6 +1,6 @@
+import type GameObject from '../core/GameObject';
+import Module from '../core/IModular';
 import SequentialGate from '../game-object/SequentialGate';
-import type GameObject from '../GameObject';
-import Module from '../IModular';
 
 export default class SequentialGateManager extends Module {
 	protected override initialize(): void {

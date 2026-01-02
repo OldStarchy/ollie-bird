@@ -1,22 +1,17 @@
-import {
-	CELL_SIZE,
-	LAYER_ENEMYS,
-	TAG_DEADLY,
-	TAG_LEVEL_OBJECT,
-} from '../const';
-import GameObject from '../GameObject';
+import { CELL_SIZE, Layer, TAG_DEADLY, TAG_LEVEL_OBJECT } from '../const';
+import GameObject from '../core/GameObject';
 import RectangleCollider2d from '../modules/RectangleCollider2d';
 
 import baddie1 from '../../assets/baddie-1.png';
 import baddie2 from '../../assets/baddie-2.png';
 import RayCollider from '../collider/RayCollider';
+import Sprite from '../core/Sprite';
 import Animation from '../modules/Animation';
 import Collider2d from '../modules/Collider2d';
-import Sprite from '../Sprite';
 import Obstacle from './Obstacle';
 
 export default class Baddie extends GameObject {
-	layer = LAYER_ENEMYS;
+	layer = Layer.Enemys;
 	dir = Math.sign(Math.random() - 0.5) || 1;
 	speed = 2;
 
@@ -58,7 +53,7 @@ export default class Baddie extends GameObject {
 
 		const nextX = this.transform.position.x + this.dir * this.speed;
 
-		if (nextX < 0 || nextX > this.game.physics.width - CELL_SIZE) {
+		if (nextX < 0 || nextX > this.game.width - CELL_SIZE) {
 			this.dir *= -1;
 		} else {
 			this.transform.position.x = nextX;

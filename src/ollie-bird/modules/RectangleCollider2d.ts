@@ -1,5 +1,5 @@
 import RectangleCollider from '../collider/RectangleCollider';
-import type GameObject from '../GameObject';
+import type GameObject from '../core/GameObject';
 import type { Rect2Like } from '../math/Rect2';
 import Collider2d from './Collider2d';
 

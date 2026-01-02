@@ -1,8 +1,8 @@
-import { styled } from '@stitches/react';
 import { Fragment, useCallback, useEffect, useState } from 'react';
 import OllieBirdGame from '../ollie-bird/OllieBirdGame';
 import Button from './Button';
 import Card from './Card';
+import Input from './Input';
 
 const localStorageKeyPrefix = 'ollie-bird-level-';
 
@@ -19,26 +19,6 @@ const localStorageKeyPrefix = 'ollie-bird-level-';
 		}
 	}
 })();
-
-const InputWrapper = styled('div', {
-	padding: '0.25rem',
-	lineHeight: '1',
-	borderRadius: '0.25rem',
-	backgroundColor: '#aeaeae',
-	color: 'black',
-	boxShadow:
-		' -1px -1px 4px rgba(0,0,0,0.8),2px 2px 5px rgba(255, 255, 255,0.3)',
-	overflow: 'hidden',
-});
-
-const Input = styled('input', {
-	backgroundColor: 'transparent',
-	borderBottom: '1px solid black',
-
-	'&:focus': {
-		outline: '0.25rem solid rgba(255, 255, 255, 0.5)',
-	},
-});
 
 export default function LevelPicker({
 	game,
@@ -250,15 +230,13 @@ export default function LevelPicker({
 						}
 					}}
 				>
-					<InputWrapper>
-						<Input
-							type="text"
-							id="new-level-name"
-							placeholder="Level name"
-							value={levelName}
-							onChange={(e) => setLevelName(e.target.value)}
-						/>
-					</InputWrapper>
+					<Input
+						type="text"
+						id="new-level-name"
+						placeholder="Level name"
+						value={levelName}
+						onChange={(e) => setLevelName(e.target.value)}
+					/>
 					<Button>Save</Button>
 				</form>
 				<div

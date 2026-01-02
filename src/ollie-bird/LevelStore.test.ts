@@ -1,7 +1,7 @@
-import { describe, expect, test, beforeEach, vi } from 'vitest';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
+import GameObject from './core/GameObject';
+import type IGame from './core/IGame';
 import LevelStore from './LevelStore';
-import type IGame from './IGame';
-import GameObject from './GameObject';
 
 describe('LevelStore', () => {
 	// Create a mock game object for testing
@@ -105,7 +105,10 @@ describe('LevelStore', () => {
 	test('should handle invalid deserialization data', () => {
 		LevelStore.register('MockSerializable', MockSerializable);
 
-		const invalidData = { $type: 'MockSerializable', value: 'not a number' };
+		const invalidData = {
+			$type: 'MockSerializable',
+			value: 'not a number',
+		};
 		const Class = LevelStore.get('MockSerializable');
 		const result = Class!.spawnDeserialize(mockGame, invalidData);
 
@@ -113,7 +116,9 @@ describe('LevelStore', () => {
 	});
 
 	test('should warn when overwriting a registration', () => {
-		const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+		const consoleSpy = vi
+			.spyOn(console, 'warn')
+			.mockImplementation(() => {});
 
 		LevelStore.register('MockSerializable', MockSerializable);
 		LevelStore.register('MockSerializable', MockSerializable);

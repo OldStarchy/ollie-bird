@@ -1,7 +1,7 @@
 import { useEffect, useImperativeHandle, useRef, type RefObject } from 'react';
 import useResizeObserver from 'use-resize-observer';
-import type BaseGame from '../ollie-bird/BaseGame';
-import type { GameCanvas as GameCanvasObj } from '../ollie-bird/BaseGame';
+import type BaseGame from '../ollie-bird/core/BaseGame';
+import type { GameCanvas as GameCanvasObj } from '../ollie-bird/core/BaseGame';
 
 export default function GameCanvas({
 	game,

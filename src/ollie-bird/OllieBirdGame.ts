@@ -1,4 +1,4 @@
-import BaseGame from './BaseGame';
+import BaseGame from './core/BaseGame';
 import LevelEditor from './game-object/LevelEditor';
 
 class OllieBirdGame extends BaseGame {

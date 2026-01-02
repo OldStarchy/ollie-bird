@@ -1,4 +1,4 @@
-import Rect2, { type Rect2Like } from './math/Rect2';
+import Rect2, { type Rect2Like } from '../math/Rect2';
 
 export default class Sprite {
 	readonly sourceRect = new Rect2(0, 0, 16, 16);

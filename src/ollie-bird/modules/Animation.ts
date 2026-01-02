@@ -1,8 +1,8 @@
+import type GameObject from '../core/GameObject';
+import Module from '../core/IModular';
+import type Sprite from '../core/Sprite';
 import EventSource from '../EventSource';
-import type GameObject from '../GameObject';
-import Module from '../IModular';
 import Rect2 from '../math/Rect2';
-import type Sprite from '../Sprite';
 
 export interface AnimationEventsMap {
 	ended: void;
@@ -44,7 +44,9 @@ export default class Animation extends Module {
 		if (this.time > totalDuration || this.time < 0) {
 			if (this.loop) {
 				this.events.emit('looped', void 0);
-				this.time = ((this.time % totalDuration) + totalDuration) % totalDuration;
+				this.time =
+					((this.time % totalDuration) + totalDuration) %
+					totalDuration;
 			} else {
 				if (this.frameDuration > 0) this.time = totalDuration;
 				else this.time = 0;
