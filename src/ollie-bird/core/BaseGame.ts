@@ -1,6 +1,6 @@
 import z from 'zod';
 import ContextSave from '../../ContextSave';
-import notify from '../../property/notify';
+import dependsOn from '../../property/dependsOn';
 import type { NotifyPropertyChanged } from '../../property/NotifyPropertyChanged';
 import { property } from '../../property/property';
 import { CELL_SIZE, TAG_LEVEL_OBJECT } from '../const';
@@ -48,13 +48,13 @@ abstract class BaseGame implements IGame, NotifyPropertyChanged {
 		return this.#currentSecondsPerFrame;
 	}
 
-	@property(z.number().min(CELL_SIZE).describe('Width'))
+	@property(z.number().min(CELL_SIZE).meta({ title: 'Width' }))
 	accessor width = 1920;
 
-	@property(z.number().min(CELL_SIZE).describe('Height'))
+	@property(z.number().min(CELL_SIZE).meta({ title: 'Height' }))
 	accessor height = 1080;
 
-	@property(z.enum(bgColors).describe('Background Color'))
+	@property(z.enum(bgColors).meta({ title: 'Background Color' }))
 	set color(value: (typeof bgColors)[number]) {
 		if (value === 'custom') {
 			this.backgroundColor = '#857';
@@ -62,6 +62,8 @@ abstract class BaseGame implements IGame, NotifyPropertyChanged {
 		}
 		this.backgroundColor = value;
 	}
+
+	@dependsOn('backgroundColor')
 	get color(): (typeof bgColors)[number] {
 		if (!bgColors.includes(this.backgroundColor as any)) {
 			return 'custom';
@@ -69,8 +71,7 @@ abstract class BaseGame implements IGame, NotifyPropertyChanged {
 		return this.backgroundColor as (typeof bgColors)[number];
 	}
 
-	@notify('color')
-	@property(z.string().describe('Custom Color'))
+	@property(z.string().meta({ title: 'Custom Color' }))
 	accessor backgroundColor: string = 'skyblue';
 
 	addCanvas(canvas: HTMLCanvasElement): GameCanvas {

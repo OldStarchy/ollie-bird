@@ -4,7 +4,7 @@ import PropertiesSchema from './PropertiesSchema';
 
 function configureSchema(
 	context: { metadata: DecoratorMetadata },
-	cb: (schema: z.ZodObject) => z.ZodObject,
+	configure: (schema: z.ZodObject) => z.ZodObject,
 ) {
 	const schema = context.metadata[PropertiesSchema] ?? z.object({});
 
@@ -12,7 +12,7 @@ function configureSchema(
 		throw new Error('Invalid schema metadata');
 	}
 
-	context.metadata[PropertiesSchema] = cb(schema);
+	context.metadata[PropertiesSchema] = configure(schema);
 }
 
 export function property<This extends NotifyPropertyChanged, Value>(
@@ -30,8 +30,11 @@ export function property<This extends NotifyPropertyChanged, Value>(
 			| ClassGetterDecoratorContext<This, Value>,
 	) => {
 		configureSchema(context, (schema) => {
-			if (schema.description === undefined) {
-				schema = schema.describe(context.name.toString());
+			if (fieldSchema.meta()?.title === undefined) {
+				fieldSchema = fieldSchema.meta({
+					...fieldSchema.meta(),
+					title: context.name.toString(),
+				});
 			}
 
 			return schema.extend({
