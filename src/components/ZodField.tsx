@@ -41,7 +41,7 @@ export default function ZodField({
 
 	return (
 		<div>
-			<label htmlFor={id}>{schema.description}</label>
+			<label htmlFor={id}>{schema.meta()?.title}</label>
 			{(() => {
 				if (schema instanceof z.ZodString) {
 					return (
