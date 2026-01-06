@@ -12,7 +12,7 @@ import wallRight from '../../assets/wall-right.png';
 import wallTopLeft from '../../assets/wall-top-left.png';
 import wallTopRight from '../../assets/wall-top-right.png';
 import wallTop from '../../assets/wall-top.png';
-import type IGame from '../IGame';
+import type IGame from '../core/IGame';
 
 class Obstacle extends RectangleTrigger {
 	static sprites = {

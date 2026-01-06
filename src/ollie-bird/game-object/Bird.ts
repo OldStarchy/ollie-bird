@@ -2,14 +2,14 @@ import birdDown from '../../assets/bird-down.png';
 import birdRight from '../../assets/bird-right.png';
 import birdUp from '../../assets/bird-up.png';
 import ContextSave from '../../ContextSave';
-import ButtonState from '../ButtonState';
-import { LAYER_PLAYER, TAG_DEADLY, TAG_LEVEL_OBJECT } from '../const';
-import GameObject from '../GameObject';
-import type IGame from '../IGame';
+import { Layer, TAG_DEADLY, TAG_LEVEL_OBJECT } from '../const';
+import GameObject from '../core/GameObject';
+import type IGame from '../core/IGame';
+import ButtonState from '../core/input/ButtonState';
+import Sprite from '../core/Sprite';
+import Vec2 from '../math/Vec2';
 import CircleCollider2d from '../modules/CircleCollider2d';
 import Collider2d from '../modules/Collider2d';
-import Sprite from '../Sprite';
-import Vec2 from '../Vec2';
 import Explosion from './Explosion';
 import Goal from './Goal';
 import SequentialGate from './SequentialGate';
@@ -19,7 +19,7 @@ declare global {
 	}
 }
 class Bird extends GameObject {
-	layer = LAYER_PLAYER;
+	layer = Layer.Player;
 	public ySpeed: number = 0;
 	private holdTime = 0;
 	private gravity: number;
@@ -132,10 +132,10 @@ class Bird extends GameObject {
 
 	protected checkOutOfBounds() {
 		if (
-			this.position.y > this.game.physics.height ||
+			this.position.y > this.game.height ||
 			this.position.y < 0 ||
 			this.position.x < 0 ||
-			this.position.x > this.game.physics.width
+			this.position.x > this.game.width
 		) {
 			this.die();
 		}

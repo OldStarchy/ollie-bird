@@ -1,7 +1,7 @@
 import ContextSave from '../../ContextSave';
-import Module from '../IModular';
+import Module from '../core/IModular';
 import type { Rect2Like } from '../math/Rect2';
-import Vec2, { type Vec2Like } from '../Vec2';
+import Vec2, { type Vec2Like } from '../math/Vec2';
 
 class Transform2d extends Module {
 	readonly position: Vec2 = Vec2.zero;

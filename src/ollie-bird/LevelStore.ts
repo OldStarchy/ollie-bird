@@ -1,5 +1,5 @@
-import type GameObject from './GameObject';
-import type IGame from './IGame';
+import type GameObject from './core/GameObject';
+import type IGame from './core/IGame';
 
 export interface ISerializable {
 	serialize(): Record<string, unknown>;

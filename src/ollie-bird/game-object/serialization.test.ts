@@ -1,10 +1,10 @@
 import { describe, expect, test, vi } from 'vitest';
-import type IGame from '../IGame';
-import Obstacle from './Obstacle';
-import Goal from './Goal';
-import SpawnPoint from './SpawnPoint';
+import type IGame from '../core/IGame';
 import BaddieSpawner from './BaddieSpawner';
+import Goal from './Goal';
+import Obstacle from './Obstacle';
 import SequentialGate from './SequentialGate';
+import SpawnPoint from './SpawnPoint';
 
 describe('GameObject Serialization', () => {
 	// Create a mock game object for testing

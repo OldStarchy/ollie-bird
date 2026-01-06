@@ -1,6 +1,6 @@
+import Transform2d from '../modules/Transform2d';
 import type IGame from './IGame';
 import Module, { ModuleCollection, type IModular } from './IModular';
-import Transform2d from './modules/Transform2d';
 
 export default class GameObject implements IModular, Disposable {
 	private destructors: (() => void)[] = [];

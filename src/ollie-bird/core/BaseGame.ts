@@ -1,46 +1,78 @@
-import ContextSave from '../ContextSave';
-import { TAG_LEVEL_OBJECT } from './const';
-import EventSource from './EventSource';
+import z from 'zod';
+import ContextSave from '../../ContextSave';
+import dependsOn from '../../property/dependsOn';
+import type { NotifyPropertyChanged } from '../../property/NotifyPropertyChanged';
+import { property } from '../../property/property';
+import { CELL_SIZE, TAG_LEVEL_OBJECT } from '../const';
+import EventSource from '../EventSource';
+import Rect2 from '../math/Rect2';
+import type { Vec2Like } from '../math/Vec2';
 import type GameObject from './GameObject';
 import type IGame from './IGame';
-import Keyboard from './Keyboard';
-import Rect2 from './math/Rect2';
-import Mouse from './Mouse';
-import type { Vec2Like } from './Vec2';
+import Keyboard from './input/Keyboard';
+import Mouse from './input/Mouse';
 
-abstract class BaseGame implements IGame {
-	private abortController: AbortController;
+const bgColors = [
+	'custom',
+	'skyblue',
+	'black',
+	'white',
+	'lightgray',
+	'gray',
+	'darkgray',
+] as const;
 
-	private readonly objects: GameObject[];
+abstract class BaseGame implements IGame, NotifyPropertyChanged {
+	private abortController = new AbortController();
+	private readonly objects: GameObject[] = [];
+	private readonly canvases: Set<GameCanvas> = new Set();
 
-	public readonly keyboard: Keyboard;
-	public readonly mouse: Mouse;
-	public physics = {
+	constructor() {}
+
+	readonly propertyChanged = new EventSource<{
+		change: { name: PropertyKey };
+	}>();
+	readonly event = new EventSource<GameEventMap>();
+	readonly keyboard = new Keyboard();
+	readonly mouse = new Mouse();
+
+	updatesPerSecond: number = 60;
+	physics = {
 		gravity: 0.2,
-		width: 1920,
-		height: 1080,
 	};
-	public renderGizmos: boolean = true;
 
-	readonly event: EventSource<GameEventMap>;
-
-	public updatesPerSecond: number = 60;
+	renderGizmos: boolean = true;
 
 	#currentSecondsPerFrame: number = 1 / this.updatesPerSecond;
-	public get secondsPerFrame(): number {
+	get secondsPerFrame(): number {
 		return this.#currentSecondsPerFrame;
 	}
 
-	constructor() {
-		this.abortController = new AbortController();
+	@property(z.number().min(CELL_SIZE).meta({ title: 'Width' }))
+	accessor width = 1920;
 
-		this.objects = [];
-		this.keyboard = new Keyboard();
-		this.mouse = new Mouse();
-		this.event = new EventSource<GameEventMap>();
+	@property(z.number().min(CELL_SIZE).meta({ title: 'Height' }))
+	accessor height = 1080;
+
+	@property(z.enum(bgColors).meta({ title: 'Background Color' }))
+	set color(value: (typeof bgColors)[number]) {
+		if (value === 'custom') {
+			this.backgroundColor = '#857';
+			return;
+		}
+		this.backgroundColor = value;
 	}
 
-	private canvases: Set<GameCanvas> = new Set();
+	@dependsOn('backgroundColor')
+	get color(): (typeof bgColors)[number] {
+		if (!bgColors.includes(this.backgroundColor as any)) {
+			return 'custom';
+		}
+		return this.backgroundColor as (typeof bgColors)[number];
+	}
+
+	@property(z.string().meta({ title: 'Custom Color' }))
+	accessor backgroundColor: string = 'skyblue';
 
 	addCanvas(canvas: HTMLCanvasElement): GameCanvas {
 		const gameCanvas = new GameCanvas(this, canvas);
@@ -63,8 +95,6 @@ abstract class BaseGame implements IGame {
 	}
 
 	protected preStart(): void {}
-
-	public backgroundColor: string = 'skyblue';
 
 	restart() {
 		this.destroySome((obj) => obj.tags.has(TAG_LEVEL_OBJECT));
@@ -105,7 +135,7 @@ abstract class BaseGame implements IGame {
 
 		this.renderAll((context) => {
 			context.fillStyle = this.backgroundColor;
-			context.fillRect(0, 0, this.physics.width, this.physics.height);
+			context.fillRect(0, 0, this.width, this.height);
 
 			const layers = new Map<number, GameObject[]>();
 
@@ -135,7 +165,7 @@ abstract class BaseGame implements IGame {
 			}
 
 			context.strokeStyle = 'red';
-			context.strokeRect(0, 0, this.physics.width, this.physics.height);
+			context.strokeRect(0, 0, this.width, this.height);
 		});
 	}
 
@@ -247,14 +277,11 @@ export class GameCanvas implements Disposable {
 			this.shouldRefreshSize = null;
 		}
 
+		this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
 		using _ = new ContextSave(this.context);
 
-		const box = new Rect2(
-			0,
-			0,
-			this.game.physics.width,
-			this.game.physics.height,
-		);
+		const box = new Rect2(0, 0, this.game.width, this.game.height);
 		const ratio = box.aspectRatio();
 		if (
 			ratio !== undefined &&

@@ -1,7 +1,7 @@
 import ContextSave from '../../ContextSave';
 import type ColliderShape from '../collider/ColliderShape';
-import type GameObject from '../GameObject';
-import Module from '../IModular';
+import type GameObject from '../core/GameObject';
+import Module from '../core/IModular';
 
 export default abstract class Collider2d extends Module {
 	renderWidget: boolean = false;

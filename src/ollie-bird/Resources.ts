@@ -1,5 +1,5 @@
 import sheet1Url from '../assets/sheet1.png';
-import Sprite from './Sprite';
+import Sprite from './core/Sprite';
 
 export default class Resources {
 	static readonly sheet1 = Sprite.fromGrid(sheet1Url, 4, 4, 910, 911);

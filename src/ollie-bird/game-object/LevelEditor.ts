@@ -1,8 +1,9 @@
-import ButtonState from '../ButtonState';
 import RectangleCollider from '../collider/RectangleCollider';
 import { CELL_SIZE, TAG_LEVEL_OBJECT, TAG_LEVEL_STRUCTURE } from '../const';
-import GameObject from '../GameObject';
-import type IGame from '../IGame';
+import GameObject from '../core/GameObject';
+import type IGame from '../core/IGame';
+import ButtonState from '../core/input/ButtonState';
+import Mouse from '../core/input/Mouse';
 import LevelStore, {
 	type ISerializable,
 	type SerializableClass,
@@ -11,7 +12,6 @@ import Rect2 from '../math/Rect2';
 import Collider2d from '../modules/Collider2d';
 import GameTimer from '../modules/GameTimer';
 import SequentialGateManager from '../modules/SequentialGateManager';
-import Mouse from '../Mouse';
 import BaddieSpawner from './BaddieSpawner';
 import Bird from './Bird';
 import Bomb from './Bomb';
@@ -275,16 +275,16 @@ export default class LevelEditor extends GameObject {
 		const gridSize = this.gridSize;
 		context.strokeStyle = '#e0e0e0';
 		context.lineWidth = 1;
-		for (let x = 0; x < this.game.physics.width; x += gridSize) {
+		for (let x = 0; x < this.game.width; x += gridSize) {
 			context.beginPath();
 			context.moveTo(x, 0);
-			context.lineTo(x, this.game.physics.height);
+			context.lineTo(x, this.game.height);
 			context.stroke();
 		}
-		for (let y = 0; y < this.game.physics.height; y += gridSize) {
+		for (let y = 0; y < this.game.height; y += gridSize) {
 			context.beginPath();
 			context.moveTo(0, y);
-			context.lineTo(this.game.physics.width, y);
+			context.lineTo(this.game.width, y);
 			context.stroke();
 		}
 	}
@@ -301,7 +301,16 @@ export default class LevelEditor extends GameObject {
 			})
 			.filter((obj) => obj !== null);
 
-		return JSON.stringify({ objects }, null, 2);
+		return JSON.stringify(
+			{
+				objects,
+				width: this.game.width,
+				height: this.game.height,
+				background: this.game.backgroundColor,
+			},
+			null,
+			2,
+		);
 	}
 
 	removeAll() {
@@ -319,6 +328,22 @@ export default class LevelEditor extends GameObject {
 		try {
 			const parsed = JSON.parse(data);
 
+			if (typeof parsed.width === 'number') {
+				this.game.width = parsed.width;
+			} else {
+				this.game.width = 1920;
+			}
+			if (typeof parsed.height === 'number') {
+				this.game.height = parsed.height;
+			} else {
+				this.game.height = 1080;
+			}
+
+			if (typeof parsed.background === 'string') {
+				this.game.backgroundColor = parsed.background;
+			} else {
+				this.game.backgroundColor = 'skyblue';
+			}
 			// Handle new format with $type field
 			if (Array.isArray(parsed.objects)) {
 				for (const obj of parsed.objects) {

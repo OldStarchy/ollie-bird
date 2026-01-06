@@ -1,0 +1,31 @@
+import { styled } from '@stitches/react';
+import type { ComponentProps } from 'react';
+
+const InputWrapper = styled('div', {
+	padding: '0.25rem',
+	lineHeight: '1',
+	borderRadius: '0.25rem',
+	backgroundColor: '#aeaeae',
+	color: 'black',
+	boxShadow:
+		' -1px -1px 4px rgba(0,0,0,0.8),2px 2px 5px rgba(255, 255, 255,0.3)',
+	overflow: 'hidden',
+});
+
+const InputInner = styled('input', {
+	width: '100%',
+	backgroundColor: 'transparent',
+	borderBottom: '1px solid black',
+
+	'&:focus': {
+		outline: '0.25rem solid rgba(255, 255, 255, 0.5)',
+	},
+});
+
+export default function Input(props: ComponentProps<typeof InputInner>) {
+	return (
+		<InputWrapper>
+			<InputInner {...props} />
+		</InputWrapper>
+	);
+}

@@ -1,8 +1,8 @@
-import { LAYER_FOREGROUND } from '../const';
-import GameObject from '../GameObject';
+import { Layer } from '../const';
+import GameObject from '../core/GameObject';
 
 export default class Explosion extends GameObject {
-	layer = LAYER_FOREGROUND;
+	layer = Layer.Foreground;
 	public radius: number = 0;
 	public maxRadius: number = 100;
 	public expansionRate: number = 1;
