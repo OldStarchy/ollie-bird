@@ -20,18 +20,20 @@ export default function dependsOn<This extends NotifyPropertyChanged, Value>(
 		}
 
 		context.addInitializer(function (this: This) {
-			const dedupEvent = new DisposeFlag();
+			queueMicrotask(() => {
+				const dedupEvent = new DisposeFlag();
 
-			this.propertyChanged.on('change', (e) => {
-				if (e.name === propertyName) {
-					if (dedupEvent.active) return;
+				this.propertyChanged.on('change', (e) => {
+					if (e.name === propertyName) {
+						if (dedupEvent.active) return;
 
-					using _ = dedupEvent.activate();
+						using _ = dedupEvent.activate();
 
-					this.propertyChanged.emit('change', {
-						name: context.name,
-					});
-				}
+						this.propertyChanged.emit('change', {
+							name: context.name,
+						});
+					}
+				});
 			});
 		});
 	};
