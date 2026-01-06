@@ -10,6 +10,7 @@ import useGameContext from '../GameContext';
 import PropertiesPanel from '../PropertiesPanel';
 import Rule from '../Rule';
 import { LayoutContext } from './LayoutContext';
+import ResourcesPanel from './ResourcesPanel';
 
 export default function Layout({
 	children,
@@ -53,7 +54,6 @@ export default function Layout({
 		],
 	);
 
-	if (!game) return;
 	return (
 		<LayoutContext.Provider value={ctx}>
 			<div
@@ -88,6 +88,7 @@ export default function Layout({
 						style={{
 							padding: '1rem',
 							gridArea: 'sidebar',
+							overflowY: 'auto',
 						}}
 					>
 						<p>Game Config</p>
@@ -125,9 +126,11 @@ export default function Layout({
 						style={{
 							padding: '1rem',
 							gridArea: 'aside',
+							overflowY: 'auto',
 						}}
 					>
 						Aside Content
+						<ResourcesPanel />
 					</aside>
 				)}
 				{showFooter && (
