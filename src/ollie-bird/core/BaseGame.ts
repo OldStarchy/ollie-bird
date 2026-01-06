@@ -22,7 +22,7 @@ const bgColors = [
 	'darkgray',
 ] as const;
 
-abstract class BaseGame implements IGame, NotifyPropertyChanged {
+class BaseGame implements IGame, NotifyPropertyChanged {
 	private abortController = new AbortController();
 	private readonly objects: GameObject[] = [];
 	private readonly canvases: Set<GameCanvas> = new Set();
