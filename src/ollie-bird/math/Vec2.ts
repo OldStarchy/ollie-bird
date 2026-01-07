@@ -1,14 +1,37 @@
+import EventSource from '../EventSource';
+
 export interface Vec2Like {
 	x: number;
 	y: number;
 }
 export default class Vec2 implements Vec2Like {
-	public x: number;
-	public y: number;
+	#x: number;
+	#y: number;
+
+	get x(): number {
+		return this.#x;
+	}
+	set x(value: number) {
+		this.#x = value;
+		this.notifyChange();
+	}
+
+	get y(): number {
+		return this.#y;
+	}
+	set y(value: number) {
+		this.#y = value;
+		this.notifyChange();
+	}
 
 	constructor(x: number, y: number) {
-		this.x = x;
-		this.y = y;
+		this.#x = x;
+		this.#y = y;
+	}
+
+	readonly change = new EventSource<{ change: void }>();
+	private notifyChange() {
+		this.change.emit('change', void 0);
 	}
 
 	static from(other: Vec2Like): Vec2 {
@@ -56,22 +79,29 @@ export default class Vec2 implements Vec2Like {
 		if (length === 0) {
 			return this;
 		}
-		this.x /= length;
-		this.y /= length;
+		this.#x /= length;
+		this.#y /= length;
+		this.notifyChange();
 		return this;
 	}
 
 	set(x: number, y: number): void {
-		this.x = x;
-		this.y = y;
+		this.#x = x;
+		this.#y = y;
+		this.notifyChange();
 	}
 
 	copy(vec: Vec2Like): void {
-		this.x = vec.x;
-		this.y = vec.y;
+		this.#x = vec.x;
+		this.#y = vec.y;
+		this.notifyChange();
 	}
 
 	get xy(): [number, number] {
-		return [this.x, this.y];
+		return [this.#x, this.#y];
+	}
+
+	clone(): Vec2 {
+		return new Vec2(this.#x, this.#y);
 	}
 }
