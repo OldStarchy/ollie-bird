@@ -1,37 +1,48 @@
+import { Subject } from 'rxjs';
 import z from 'zod';
 import ContextSave from '../../ContextSave';
-import dependsOn from '../../property/dependsOn';
-import type { NotifyPropertyChanged } from '../../property/NotifyPropertyChanged';
-import { property } from '../../property/property';
+import htmlColors, { type HtmlColor } from '../../htmlColors';
+import onChange from '../../react-interop/onChange';
+import { ReactInterop } from '../../react-interop/ReactInterop';
+import seconds from '../../unit/time/seconds';
 import { CELL_SIZE, TAG_LEVEL_OBJECT } from '../const';
 import EventSource from '../EventSource';
 import Rect2 from '../math/Rect2';
+import { round } from '../math/round';
 import type { Vec2Like } from '../math/Vec2';
 import type GameObject from './GameObject';
 import type IGame from './IGame';
 import Keyboard from './input/Keyboard';
 import Mouse from './input/Mouse';
 
-const bgColors = [
-	'custom',
-	'skyblue',
-	'black',
-	'white',
-	'lightgray',
-	'gray',
-	'darkgray',
-] as const;
+const bgColors = ['Custom', ...htmlColors];
 
-class BaseGame implements IGame, NotifyPropertyChanged {
+const baseGameSettingsSchema = z.object({
+	width: z.coerce
+		.number()
+		.min(CELL_SIZE)
+		.multipleOf(CELL_SIZE)
+		.meta({ title: 'Width' }),
+	height: z.coerce
+		.number()
+		.min(CELL_SIZE)
+		.multipleOf(CELL_SIZE)
+		.meta({ title: 'Height' }),
+	backgroundColor: z.string().meta({ title: 'Custom Color' }),
+	color: z.enum(bgColors).meta({ title: 'Background Color' }),
+});
+
+type BaseGameSettings = z.infer<typeof baseGameSettingsSchema>;
+
+class BaseGame implements IGame, ReactInterop<BaseGameSettings> {
 	private abortController = new AbortController();
+	#gameObjects$ = new Subject<void>();
+	readonly gameObjects$ = this.#gameObjects$.asObservable();
 	private readonly objects: GameObject[] = [];
 	private readonly canvases: Set<GameCanvas> = new Set();
 
 	constructor() {}
 
-	readonly propertyChanged = new EventSource<{
-		change: { name: PropertyKey };
-	}>();
 	readonly event = new EventSource<GameEventMap>();
 	readonly keyboard = new Keyboard();
 	readonly mouse = new Mouse();
@@ -43,36 +54,66 @@ class BaseGame implements IGame, NotifyPropertyChanged {
 
 	renderGizmos: boolean = true;
 
-	#currentSecondsPerFrame: number = 1 / this.updatesPerSecond;
-	get secondsPerFrame(): number {
+	#currentSecondsPerFrame: seconds = seconds(1 / this.updatesPerSecond);
+	get secondsPerFrame(): seconds {
 		return this.#currentSecondsPerFrame;
 	}
 
-	@property(z.number().min(CELL_SIZE).meta({ title: 'Width' }))
-	accessor width = 1920;
+	#change = new Subject<void>();
+	notify(): void {
+		this.#change.next();
+	}
 
-	@property(z.number().min(CELL_SIZE).meta({ title: 'Height' }))
-	accessor height = 1080;
+	[ReactInterop.set](data: BaseGameSettings): void {
+		if (Object.hasOwn(data, 'width')) this.width = data.width;
+		if (Object.hasOwn(data, 'height')) this.height = data.height;
+		if (Object.hasOwn(data, 'color')) this.color = data.color;
+		if (Object.hasOwn(data, 'backgroundColor'))
+			this.backgroundColor = data.backgroundColor as HtmlColor;
 
-	@property(z.enum(bgColors).meta({ title: 'Background Color' }))
+		this.notify();
+	}
+
+	[ReactInterop.get](): BaseGameSettings {
+		return {
+			width: this.width,
+			height: this.height,
+			backgroundColor: this.backgroundColor,
+			color: this.color,
+		};
+	}
+
+	get [ReactInterop.asObservable]() {
+		return this.#change.asObservable();
+	}
+
+	get [ReactInterop.schema]() {
+		return baseGameSettingsSchema;
+	}
+
+	@onChange((self) => self.notify())
+	accessor width = round(1920, CELL_SIZE);
+
+	@onChange((self) => self.notify())
+	accessor height = round(1080, CELL_SIZE);
+
+	@onChange((self) => self.notify())
+	accessor backgroundColor: HtmlColor = 'SkyBlue';
+
 	set color(value: (typeof bgColors)[number]) {
-		if (value === 'custom') {
+		if (value === 'Custom') {
 			this.backgroundColor = '#857';
 			return;
 		}
-		this.backgroundColor = value;
+		this.backgroundColor = value as HtmlColor;
 	}
 
-	@dependsOn('backgroundColor')
 	get color(): (typeof bgColors)[number] {
 		if (!bgColors.includes(this.backgroundColor as any)) {
-			return 'custom';
+			return 'Custom';
 		}
 		return this.backgroundColor as (typeof bgColors)[number];
 	}
-
-	@property(z.string().meta({ title: 'Custom Color' }))
-	accessor backgroundColor: string = 'skyblue';
 
 	addCanvas(canvas: HTMLCanvasElement): GameCanvas {
 		const gameCanvas = new GameCanvas(this, canvas);
@@ -110,9 +151,10 @@ class BaseGame implements IGame, NotifyPropertyChanged {
 
 		this.step();
 
-		this.#currentSecondsPerFrame = 1 / this.updatesPerSecond;
+		this.#currentSecondsPerFrame = seconds(1 / this.updatesPerSecond);
 		setTimeout(() => this.tick(), 1000 / this.updatesPerSecond);
 	}
+
 	step() {
 		this.objects.forEach((go) => go['doBeforeUpdate']());
 		this.objects.forEach((go) => go['doUpdate']());
@@ -176,24 +218,31 @@ class BaseGame implements IGame, NotifyPropertyChanged {
 		const obj = new type(this, ...args) as InstanceType<Constructor>;
 		this.objects.push(obj);
 		obj['doInitialize']();
+		this.#gameObjects$.next();
 		return obj;
 	}
 
 	destroySome(cb: (obj: GameObject) => boolean): void {
+		let some = false;
 		for (let i = this.objects.length - 1; i >= 0; i--) {
 			const obj = this.objects[i]!;
 			if (cb(obj)) {
+				some = true;
 				this.objects.splice(i, 1);
 				obj[Symbol.dispose]();
 			}
 		}
+
+		if (some) {
+			this.#gameObjects$.next();
+		}
 	}
 	destroy(obj: GameObject): void {
 		const index = this.objects.indexOf(obj);
-		if (index !== -1) {
-			this.objects.splice(index, 1);
-		}
+		if (index === -1) return;
+		this.objects.splice(index, 1);
 		obj[Symbol.dispose]();
+		this.#gameObjects$.next();
 	}
 
 	findObjectsByTag(tag: string): Array<GameObject> {

@@ -11,7 +11,6 @@ export default class Keyboard {
 				this.pressedKeys.add(event.code);
 				if (!event.code.match(/^F[1-9]$|^F1[0-2]$/))
 					event.preventDefault();
-				console.log([...this.pressedKeys.keys()]);
 			},
 			{ signal },
 		);

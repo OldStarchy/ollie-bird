@@ -1,8 +1,20 @@
+import { Subject } from 'rxjs';
+import z from 'zod';
+import onChange from '../../react-interop/onChange';
+import { ReactInterop } from '../../react-interop/ReactInterop';
 import Transform2d from '../modules/Transform2d';
 import type IGame from './IGame';
 import Module, { ModuleCollection, type IModular } from './IModular';
 
-export default class GameObject implements IModular, Disposable {
+export const gameObjectViewSchema = z.object({
+	name: z.string().meta({ title: 'Name' }),
+});
+
+export type GameObjectView = z.infer<typeof gameObjectViewSchema>;
+
+export default class GameObject
+	implements IModular, Disposable, ReactInterop<GameObjectView>
+{
 	private destructors: (() => void)[] = [];
 	private modules: ModuleCollection;
 
@@ -10,6 +22,17 @@ export default class GameObject implements IModular, Disposable {
 	tags: Set<string | symbol> = new Set();
 
 	readonly transform: Transform2d;
+	readonly id: string = Math.random().toString(16).slice(2);
+
+	#change$ = new Subject<void>();
+	readonly change$ = this.#change$.asObservable();
+
+	private notify(): void {
+		this.#change$.next();
+	}
+
+	@onChange((self) => self.notify())
+	accessor name: string = this.constructor.name;
 
 	constructor(readonly game: IGame) {
 		this.modules = new ModuleCollection(this);
@@ -118,7 +141,10 @@ export default class GameObject implements IModular, Disposable {
 		this.destructors.push(unsub);
 	}
 
+	#destory$ = new Subject<void>();
+	public destroy$ = this.#destory$.asObservable();
 	[Symbol.dispose]() {
+		this.#destory$.next();
 		for (const unsub of this.destructors) {
 			unsub();
 		}
@@ -127,4 +153,18 @@ export default class GameObject implements IModular, Disposable {
 	destroy() {
 		this.game.destroy(this);
 	}
+
+	[ReactInterop.get](): GameObjectView {
+		return {
+			name: this.name,
+		};
+	}
+
+	[ReactInterop.set](view: GameObjectView): void {
+		this.name = view.name;
+		this.notify();
+	}
+
+	readonly [ReactInterop.schema] = gameObjectViewSchema;
+	readonly [ReactInterop.asObservable] = this.change$;
 }

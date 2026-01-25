@@ -12,7 +12,7 @@ export default abstract class Collider2d extends Module {
 
 	abstract getCollider(): ColliderShape;
 
-	abstract doGizmoPath(context: CanvasRenderingContext2D): void;
+	protected abstract doGizmoPath(context: CanvasRenderingContext2D): void;
 
 	cast(objects: Array<GameObject>): Array<GameObject>;
 	cast(objects: IteratorObject<GameObject>): IteratorObject<GameObject>;
@@ -31,6 +31,10 @@ export default abstract class Collider2d extends Module {
 		if (this.widgetStrokeStyle === null && this.widgetFillStyle === null) {
 			return;
 		}
+		this.doRenderGizmos(context);
+	}
+
+	public doRenderGizmos(context: CanvasRenderingContext2D): void {
 		using _ = new ContextSave(context);
 
 		this.doGizmoPath(context);

@@ -1,9 +1,8 @@
 import type z from '../../node_modules/zod/v4/classic/external.d.cts';
-import type { NotifyPropertyChanged } from './NotifyPropertyChanged';
 import PropertiesSchema from './PropertiesSchema';
 
 export default function getPropertiesSchema(
-	Class: abstract new (...args: any[]) => NotifyPropertyChanged,
+	Class: abstract new (...args: any[]) => any,
 ): z.ZodObject | null {
 	const metadata = Class[Symbol.metadata];
 

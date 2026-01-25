@@ -1,6 +1,7 @@
+import type { Subject } from 'rxjs';
 import z from 'zod';
-import type { NotifyPropertyChanged } from './NotifyPropertyChanged';
 import PropertiesSchema from './PropertiesSchema';
+import observable, { SymbolObservable } from './observable';
 
 function configureSchema(
 	context: { metadata: DecoratorMetadata },
@@ -15,20 +16,49 @@ function configureSchema(
 	context.metadata[PropertiesSchema] = configure(schema);
 }
 
-export function property<This extends NotifyPropertyChanged, Value>(
-	fieldSchema: z.ZodType<Value>,
-): ClassAccessorDecorator<This, Value> &
-	ClassSetterDecorator<This, Value> &
-	ClassGetterDecorator<This, Value> {
-	return ((
+export function property<
+	This extends {
+		[SymbolObservable]?: { [K in keyof This]?: Subject<This[K]> };
+	},
+	Value,
+>(fieldSchema: z.ZodType<Value>) {
+	function decorator(
+		targetParam: ClassAccessorDecoratorTarget<This, Value>,
+		context: ClassAccessorDecoratorContext<This, Value>,
+	): void | ClassAccessorDecoratorResult<This, Value>;
+	function decorator(
+		targetParam: ClassSetterDecoratorTarget<This, Value>,
+		context: ClassSetterDecoratorContext<This, Value>,
+	): void | ClassSetterDecoratorResult<This, Value>;
+	function decorator(
+		targetParam: ClassGetterDecoratorTarget<This, Value>,
+		context: ClassGetterDecoratorContext<This, Value>,
+	): void | ClassGetterDecoratorResult<This, Value>;
+	function decorator(
 		targetParam:
 			| ClassAccessorDecoratorTarget<This, Value>
-			| ((this: This, value: Value) => void),
+			| ClassSetterDecoratorTarget<This, Value>
+			| ClassGetterDecoratorTarget<This, Value>,
 		context:
 			| ClassAccessorDecoratorContext<This, Value>
 			| ClassSetterDecoratorContext<This, Value>
 			| ClassGetterDecoratorContext<This, Value>,
-	) => {
+	):
+		| void
+		| ClassAccessorDecoratorResult<This, Value>
+		| ClassSetterDecoratorResult<This, Value>
+		| ClassGetterDecoratorResult<This, Value>;
+
+	function decorator(
+		targetParam:
+			| ClassAccessorDecoratorTarget<This, Value>
+			| ClassSetterDecoratorTarget<This, Value>
+			| ClassGetterDecoratorTarget<This, Value>,
+		context:
+			| ClassAccessorDecoratorContext<This, Value>
+			| ClassSetterDecoratorContext<This, Value>
+			| ClassGetterDecoratorContext<This, Value>,
+	) {
 		configureSchema(context, (schema) => {
 			if (fieldSchema.meta()?.title === undefined) {
 				fieldSchema = fieldSchema.meta({
@@ -43,43 +73,15 @@ export function property<This extends NotifyPropertyChanged, Value>(
 		});
 
 		switch (context.kind) {
-			case 'accessor': {
-				const target = targetParam as ClassAccessorDecoratorTarget<
-					This,
-					Value
-				>;
-
-				return {
-					set(this: This, newValue: Value) {
-						target.set.call(this, newValue);
-
-						this.propertyChanged.emit('change', {
-							name: context.name.toString(),
-						});
-					},
-				};
-			}
-
-			case 'setter': {
-				const target = targetParam as (
-					this: This,
-					value: Value,
-				) => void;
-
-				return function (this: This, newValue: Value) {
-					target.call(this, newValue);
-
-					this.propertyChanged.emit('change', {
-						name: context.name.toString(),
-					});
-				};
-			}
+			case 'accessor':
+			case 'setter':
+				return observable<This, Value>()(targetParam, context);
 
 			case 'getter': {
 				return;
 			}
 		}
-	}) as ClassAccessorDecorator<This, Value> &
-		ClassSetterDecorator<This, Value> &
-		ClassGetterDecorator<This, Value>;
+	}
+
+	return decorator;
 }
