@@ -14,12 +14,18 @@ const SelectWrapper = styled('div', {
 	gridTemplateColumns: '1fr',
 	gridTemplateRows: '1fr',
 
-	'&::after': {
-		content: 'v',
-		pointerEvents: 'none',
-		gridColumn: '1',
-		gridRow: '1',
-		justifySelf: 'end',
+	variants: {
+		arrow: {
+			true: {
+				'&::after': {
+					content: 'v',
+					pointerEvents: 'none',
+					gridColumn: '1',
+					gridRow: '1',
+					justifySelf: 'end',
+				},
+			},
+		},
 	},
 });
 
@@ -28,7 +34,14 @@ const SelectInner = styled('select', {
 	gridRow: '1',
 	width: '100%',
 	backgroundColor: 'transparent',
-	borderBottom: '1px solid black',
+
+	variants: {
+		arrow: {
+			true: {
+				borderBottom: '1px solid black',
+			},
+		},
+	},
 
 	'&:focus': {
 		outline: '0.25rem solid rgba(255, 255, 255, 0.5)',
@@ -37,8 +50,8 @@ const SelectInner = styled('select', {
 
 export default function Select(props: ComponentProps<typeof SelectInner>) {
 	return (
-		<SelectWrapper>
-			<SelectInner {...props} />
+		<SelectWrapper arrow={!props.multiple}>
+			<SelectInner arrow={!props.multiple} {...props} />
 		</SelectWrapper>
 	);
 }
