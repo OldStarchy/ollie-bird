@@ -9,6 +9,7 @@ import GameObject, {
 } from '../core/GameObject';
 import type IGame from '../core/IGame';
 import type { ISerializable } from '../LevelStore';
+import LevelStore from '../LevelStore';
 import Baddie from './Baddie';
 
 export const baddieSchema = z.object({
@@ -19,8 +20,8 @@ export type BaddieView = z.infer<typeof baddieSchema>;
 
 export const baddieSpawnerDtoSchema = z.object({
 	$type: z.string(),
-	x: z.number(),
-	y: z.number(),
+	...gameObjectViewSchema.shape,
+	...baddieSchema.shape,
 });
 
 export type BaddieSpawnerDto = z.infer<typeof baddieSpawnerDtoSchema>;
@@ -29,6 +30,11 @@ export default class BaddieSpawner
 	extends GameObject
 	implements ISerializable, ReactInterop<BaddieView>
 {
+	static readonly #serializationKey = 'BaddieSpawner';
+
+	static {
+		LevelStore.register(BaddieSpawner.#serializationKey, BaddieSpawner);
+	}
 	layer = Layer.Foreground;
 
 	@onChange((self) => self.notifyChange())
@@ -81,9 +87,8 @@ export default class BaddieSpawner
 
 	serialize(): BaddieSpawnerDto {
 		return {
-			$type: this.constructor.name,
-			x: this.transform.position.x,
-			y: this.transform.position.y,
+			$type: BaddieSpawner.#serializationKey,
+			...this[ReactInterop.get](),
 		};
 	}
 
@@ -97,8 +102,9 @@ export default class BaddieSpawner
 			return null;
 		}
 
-		const { x, y } = parseResult.data;
+		const { x, y } = parseResult.data.position;
 		const spawner = game.spawn(BaddieSpawner);
+		spawner.name = parseResult.data.name;
 		spawner.transform.position.set(x, y);
 		return spawner;
 	}

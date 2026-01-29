@@ -2,12 +2,14 @@ import { Subject } from 'rxjs';
 import z from 'zod';
 import onChange from '../../react-interop/onChange';
 import { ReactInterop } from '../../react-interop/ReactInterop';
+import { vec2Schema } from '../math/Vec2';
 import Transform2d from '../modules/Transform2d';
 import type IGame from './IGame';
 import Module, { ModuleCollection, type IModular } from './IModular';
 
 export const gameObjectViewSchema = z.object({
 	name: z.string().meta({ title: 'Name' }),
+	position: vec2Schema.meta({ title: 'Position' }),
 });
 
 export type GameObjectView = z.infer<typeof gameObjectViewSchema>;
@@ -32,7 +34,7 @@ export default class GameObject
 	}
 
 	@onChange((self) => self.notify())
-	accessor name: string = this.constructor.name;
+	accessor name: string = 'Game Object';
 
 	constructor(readonly game: IGame) {
 		this.modules = new ModuleCollection(this);
@@ -157,11 +159,15 @@ export default class GameObject
 	[ReactInterop.get](): GameObjectView {
 		return {
 			name: this.name,
+			position: this.transform.position[ReactInterop.get](),
 		};
 	}
 
 	[ReactInterop.set](view: GameObjectView): void {
-		this.name = view.name;
+		if (Object.hasOwn(view, 'name')) this.name = view.name;
+		if (Object.hasOwn(view, 'position'))
+			this.transform.position[ReactInterop.set](view.position);
+
 		this.notify();
 	}
 
