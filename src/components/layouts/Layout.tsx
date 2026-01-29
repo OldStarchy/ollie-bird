@@ -11,7 +11,9 @@ import useGameContext from '../GameContext';
 import ObjectList from '../inspector/ObjectList';
 import SelectedObjectInspector from '../inspector/SelectedObjectInspector';
 import Rule from '../Rule';
+import Spoiler from '../Spoiler';
 import { LayoutContext } from './LayoutContext';
+import ResourcesPanel from './ResourcesPanel';
 
 export default function Layout({
 	children,
@@ -110,6 +112,10 @@ export default function Layout({
 						<ReactInteropInspector model={game} />
 						<Rule orientation="horizontal" />
 						<ObjectList />
+						<Rule orientation="horizontal" />
+						<Spoiler title="Resources">
+							<ResourcesPanel />
+						</Spoiler>
 					</aside>
 				)}
 				<div
@@ -137,8 +143,6 @@ export default function Layout({
 							width: '20rem',
 						}}
 					>
-						Aside Content
-						{/* <ResourcesPanel /> */}
 						<SelectedObjectInspector />
 					</aside>
 				)}

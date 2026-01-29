@@ -1,13 +1,17 @@
 import { Subject } from 'rxjs';
+import z from 'zod';
+import { ReactInterop } from '../../react-interop/ReactInterop';
 
-export interface Rect2Like {
-	x: number;
-	y: number;
-	width: number;
-	height: number;
-}
+export const rect2Schema = z.object({
+	x: z.coerce.number(),
+	y: z.coerce.number(),
+	width: z.coerce.number(),
+	height: z.coerce.number(),
+});
 
-export default class Rect2 implements Rect2Like {
+export type Rect2Like = z.infer<typeof rect2Schema>;
+
+export default class Rect2 implements Rect2Like, ReactInterop<Rect2Like> {
 	readonly #change = new Subject<void>();
 
 	#x: number;
@@ -134,4 +138,22 @@ export default class Rect2 implements Rect2Like {
 	clone(): Rect2 {
 		return new Rect2(this.#x, this.#y, this.#width, this.#height);
 	}
+
+	[ReactInterop.set](data: Rect2Like): void {
+		this.#x = data.x;
+		this.#y = data.y;
+		this.#width = data.width;
+		this.#height = data.height;
+		this.notify();
+	}
+	[ReactInterop.get](): Rect2Like {
+		return {
+			x: this.#x,
+			y: this.#y,
+			width: this.#width,
+			height: this.#height,
+		};
+	}
+	readonly [ReactInterop.asObservable] = this.#change.asObservable();
+	readonly [ReactInterop.schema] = rect2Schema;
 }

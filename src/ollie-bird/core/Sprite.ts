@@ -1,8 +1,62 @@
-import Rect2, { type Rect2Like } from '../math/Rect2';
+import { Subject } from 'rxjs';
+import z from 'zod';
+import { ReactInterop } from '../../react-interop/ReactInterop';
+import Rect2, { rect2Schema, type Rect2Like } from '../math/Rect2';
+import Vec2, { vec2Schema } from '../math/Vec2';
 
-export default class Sprite {
+export const spriteViewSchema = z.object({
+	src: z.string().meta({ title: 'Image Source' }),
+	sourceRect: rect2Schema.meta({ title: 'Source Rectangle' }),
+	origin: vec2Schema.meta({ title: 'Origin' }),
+});
+
+export type SpriteView = z.infer<typeof spriteViewSchema>;
+
+declare global {
+	interface ObjectConstructor {
+		hasOwn<K extends PropertyKey>(
+			value: object,
+			key: K,
+		): value is { [P in K]: unknown };
+	}
+}
+
+export default class Sprite implements ReactInterop<SpriteView> {
+	readonly #change$ = new Subject<void>();
+
 	readonly sourceRect = new Rect2(0, 0, 16, 16);
+	readonly origin = new Vec2(0, 0);
 	readonly image: HTMLImageElement;
+
+	get src(): string {
+		return this.image.src.split('/').pop() || '';
+	}
+
+	[ReactInterop.get](): SpriteView {
+		return {
+			src: this.src,
+			sourceRect: this.sourceRect[ReactInterop.get](),
+			origin: this.origin[ReactInterop.get](),
+		};
+	}
+	[ReactInterop.set](value: SpriteView): void {
+		if (Object.hasOwn(value, 'sourceRect')) {
+			this.sourceRect[ReactInterop.set](value.sourceRect!);
+		}
+		if (Object.hasOwn(value, 'origin')) {
+			this.origin[ReactInterop.set](value.origin!);
+		}
+		if (Object.hasOwn(value, 'src')) {
+			this.image.src = value.src!;
+		}
+	}
+
+	readonly [ReactInterop.schema] = spriteViewSchema;
+	readonly [ReactInterop.asObservable] = this.#change$.asObservable();
+
+	notify() {
+		this.#change$.next();
+	}
 
 	constructor(image: HTMLImageElement, sourceRect?: Rect2Like);
 	constructor(src: string, sourceRect?: Rect2Like);
@@ -26,6 +80,9 @@ export default class Sprite {
 				{ once: true },
 			);
 		}
+
+		this.origin[ReactInterop.asObservable].subscribe(this.#change$);
+		this.sourceRect[ReactInterop.asObservable].subscribe(this.#change$);
 	}
 
 	private static toImage(
