@@ -6,6 +6,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: write
 
 jobs:
   check:
@@ -33,4 +34,7 @@ jobs:
         run: yarn build
 
       - name: Test
-        run: yarn test
+        run: yarn coverage
+
+      - name: Report coverage
+        uses: davelosert/vitest-coverage-report-action@v2
