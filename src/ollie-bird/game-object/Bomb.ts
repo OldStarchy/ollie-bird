@@ -75,18 +75,20 @@ export default class Bomb extends GameObject implements ISerializable {
 	}
 
 	protected override update() {
-		if (!this.anim.paused) {
-			return;
+		if (this.anim.currentFrame > 3) {
+			this.anim.frameDuration = 0.1;
 		}
 
-		const myCollider = this.triggerCollider.getCollider();
+		if (this.anim.paused) {
+			const myCollider = this.triggerCollider.getCollider();
 
-		const hitBird = this.game
-			.findObjectsByType(Bird)
-			.some(Collider2d.collidingWith(myCollider));
+			const hitBird = this.game
+				.findObjectsByType(Bird)
+				.some(Collider2d.collidingWith(myCollider));
 
-		if (hitBird) {
-			this.anim.paused = false;
+			if (hitBird) {
+				this.anim.paused = false;
+			}
 		}
 	}
 

@@ -9,16 +9,42 @@ export interface AnimationEventsMap {
 	looped: void;
 }
 export default class Animation extends Module {
-	private time = 0;
+	#timeSinceFrameStart = 0;
 	public paused = false;
 	readonly rectangle = new Rect2(0, 0, 16, 16);
 
-	get currentFrame(): number {
-		return Math.floor(this.time / this.frameDuration);
+	#currentFrame: number = 0;
+	advanceFrames(count: number = 1): void {
+		this.#currentFrame += count;
+
+		if (this.#currentFrame >= this.images.length) {
+			this.handleLoopOrEnd();
+		}
 	}
 
-	set currentFrame(frame: number) {
-		this.time = frame * this.frameDuration;
+	private handleLoopOrEnd(): void {
+		if (this.loop) {
+			this.#currentFrame = this.#currentFrame % this.images.length;
+			this.events.emit('looped', void 0);
+		} else {
+			this.#currentFrame = this.images.length - 1;
+			this.paused = true;
+			this.events.emit('ended', void 0);
+		}
+	}
+
+	get currentFrame(): number {
+		return this.#currentFrame;
+	}
+	set currentFrame(value: number) {
+		if (value < 0 || value >= this.images.length) {
+			throw new Error(
+				`Frame index out of bounds: ${value} (must be between 0 and ${
+					this.images.length - 1
+				})`,
+			);
+		}
+		this.#currentFrame = value;
 	}
 
 	readonly events: EventSource<AnimationEventsMap> = new EventSource();
@@ -38,26 +64,24 @@ export default class Animation extends Module {
 	protected override update(): void {
 		if (this.paused) return;
 
-		this.time += this.owner.game.secondsPerFrame;
-		const totalDuration = this.frameDuration * this.images.length;
+		this.advanceFrameTime(this.owner.game.secondsPerFrame);
+	}
 
-		if (this.time > totalDuration || this.time < 0) {
-			if (this.loop) {
-				this.events.emit('looped', void 0);
-				this.time =
-					((this.time % totalDuration) + totalDuration) %
-					totalDuration;
-			} else {
-				if (this.frameDuration > 0) this.time = totalDuration;
-				else this.time = 0;
-				this.events.emit('ended', void 0);
-				this.paused = true;
-			}
+	protected advanceFrameTime(deltaTime: number): void {
+		this.#timeSinceFrameStart += deltaTime;
+
+		if (this.#timeSinceFrameStart >= this.frameDuration) {
+			const framesToAdvance = Math.floor(
+				this.#timeSinceFrameStart / this.frameDuration,
+			);
+			this.#timeSinceFrameStart %= this.frameDuration;
+
+			this.advanceFrames(framesToAdvance);
 		}
 	}
 
 	protected override render(context: CanvasRenderingContext2D): void {
-		let frameIndex = Math.floor(this.time / this.frameDuration);
+		let frameIndex = this.#currentFrame;
 
 		if (frameIndex >= this.images.length) {
 			frameIndex = this.images.length - 1;
