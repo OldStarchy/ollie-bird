@@ -5,11 +5,15 @@ import {
 	type CSSProperties,
 	type ReactNode,
 } from 'react';
+import { ReactInteropInspector } from '../../react-interop/ReactInteropInspector';
 import Button from '../Button';
 import useGameContext from '../GameContext';
-import PropertiesPanel from '../PropertiesPanel';
+import ObjectList from '../inspector/ObjectList';
+import SelectedObjectInspector from '../inspector/SelectedObjectInspector';
 import Rule from '../Rule';
+import Spoiler from '../Spoiler';
 import { LayoutContext } from './LayoutContext';
+import ResourcesPanel from './ResourcesPanel';
 
 export default function Layout({
 	children,
@@ -53,7 +57,6 @@ export default function Layout({
 		],
 	);
 
-	if (!game) return;
 	return (
 		<LayoutContext.Provider value={ctx}>
 			<div
@@ -78,9 +81,22 @@ export default function Layout({
 							backgroundColor: '#282c34',
 							color: 'white',
 							gridArea: 'header',
+							display: 'flex',
+							alignItems: 'center',
+							justifyContent: 'space-between',
 						}}
 					>
 						<h1>My Application</h1>
+
+						<Button
+							onClick={() => {
+								setShowSidebar(!showSidebar);
+								setShowAside(!showSidebar);
+								setShowFooter(!showSidebar);
+							}}
+						>
+							Toggle Sidebars
+						</Button>
 					</header>
 				)}
 				{showSidebar && (
@@ -88,20 +104,18 @@ export default function Layout({
 						style={{
 							padding: '1rem',
 							gridArea: 'sidebar',
+							overflowY: 'auto',
+							width: '20rem',
 						}}
 					>
 						<p>Game Config</p>
-						<PropertiesPanel model={game} />
+						<ReactInteropInspector model={game} />
 						<Rule orientation="horizontal" />
-						<Button
-							onClick={() => {
-								setShowAside(false);
-								setShowHeader(false);
-								setShowFooter(false);
-							}}
-						>
-							Hide all the decorations
-						</Button>
+						<ObjectList />
+						<Rule orientation="horizontal" />
+						<Spoiler title="Resources">
+							<ResourcesPanel />
+						</Spoiler>
 					</aside>
 				)}
 				<div
@@ -125,9 +139,11 @@ export default function Layout({
 						style={{
 							padding: '1rem',
 							gridArea: 'aside',
+							overflowY: 'auto',
+							width: '20rem',
 						}}
 					>
-						Aside Content
+						<SelectedObjectInspector />
 					</aside>
 				)}
 				{showFooter && (

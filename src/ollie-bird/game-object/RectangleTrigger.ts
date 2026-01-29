@@ -1,8 +1,10 @@
 import { z } from 'zod';
+import { ReactInterop } from '../../react-interop/ReactInterop';
 import GameObject from '../core/GameObject';
 import type { ISerializable } from '../LevelStore';
 import Rect2 from '../math/Rect2';
 import RectangleCollider2d from '../modules/RectangleCollider2d';
+import Size2d from '../modules/Size2d';
 
 export const rectangleTriggerDtoSchema = z.object({
 	$type: z.string(),
@@ -17,12 +19,29 @@ export type RectangleTriggerDto = z.infer<typeof rectangleTriggerDtoSchema>;
 class RectangleTrigger extends GameObject implements ISerializable {
 	layer = 0;
 	style: string | null = null;
-	public width: number = 0;
-	public height: number = 0;
+
+	readonly size: Size2d = this.addModule(Size2d, 0, 0);
+
+	get width(): number {
+		return this.size.width;
+	}
+	get height(): number {
+		return this.size.height;
+	}
+
+	set width(value: number) {
+		this.size.width = value;
+	}
+	set height(value: number) {
+		this.size.height = value;
+	}
 
 	protected collider = this.addModule(RectangleCollider2d, Rect2.one);
 
 	protected override initialize(): void {
+		this.size[ReactInterop.asObservable].subscribe(() =>
+			this.updateCollider(),
+		);
 		this.updateCollider();
 	}
 

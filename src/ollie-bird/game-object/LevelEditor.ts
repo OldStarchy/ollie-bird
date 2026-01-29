@@ -11,6 +11,7 @@ import LevelStore, {
 import Rect2 from '../math/Rect2';
 import Collider2d from '../modules/Collider2d';
 import GameTimer from '../modules/GameTimer';
+import ObjectSelector from '../modules/ObjectSelector';
 import SequentialGateManager from '../modules/SequentialGateManager';
 import BaddieSpawner from './BaddieSpawner';
 import Bird from './Bird';
@@ -73,6 +74,7 @@ export default class LevelEditor extends GameObject {
 
 		this.addModule(SequentialGateManager);
 		this.addModule(GameTimer);
+		this.addModule(ObjectSelector);
 	}
 
 	alignToGrid(obj: { x: number; y: number }): { x: number; y: number } {

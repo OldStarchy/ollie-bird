@@ -20,7 +20,7 @@ export default interface IGame {
 	backgroundColor: string;
 
 	updatesPerSecond: number;
-	readonly secondsPerFrame: number;
+	readonly secondsPerFrame: seconds;
 
 	spawn<Class extends new (game: IGame, ...args: any[]) => GameObject>(
 		type: Class,

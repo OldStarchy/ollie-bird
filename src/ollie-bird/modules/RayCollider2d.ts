@@ -19,7 +19,7 @@ export default class RayCollider2d extends Collider2d {
 
 	override doGizmoPath(context: CanvasRenderingContext2D): void {
 		const { x, y } = this.owner.transform.position;
-		const dir = Vec2.from(this.direction).inormalize();
+		const dir = Vec2.from(this.direction).normalize();
 
 		context.beginPath();
 		context.moveTo(x + this.origin.x, y + this.origin.y);

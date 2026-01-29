@@ -29,37 +29,35 @@ function OllieBirdGameComponent() {
 
 	return (
 		<GameContext.Provider value={game || null}>
-			<Layout style={{ width: '100vw', height: '100vh' }}>
-				<div
-					style={{
-						width: '100%',
-						height: '100%',
-					}}
-				>
-					{game && (
-						<>
-							<div
-								style={{
-									position: 'absolute',
-									top: 10,
-									left: 10,
-									zIndex: 1000,
-								}}
-							>
-								<LevelPicker
-									game={game}
-									onClose={() => canvasRef.current?.focus()}
-								/>
-							</div>
-							<GameCanvas
+			{game && (
+				<Layout style={{ width: '100vw', height: '100vh' }}>
+					<div
+						style={{
+							width: '100%',
+							height: '100%',
+						}}
+					>
+						<div
+							style={{
+								position: 'absolute',
+								top: 10,
+								left: 10,
+								zIndex: 1000,
+							}}
+						>
+							<LevelPicker
 								game={game}
-								ref={canvasRef}
-								style={{ width: '100%', height: '100%' }}
+								onClose={() => canvasRef.current?.focus()}
 							/>
-						</>
-					)}
-				</div>
-			</Layout>
+						</div>
+						<GameCanvas
+							game={game}
+							ref={canvasRef}
+							style={{ width: '100%', height: '100%' }}
+						/>
+					</div>
+				</Layout>
+			)}
 		</GameContext.Provider>
 	);
 }

@@ -1,8 +1,22 @@
+import { Subject } from 'rxjs';
+import z from 'zod';
+import onChange from '../../react-interop/onChange';
+import { ReactInterop } from '../../react-interop/ReactInterop';
+import { vec2Schema } from '../math/Vec2';
 import Transform2d from '../modules/Transform2d';
 import type IGame from './IGame';
 import Module, { ModuleCollection, type IModular } from './IModular';
 
-export default class GameObject implements IModular, Disposable {
+export const gameObjectViewSchema = z.object({
+	name: z.string().meta({ title: 'Name' }),
+	position: vec2Schema.meta({ title: 'Position' }),
+});
+
+export type GameObjectView = z.infer<typeof gameObjectViewSchema>;
+
+export default class GameObject
+	implements IModular, Disposable, ReactInterop<GameObjectView>
+{
 	private destructors: (() => void)[] = [];
 	private modules: ModuleCollection;
 
@@ -10,6 +24,17 @@ export default class GameObject implements IModular, Disposable {
 	tags: Set<string | symbol> = new Set();
 
 	readonly transform: Transform2d;
+	readonly id: string = Math.random().toString(16).slice(2);
+
+	#change$ = new Subject<void>();
+	readonly change$ = this.#change$.asObservable();
+
+	private notify(): void {
+		this.#change$.next();
+	}
+
+	@onChange((self) => self.notify())
+	accessor name: string = 'Game Object';
 
 	constructor(readonly game: IGame) {
 		this.modules = new ModuleCollection(this);
@@ -118,7 +143,10 @@ export default class GameObject implements IModular, Disposable {
 		this.destructors.push(unsub);
 	}
 
+	readonly #destroy$ = new Subject<void>();
+	readonly destroy$ = this.#destroy$.asObservable();
 	[Symbol.dispose]() {
+		this.#destroy$.next();
 		for (const unsub of this.destructors) {
 			unsub();
 		}
@@ -127,4 +155,22 @@ export default class GameObject implements IModular, Disposable {
 	destroy() {
 		this.game.destroy(this);
 	}
+
+	[ReactInterop.get](): GameObjectView {
+		return {
+			name: this.name,
+			position: this.transform.position[ReactInterop.get](),
+		};
+	}
+
+	[ReactInterop.set](view: GameObjectView): void {
+		if (Object.hasOwn(view, 'name')) this.name = view.name;
+		if (Object.hasOwn(view, 'position'))
+			this.transform.position[ReactInterop.set](view.position);
+
+		this.notify();
+	}
+
+	readonly [ReactInterop.schema] = gameObjectViewSchema;
+	readonly [ReactInterop.asObservable] = this.change$;
 }

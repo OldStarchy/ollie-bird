@@ -193,16 +193,24 @@ describe('GameObject Serialization', () => {
 
 			expect(serialized).toEqual({
 				$type: 'BaddieSpawner',
-				x: 250,
-				y: 350,
+				name: 'Game Object',
+				startDirection: 'left',
+				position: {
+					x: 250,
+					y: 350,
+				},
 			});
 		});
 
 		test('should deserialize correctly', () => {
 			const data = {
 				$type: 'BaddieSpawner',
-				x: 250,
-				y: 350,
+				name: 'Game Object',
+				startDirection: 'left',
+				position: {
+					x: 250,
+					y: 350,
+				},
 			};
 
 			(mockGame.spawn as any) = vi.fn(() => new BaddieSpawner(mockGame));

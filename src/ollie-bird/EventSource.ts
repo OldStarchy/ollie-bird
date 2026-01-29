@@ -1,3 +1,6 @@
+/**
+ * @deprecated use rxjs
+ */
 export default class EventSource<T extends Record<string, any>> {
 	private listeners: {
 		[K in keyof T]?: Array<(data: T[K]) => void>;
