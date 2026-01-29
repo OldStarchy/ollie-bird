@@ -58,7 +58,7 @@ const ZodField = function ZodField<Schema extends ZodFieldSupportedTypes>({
 	if (schema instanceof z.ZodString) {
 		return (
 			<ZodBasicField
-				type="string"
+				type="text"
 				schema={schema}
 				value={value as z.input<typeof schema>}
 				onChange={onChange as onChange<typeof schema>}
@@ -69,7 +69,7 @@ const ZodField = function ZodField<Schema extends ZodFieldSupportedTypes>({
 	if (schema instanceof z.ZodBoolean) {
 		return (
 			<ZodBasicField
-				type="boolean"
+				type="checkbox"
 				schema={schema}
 				value={value as z.input<typeof schema>}
 				onChange={onChange as onChange<typeof schema>}

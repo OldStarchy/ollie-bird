@@ -49,6 +49,7 @@ export default class Sprite implements ReactInterop<SpriteView> {
 		if (Object.hasOwn(value, 'src')) {
 			this.image.src = value.src!;
 		}
+		this.notify();
 	}
 
 	readonly [ReactInterop.schema] = spriteViewSchema;

@@ -106,6 +106,7 @@ export default class BaddieSpawner
 		const spawner = game.spawn(BaddieSpawner);
 		spawner.name = parseResult.data.name;
 		spawner.transform.position.set(x, y);
+		spawner.startDirection = parseResult.data.startDirection;
 		return spawner;
 	}
 }

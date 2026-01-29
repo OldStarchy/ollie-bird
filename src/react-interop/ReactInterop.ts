@@ -13,13 +13,13 @@ const schema = Symbol('ReactInterop.schema');
 export interface ReactInterop<View> {
 	/**
 	 * Modifies this object to match the provided data. This is called by the
-	 * ReactInteropInspecter when the user modifies form values.
+	 * ReactInteropInspector when the user modifies form values.
 	 */
 	[set](data: View): void;
 
 	/**
 	 * Creates a plain data object representing the current state. This is used
-	 * to seed the values used in react forms in the ReactInteropInspecter.
+	 * to seed the values used in react forms in the ReactInteropInspector.
 	 */
 	[get](): View;
 

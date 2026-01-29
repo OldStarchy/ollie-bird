@@ -15,7 +15,7 @@ export function ZodBasicField<Type extends number | string | boolean>({
 	optional: _todo,
 }: {
 	// prettier-ignore
-	type: Type extends number ? 'number' : Type extends string ? 'string' : Type extends boolean ? 'boolean' : never;
+	type: Type extends number ? 'number' : Type extends string ? 'text' : Type extends boolean ? 'checkbox' : never;
 } & ZodFieldSharedProps<ZodBasicFieldSupportedTypes>) {
 	const id = useId();
 	const meta = schema.meta();
@@ -68,19 +68,19 @@ export function ZodBasicField<Type extends number | string | boolean>({
 			<Input
 				type={type}
 				value={
-					type !== 'boolean'
+					type !== 'checkbox'
 						? (enteredValue as string | number)
 						: undefined
 				}
 				id={id}
 				checked={
-					type === 'boolean' ? (enteredValue as boolean) : undefined
+					type === 'checkbox' ? (enteredValue as boolean) : undefined
 				}
 				onChange={
 					onChange
 						? (e) =>
 								onChange_(
-									type === 'boolean'
+									type === 'checkbox'
 										? e.target.checked
 										: e.target.value,
 								)

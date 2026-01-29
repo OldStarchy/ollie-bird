@@ -143,10 +143,10 @@ export default class GameObject
 		this.destructors.push(unsub);
 	}
 
-	#destory$ = new Subject<void>();
-	public destroy$ = this.#destory$.asObservable();
+	readonly #destroy$ = new Subject<void>();
+	readonly destroy$ = this.#destroy$.asObservable();
 	[Symbol.dispose]() {
-		this.#destory$.next();
+		this.#destroy$.next();
 		for (const unsub of this.destructors) {
 			unsub();
 		}

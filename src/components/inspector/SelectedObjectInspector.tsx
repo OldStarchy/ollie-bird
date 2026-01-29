@@ -21,12 +21,10 @@ export default function SelectedObjectInspector() {
 			<h3>Selected Object</h3>
 			<p>Type: {selectedObject.constructor.name}</p>
 			<p>
-				ID:{' '}
-				{selectedObject.tags
-					.values()
-					.map((tag) => tag.toString())
-					.toArray()
-					.join(', ')}
+				Tags:{' '}
+				{Array.from(selectedObject.tags, (tag) => tag.toString()).join(
+					', ',
+				)}
 			</p>
 			<hr />
 

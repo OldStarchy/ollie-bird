@@ -1,5 +1,4 @@
 import { useState, type ReactNode } from 'react';
-import Button from './Button';
 
 export default function Spoiler({
 	children,
@@ -18,7 +17,7 @@ export default function Spoiler({
 					style={{ display: 'inline' }}
 				>
 					<h3 style={{ display: 'inline' }}>{title}</h3>{' '}
-					<Button>{isOpen ? 'Hide' : 'Show'}</Button>
+					<span>{isOpen ? 'Hide' : 'Show'}</span>
 				</button>
 			</header>
 			{isOpen && <main style={{ marginTop: '8px' }}>{children}</main>}
