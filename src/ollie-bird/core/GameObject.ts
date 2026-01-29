@@ -17,7 +17,7 @@ export type GameObjectView = z.infer<typeof gameObjectViewSchema>;
 export default class GameObject
 	implements IModular, Disposable, ReactInterop<GameObjectView>
 {
-	private destructors: (() => void)[] = [];
+	protected disposableStack = new DisposableStack();
 	private modules: ModuleCollection;
 
 	layer: number = 0;
@@ -38,7 +38,7 @@ export default class GameObject
 
 	constructor(readonly game: IGame) {
 		this.modules = new ModuleCollection(this);
-		this.destructors.push(() => this.modules[Symbol.dispose]());
+		this.disposableStack.use(this.modules);
 
 		this.transform = this.addModule(Transform2d);
 	}
@@ -139,17 +139,15 @@ export default class GameObject
 		event: T,
 		listener: (args: GameEventMap[T]) => void,
 	) {
-		const unsub = this.game.event.on(event, listener);
-		this.destructors.push(unsub);
+		const unsubscribe = this.game.event.on(event, listener);
+		this.disposableStack.defer(unsubscribe);
 	}
 
 	readonly #destroy$ = new Subject<void>();
 	readonly destroy$ = this.#destroy$.asObservable();
 	[Symbol.dispose]() {
 		this.#destroy$.next();
-		for (const unsub of this.destructors) {
-			unsub();
-		}
+		this.disposableStack.dispose();
 	}
 
 	destroy() {

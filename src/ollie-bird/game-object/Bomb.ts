@@ -1,3 +1,4 @@
+import { filter } from 'rxjs';
 import { z } from 'zod';
 import { CELL_SIZE, TAG_DEADLY, TAG_LEVEL_STRUCTURE } from '../const';
 import GameObject from '../core/GameObject';
@@ -35,10 +36,15 @@ export default class Bomb extends GameObject implements ISerializable {
 
 		this.anim = this.addModule(Animation, Resources.bomb, 0.4, false);
 		this.anim.paused = true;
-		this.anim.events.on('ended', () => {
-			this.anim.enabled = false;
-			this.collider.enabled = false;
-		});
+		this.disposableStack.adopt(
+			this.anim.events$
+				.pipe(filter((e) => e === 'ended'))
+				.subscribe(() => {
+					this.anim.enabled = false;
+					this.collider.enabled = false;
+				}),
+			(subr) => subr.unsubscribe(),
+		);
 
 		this.anim.rectangle.set(
 			-CELL_SIZE,

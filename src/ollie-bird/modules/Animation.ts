@@ -1,37 +1,18 @@
+import { Subject, type Observable } from 'rxjs';
 import type GameObject from '../core/GameObject';
 import Module from '../core/IModular';
 import type Sprite from '../core/Sprite';
-import EventSource from '../EventSource';
 import Rect2 from '../math/Rect2';
 
-export interface AnimationEventsMap {
-	ended: void;
-	looped: void;
-}
+export type AnimationEvents = 'ended' | 'looped';
+
 export default class Animation extends Module {
 	#timeSinceFrameStart = 0;
-	public paused = false;
+	#currentFrame = 0;
+
 	readonly rectangle = new Rect2(0, 0, 16, 16);
 
-	#currentFrame: number = 0;
-	advanceFrames(count: number = 1): void {
-		this.#currentFrame += count;
-
-		if (this.#currentFrame >= this.images.length) {
-			this.handleLoopOrEnd();
-		}
-	}
-
-	private handleLoopOrEnd(): void {
-		if (this.loop) {
-			this.#currentFrame = this.#currentFrame % this.images.length;
-			this.events.emit('looped', void 0);
-		} else {
-			this.#currentFrame = this.images.length - 1;
-			this.paused = true;
-			this.events.emit('ended', void 0);
-		}
-	}
+	accessor paused = false;
 
 	get currentFrame(): number {
 		return this.#currentFrame;
@@ -47,7 +28,8 @@ export default class Animation extends Module {
 		this.#currentFrame = value;
 	}
 
-	readonly events: EventSource<AnimationEventsMap> = new EventSource();
+	readonly #events$ = new Subject<AnimationEvents>();
+	readonly events$: Observable<AnimationEvents> = this.#events$;
 
 	constructor(
 		owner: GameObject,
@@ -77,6 +59,25 @@ export default class Animation extends Module {
 			this.#timeSinceFrameStart %= this.frameDuration;
 
 			this.advanceFrames(framesToAdvance);
+		}
+	}
+
+	protected advanceFrames(count: number): void {
+		this.#currentFrame += count;
+
+		if (this.#currentFrame >= this.images.length) {
+			this.handleLoopOrEnd();
+		}
+	}
+
+	protected handleLoopOrEnd(): void {
+		if (this.loop) {
+			this.#currentFrame = this.#currentFrame % this.images.length;
+			this.#events$.next('looped');
+		} else {
+			this.#currentFrame = this.images.length - 1;
+			this.paused = true;
+			this.#events$.next('ended');
 		}
 	}
 
