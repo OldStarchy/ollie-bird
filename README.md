@@ -4,7 +4,11 @@ Play at https://oldstarchy.github.io/ollie-bird/
 
 ## Development Setup
 
-Follows Conventional Commits.
+- Follow Conventional Commits
+- Rebase (and tidy your commits) before merging
+- You may leave TODO's in the code if they reference an issue number
+    - e.g. `// TODO(#123): Add a thing`
+    - TODO's can be listed (`.scripts/list-todos`) and filtered (`.scripts/list-todos 123`)
 
 A few hooks are included to lint on commit and test on push. Install them with `.scripts/install-hooks` (bash).
 
