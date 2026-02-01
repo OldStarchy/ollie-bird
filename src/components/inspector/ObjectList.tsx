@@ -73,7 +73,7 @@ function GameObjectListEntry({
 			value={obj.id}
 			onClick={() => onSelect(obj)}
 		>
-			{name} ({obj.constructor.name}) ({Array.from(obj.tags).join(', ')})
+			{name} ({obj.name}) ({Array.from(obj.tags).join(', ')})
 		</li>
 	);
 }

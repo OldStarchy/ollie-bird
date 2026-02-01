@@ -39,6 +39,8 @@ class Obstacle extends RectangleTrigger {
 		Obstacle.sprites.wallCenter.src = wallCenter;
 	}
 
+	readonly serializationKey = 'Obstacle';
+
 	protected override initialize() {
 		super.initialize();
 		this.style = 'red';

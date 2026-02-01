@@ -33,7 +33,10 @@ export default class BaddieSpawner
 	static readonly #serializationKey = 'BaddieSpawner';
 
 	static {
-		LevelStore.register(BaddieSpawner.#serializationKey, BaddieSpawner);
+		LevelStore.instance.register(
+			BaddieSpawner.#serializationKey,
+			BaddieSpawner,
+		);
 	}
 	layer = Layer.Foreground;
 

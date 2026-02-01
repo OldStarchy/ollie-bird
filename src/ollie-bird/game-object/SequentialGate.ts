@@ -19,6 +19,8 @@ export default class SequentialGate extends RectangleTrigger {
 
 	state: 'unavailable' | 'ready' | 'passed' = 'unavailable';
 
+	readonly serializationKey = 'SequentialGate';
+
 	sequenceNumber: number = 0;
 	nextGate: SequentialGate | null = null;
 

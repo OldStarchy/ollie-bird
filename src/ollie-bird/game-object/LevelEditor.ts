@@ -64,7 +64,8 @@ export default class LevelEditor extends GameObject {
 		];
 		types.forEach(
 			([name, cls]) =>
-				!LevelStore.has(name) && LevelStore.register(name, cls),
+				!LevelStore.instance.has(name) &&
+				LevelStore.instance.register(name, cls),
 		);
 
 		this.onGameEvent('getLevelData', (callback) =>
@@ -354,7 +355,9 @@ export default class LevelEditor extends GameObject {
 						obj !== null &&
 						'$type' in obj
 					) {
-						const Class = LevelStore.get(obj.$type as string);
+						const Class = LevelStore.instance.get(
+							obj.$type as string,
+						);
 						if (Class && 'spawnDeserialize' in Class) {
 							const spawned = Class.spawnDeserialize(
 								this.game,

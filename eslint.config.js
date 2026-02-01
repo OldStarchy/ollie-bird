@@ -30,6 +30,15 @@ export default defineConfig([
 			],
 			'@typescript-eslint/ban-ts-comment': 'off',
 			'@typescript-eslint/no-empty-object-type': 'off',
+			'no-restricted-syntax': [
+				'error',
+				{
+					selector:
+						"MemberExpression[object.property.name='constructor'][property.name='name']",
+					message:
+						'constructor.name is unsafe, function names change during obfuscation.',
+				},
+			],
 		},
 	},
 ]);

@@ -11,6 +11,7 @@ import Animation from '../modules/Animation';
 import Resources from '../Resources';
 import Bird from './Bird';
 
+const BombSerializationKey = 'Bomb';
 export const bombDtoSchema = z.object({
 	$type: z.string(),
 	x: z.number(),
@@ -21,7 +22,7 @@ export type BombDto = z.infer<typeof bombDtoSchema>;
 
 export default class Bomb extends GameObject implements ISerializable {
 	static {
-		LevelStore.register(Bomb.name, Bomb);
+		LevelStore.instance.register(BombSerializationKey, Bomb);
 	}
 
 	private anim!: Animation;
@@ -99,7 +100,7 @@ export default class Bomb extends GameObject implements ISerializable {
 
 	serialize(): BombDto {
 		return {
-			$type: this.constructor.name,
+			$type: BombSerializationKey,
 			x: this.transform.position.x,
 			y: this.transform.position.y,
 		};

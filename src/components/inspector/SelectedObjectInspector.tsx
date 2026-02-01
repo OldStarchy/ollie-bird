@@ -19,7 +19,7 @@ export default function SelectedObjectInspector() {
 	return (
 		<div key={selectedObject.id}>
 			<h3>Selected Object</h3>
-			<p>Type: {selectedObject.constructor.name}</p>
+			<p>Type: {selectedObject.name}</p>
 			<p>
 				Tags:{' '}
 				{Array.from(selectedObject.tags, (tag) => tag.toString()).join(
@@ -55,7 +55,7 @@ export default function SelectedObjectInspector() {
 							padding: '0 0.5em',
 						}}
 					>
-						{module.constructor.name}
+						{(module.constructor as typeof Module).displayName}
 					</h4>
 					{ReactInterop.schema in module ? (
 						<ReactInteropInspector

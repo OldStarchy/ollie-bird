@@ -5,6 +5,8 @@ import RectangleTrigger, {
 } from './RectangleTrigger';
 
 class Goal extends RectangleTrigger {
+	readonly serializationKey = 'Goal';
+
 	protected override initialize() {
 		super.initialize();
 		this.style = 'green';

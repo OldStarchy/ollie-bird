@@ -51,36 +51,35 @@ describe('LevelStore', () => {
 	}
 
 	beforeEach(() => {
-		// Clear any existing registrations - we can't unregister,
-		// so we just re-register fresh for each test
+		LevelStore.instance = new LevelStore();
 	});
 
 	test('should register a type', () => {
-		LevelStore.register('MockSerializable', MockSerializable);
-		expect(LevelStore.has('MockSerializable')).toBe(true);
+		LevelStore.instance.register('MockSerializable', MockSerializable);
+		expect(LevelStore.instance.has('MockSerializable')).toBe(true);
 	});
 
 	test('should get a registered type', () => {
-		LevelStore.register('MockSerializable', MockSerializable);
-		const retrieved = LevelStore.get('MockSerializable');
+		LevelStore.instance.register('MockSerializable', MockSerializable);
+		const retrieved = LevelStore.instance.get('MockSerializable');
 		expect(retrieved).toBe(MockSerializable);
 	});
 
 	test('should return undefined for unregistered type', () => {
-		const retrieved = LevelStore.get('NonExistentType');
+		const retrieved = LevelStore.instance.get('NonExistentType');
 		expect(retrieved).toBeUndefined();
 	});
 
 	test('should list all registered types', () => {
-		LevelStore.register('Type1', MockSerializable);
-		LevelStore.register('Type2', MockSerializable);
-		const types = LevelStore.getRegisteredTypes();
+		LevelStore.instance.register('Type1', MockSerializable);
+		LevelStore.instance.register('Type2', MockSerializable);
+		const types = LevelStore.instance.getRegisteredTypes();
 		expect(types).toContain('Type1');
 		expect(types).toContain('Type2');
 	});
 
 	test('should serialize and deserialize an object', () => {
-		LevelStore.register('MockSerializable', MockSerializable);
+		LevelStore.instance.register('MockSerializable', MockSerializable);
 
 		// Create and serialize
 		const original = new MockSerializable(mockGame);
@@ -93,7 +92,7 @@ describe('LevelStore', () => {
 		});
 
 		// Deserialize
-		const Class = LevelStore.get('MockSerializable');
+		const Class = LevelStore.instance.get('MockSerializable');
 		expect(Class).toBeDefined();
 		const deserialized = Class!.spawnDeserialize(mockGame, serialized);
 
@@ -103,30 +102,23 @@ describe('LevelStore', () => {
 	});
 
 	test('should handle invalid deserialization data', () => {
-		LevelStore.register('MockSerializable', MockSerializable);
+		LevelStore.instance.register('MockSerializable', MockSerializable);
 
 		const invalidData = {
 			$type: 'MockSerializable',
 			value: 'not a number',
 		};
-		const Class = LevelStore.get('MockSerializable');
+		const Class = LevelStore.instance.get('MockSerializable');
 		const result = Class!.spawnDeserialize(mockGame, invalidData);
 
 		expect(result).toBeNull();
 	});
 
-	test('should warn when overwriting a registration', () => {
-		const consoleSpy = vi
-			.spyOn(console, 'warn')
-			.mockImplementation(() => {});
+	test('should throw when registering a duplicate type', () => {
+		LevelStore.instance.register('MockSerializable', MockSerializable);
 
-		LevelStore.register('MockSerializable', MockSerializable);
-		LevelStore.register('MockSerializable', MockSerializable);
-
-		expect(consoleSpy).toHaveBeenCalledWith(
-			expect.stringContaining('already registered'),
-		);
-
-		consoleSpy.mockRestore();
+		expect(() => {
+			LevelStore.instance.register('MockSerializable', MockSerializable);
+		}).toThrow();
 	});
 });

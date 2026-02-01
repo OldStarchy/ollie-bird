@@ -16,9 +16,11 @@ export const rectangleTriggerDtoSchema = z.object({
 
 export type RectangleTriggerDto = z.infer<typeof rectangleTriggerDtoSchema>;
 
-class RectangleTrigger extends GameObject implements ISerializable {
+abstract class RectangleTrigger extends GameObject implements ISerializable {
 	layer = 0;
 	style: string | null = null;
+
+	abstract get serializationKey(): string;
 
 	readonly size: Size2d = this.addModule(Size2d, 0, 0);
 
@@ -72,7 +74,7 @@ class RectangleTrigger extends GameObject implements ISerializable {
 
 	serialize(): RectangleTriggerDto {
 		return {
-			$type: this.constructor.name,
+			$type: this.serializationKey,
 			x: this.transform.position.x,
 			y: this.transform.position.y,
 			width: this.width,

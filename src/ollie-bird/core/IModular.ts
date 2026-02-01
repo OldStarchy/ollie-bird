@@ -1,6 +1,8 @@
 import type GameObject from './GameObject';
 
 export default abstract class Module implements Disposable, IModular {
+	static readonly displayName = 'Module';
+
 	constructor(protected owner: GameObject) {}
 
 	#enabled = true;
