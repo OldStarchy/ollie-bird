@@ -355,9 +355,9 @@ export class GameCanvas implements Disposable {
 
 			this.context.translate(offsetX, offsetY);
 			this.context.scale(scale, scale);
-
-			this.lastTransform = this.context.getTransform();
 		}
+
+		this.lastTransform = this.context.getTransform();
 		renderCallback(this.context);
 	}
 
