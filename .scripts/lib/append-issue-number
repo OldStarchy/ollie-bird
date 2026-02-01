@@ -1,0 +1,25 @@
+#!/bin/bash
+## Version: 1.2.0
+## Source: https://github.com/OldStarchy/shared_scripts
+## Usage: .scripts/append-issue-number <commit-message-file>
+##
+## Extracts ticket ID from the branch name and inserts `Issue: ID` before any
+## Git comment lines.
+##
+## Example commit-msg hook
+##
+## ```
+## #!/bin/bash
+## set -eu
+## .scripts/append-issue-number "$@"
+## ```
+
+set -eu
+
+branchName=$(git rev-parse --abbrev-ref HEAD)
+ticketId=$(echo "$branchName" | sed -nE 's,[a-z]+/([A-Z0-9]+-[0-9]+)-.+,\1,p')
+
+
+if [[ ! -z $ticketId ]]; then
+	git interpret-trailers --in-place --trailer Issue=$ticketId "$1"
+fi

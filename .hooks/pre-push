@@ -1,0 +1,26 @@
+#!/bin/bash
+
+set -eu
+
+FAIL=0
+
+.scripts/list-todos NO-TICKET || FAIL=1
+
+BRANCH=$(git branch --show-current)
+
+if [[ $BRANCH =~ feature/([A-Z0-9]+-[0-9]+) ]]; then
+    TICKET="${BASH_REMATCH[1]}"
+    .scripts/list-todos "$TICKET" || FAIL=1
+fi
+
+.scripts/test || FAIL=1
+
+if [[ $FAIL -ne 0 ]]; then
+    echo
+    echo "❌ Pre-push check failed. To bypass, use:"
+    echo "   git push --no-verify"
+    echo
+    exit 1
+fi
+
+exit 0
