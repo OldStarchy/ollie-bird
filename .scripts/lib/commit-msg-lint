@@ -1,0 +1,19 @@
+#!/bin/bash
+## Version: 2.0.0
+## Source: https://github.com/OldStarchy/shared_scripts
+## Usage: .scripts/commit-msg-lint <commit-message-file>
+## Dependencies: ./parse-commit-msg.sh
+##
+## This script checks if the commit message follows the Conventional Commit
+## standard. If not, it aborts the commit.
+
+set -eu
+
+commit_file="$1"
+commit_msg=$(< "$commit_file")
+
+source "$(dirname "$0")/parse-commit-msg.sh"
+
+parse_commit_msg "$commit_msg" subject body footer bypass
+
+exit $?

@@ -1,0 +1,163 @@
+#!/bin/bash
+## Version: 1.0.0
+## Source: https://github.com/OldStarchy/shared_scripts
+## Usage: .scripts/install-hooks [--dry-run]
+## Options:
+##   --dry-run		Dry-run; only show what would be done
+##
+## Installs git hooks provided by this repository by symlinking all valid git
+## hooks under `.hooks/` into the appropriate git directory. See `valid_hooks`
+## below for a list of valid hook names.
+
+set -eu
+
+# ANSI color codes
+RESET='\033[0m'
+BOLD='\033[1m'
+RED='\033[0;31m'
+YELLOW='\033[0;33m'
+GREEN='\033[0;32m'
+CYAN='\033[0;36m'
+
+info()    { echo -e "${CYAN}[INFO]${RESET} $*"; }
+warn()    { echo -e "${YELLOW}[WARNING]${RESET} $*"; }
+error()   { echo -e "${RED}[ERROR]${RESET} $*"; }
+success() { echo -e "${GREEN}[SUCCESS]${RESET} $*"; }
+path()    { echo -e "${BOLD}$*${RESET}"; }
+
+DRY_RUN=false
+
+# List of all valid Git hook names
+valid_hooks=(
+	applypatch-msg pre-applypatch post-applypatch pre-commit pre-merge-commit
+	prepare-commit-msg commit-msg post-commit pre-rebase post-checkout
+	post-merge pre-push pre-receive update proc-receive post-receive
+	post-update reference-transaction push-to-checkout pre-auto-gc
+	post-rewrite sendemail-validate fsmonitor-watchman
+	p4-changelist p4-prepare-changelist p4-post-changelist
+	p4-pre-submit post-index-change
+)
+
+# Parse args
+if [[ "${1:-}" == "--dry-run" ]]; then
+	DRY_RUN=true
+	info "Running in dry-run mode. No changes will be made."
+fi
+
+# Step 1: Verify Git repo
+if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+	error "Not inside a Git repository."
+	exit 1
+fi
+
+PROJECT_HOOKS_DIR="./.hooks"
+GIT_HOOKS_DIR=$(git rev-parse --git-path hooks)
+
+# Step 2: Ensure .hooks directory exists
+if [[ ! -d "$PROJECT_HOOKS_DIR" ]]; then
+	info "No .hooks directory in $(pwd). Skipping hook setup."
+else
+	# Step 3: Setup hooks
+	HOOKS_DIR_ABS="$(realpath "$PROJECT_HOOKS_DIR")"
+
+	info "Setting up hooks in $(pwd)"
+
+	for hook_path in "$PROJECT_HOOKS_DIR"/*; do
+		hook_name="$(basename "$hook_path")"
+
+		if [[ ! " ${valid_hooks[*]} " =~ " $hook_name " ]]; then
+			warn "Ignoring invalid hook name: $(path "$hook_name")"
+			continue
+		fi
+
+		target="$GIT_HOOKS_DIR/$hook_name"
+
+		# Warn if not executable
+		if [[ ! -x "$hook_path" ]]; then
+			warn "$(path "$hook_name") is not executable (missing u+x)"
+			echo "[SUGGESTION] Run: chmod u+x $(path "$hook_path")"
+		fi
+
+		# Compute relative path
+		hook_abs="$(realpath "$hook_path")"
+		target_dir="$(dirname "$target")"
+		rel_path="$(realpath --relative-to="$target_dir" "$hook_abs")"
+
+		info "Processing hook '$(path "$hook_name")' → $(path "$rel_path")"
+
+		if [[ -e "$target" && ! -L "$target" ]]; then
+			warn "'$(path "$target")' already exists and is not a symlink."
+			echo "[SUGGESTION] Consider removing or backing it up:"
+			echo "    rm $(path "$target")"
+			echo "    mv $(path "$target") $(path "${target}.bak")"
+			continue
+		fi
+
+		if [[ -L "$target" ]]; then
+			existing_target="$(readlink "$target")"
+			if [[ "$existing_target" == "$rel_path" ]]; then
+				success "Correct symlink already exists. Skipping."
+				continue
+			else
+				warn "Updating symlink: $(path "$target") → $(path "$rel_path")"
+				$DRY_RUN || ln -sf "$rel_path" "$target"
+			fi
+		else
+			success "Creating symlink: $(path "$target") → $(path "$rel_path")"
+			$DRY_RUN || ln -s "$rel_path" "$target"
+		fi
+	done
+
+	success "Hook setup complete for $(pwd)"
+fi
+
+# Step 4: Recursively handle submodules
+if [[ -f ".gitmodules" ]]; then
+	info "Checking for submodules..."
+
+	git submodule foreach --quiet '
+		sub_path=$sm_path
+		echo "\033[0;36m[INFO]\033[0m Entering submodule \033[1m$sub_path\033[0m"
+		script="$toplevel/$sub_path/.scripts/install-hooks"
+		if [ -f "$script" ]; then
+			echo "\033[0;36m [INFO]\033[0m Found script in submodule. Re-invoking:"
+			if [ "'"$DRY_RUN"'" = "true" ]; then
+				bash "$script" --dry-run 2>&1 | sed "s/^/ /"
+			else
+				bash "$script" 2>&1 | sed "s/^/ /"
+			fi
+		else
+			echo "\033[0;36m [INFO]\033[0m No .scripts/install-hooks in \033[1m$sub_path\033[0m, skipping."
+		fi
+	'
+fi
+
+# Step 5: Warn about unexpected hooks in .git/hooks
+if [[ -d "$PROJECT_HOOKS_DIR" && -d "$GIT_HOOKS_DIR" ]]; then
+
+	# Hooks we installed from .hooks
+	touched_hooks=()
+	for hook_path in "$PROJECT_HOOKS_DIR"/*; do
+		touched_hooks+=("$(basename "$hook_path")")
+	done
+
+	unexpected_hooks=()
+	for existing_hook_path in "$GIT_HOOKS_DIR"/*; do
+		hook_name="$(basename "$existing_hook_path")"
+
+		# Only consider known Git hook names
+		if [[ " ${valid_hooks[*]} " =~ " $hook_name " ]]; then
+			if [[ ! " ${touched_hooks[*]} " =~ " $hook_name " ]]; then
+				unexpected_hooks+=("$hook_name")
+			fi
+		fi
+	done
+
+	if (( ${#unexpected_hooks[@]} > 0 )); then
+		warn "The following known hooks exist in $(path "$GIT_HOOKS_DIR") but are not present in $(path "$PROJECT_HOOKS_DIR"):"
+		for uh in "${unexpected_hooks[@]}"; do
+			echo " - $(path "$uh")"
+		done
+		echo "[SUGGESTION] Consider migrating them to $(path "$PROJECT_HOOKS_DIR") or removing them if obsolete."
+	fi
+fi

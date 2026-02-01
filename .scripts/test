@@ -1,0 +1,6 @@
+#!/bin/bash
+set -eu
+
+yarn lint
+yarn type-check
+yarn test

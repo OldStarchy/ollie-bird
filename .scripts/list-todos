@@ -1,0 +1,141 @@
+#!/bin/bash
+## Version: 1.0.2
+## Source: https://github.com/OldStarchy/shared_scripts
+## Usage:
+##   .scripts/list-todos              # List all TODOs grouped by ticket
+##   .scripts/list-todos <ticket id>  # Show only TODOs for the given ticket.
+##                                    # The leading # in #456 is optional.
+##   .scripts/list-todos NO-TICKET    # Show only TODOs without a ticket
+##
+## Scans source code for TODO comments and groups them by ticket.
+## If any TODO's are found, this script returns 1, else 0.
+##
+## It captures TODOs that either follow the ticketed format:
+##
+##   TODO ABC123-456: Fix the thing
+##   TODO #456: Fix the thing
+##   todo!("ABC123-456: Fix the thing");
+##   todo!("#456: Fix the thing");
+##
+## Or malformed/untracked TODOs like:
+##
+##   TODO(ABC123-456): Also fix this
+##   TODO(#456): Also fix this
+##   TODO: Temporary workaround
+##   TODO fix this
+##   todo!();
+
+# Update the paths to search here for your project, use `--exclude=<filename>` to ignore files
+SEARCH_PATHS=(./src --exclude=./src/generated)
+
+FILTER_TICKET="$1"
+TODO_LINES=$(grep -nrE "(TODO|todo!\()" "${SEARCH_PATHS[@]}" 2> /dev/null)
+
+if [[ "$FILTER_TICKET" =~ ^[0-9]+$ ]]; then
+  FILTER_TICKET="#$FILTER_TICKET"
+fi
+
+declare -A TODOS_PER_TICKET
+
+# Detect if we're in an interactive terminal
+if [[ -t 1 ]]; then
+  COLOR_ENABLED=true
+else
+  COLOR_ENABLED=false
+fi
+
+PURPLE='\033[35m'
+GREEN='\033[32m'
+RESET='\033[0m'
+
+format_link() {
+  local file="$1"
+  local line="$2"
+
+  if $COLOR_ENABLED; then
+    echo -e "${PURPLE}${file}${RESET}:${GREEN}${line}${RESET}"
+  else
+    echo "${file}:${line}"
+  fi
+}
+
+while IFS= read -r line; do
+  if [[ -z "$line" ]]; then
+    continue
+  fi
+
+  file="${line%%:*}"
+  rest="${line#*:}"
+  lineno="${rest%%:*}"
+  content="${rest#*:}"
+
+  ticket="NO-TICKET"
+  message="$content"
+
+  if [[ $content =~ TODO:?[[:space:]\(](([A-Z0-9]+-|#)[0-9]+)\)?:?[[:space:]]*(.*) ]]; then
+    ticket="${BASH_REMATCH[1]}"
+    message="${BASH_REMATCH[3]}"
+  elif [[ $content =~ todo!\(\"(([A-Z0-9]+-|#)[0-9]+)\)?:[[:space:]]*(.*?)(\"|\n) ]]; then
+    ticket="${BASH_REMATCH[1]}"
+    message="${BASH_REMATCH[3]}"
+  elif [[ $content =~ TODO[:[:space:]]*(.*) ]]; then
+    message="${BASH_REMATCH[1]}"
+  fi
+
+  key="$ticket|$file"
+  formatted_link=$(format_link "$file" "$lineno")
+  TODOS_PER_TICKET["$key"]+=$'\n'"$formatted_link $message"
+done <<< "$TODO_LINES"
+
+# Gather unique, sorted ticket list
+tickets=()
+for key in "${!TODOS_PER_TICKET[@]}"; do
+  ticket="${key%%|*}"
+  if [[ ! " ${tickets[*]} " =~ " ${ticket} " ]]; then
+    tickets+=("$ticket")
+  fi
+done
+
+sorted_tickets=($(printf '%s\n' "${tickets[@]}" | grep -v "NO-TICKET" | sort -V))
+[[ " ${tickets[*]} " =~ " NO-TICKET " ]] && sorted_tickets+=("NO-TICKET")
+
+# Flat output if filtered
+if [[ -n "$FILTER_TICKET" ]]; then
+  found=0
+  for key in "${!TODOS_PER_TICKET[@]}"; do
+    ticket="${key%%|*}"
+    if [[ "$ticket" == "$FILTER_TICKET" ]]; then
+      found=1
+      while IFS= read -r msg; do
+        [[ -n "$msg" ]] && echo "$msg"
+      done <<< "${TODOS_PER_TICKET[$key]}"
+    fi
+  done
+
+  if [[ $found -eq 0 ]]; then
+    exit 0
+  else
+    exit 1
+  fi
+fi
+
+# Grouped output if no filter
+found=0
+for ticket in "${sorted_tickets[@]}"; do
+  echo "$ticket"
+  for key in "${!TODOS_PER_TICKET[@]}"; do
+    this_ticket="${key%%|*}"
+    if [[ "$this_ticket" == "$ticket" ]]; then
+      found=1
+      while IFS= read -r msg; do
+        [[ -n "$msg" ]] && echo "  $msg"
+      done <<< "${TODOS_PER_TICKET[$key]}"
+    fi
+  done
+done
+
+if [[ $found -eq 0 ]]; then
+  exit 0
+else
+  exit 1
+fi
