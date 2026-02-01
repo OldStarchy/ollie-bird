@@ -7,13 +7,13 @@ import { ReactInterop } from '../../react-interop/ReactInterop';
 import seconds from '../../unit/time/seconds';
 import { CELL_SIZE, TAG_LEVEL_OBJECT } from '../const';
 import EventSource from '../EventSource';
-import Rect2 from '../math/Rect2';
-import { round } from '../math/round';
-import type { Vec2Like } from '../math/Vec2';
 import type GameObject from './GameObject';
 import type IGame from './IGame';
 import Keyboard from './input/Keyboard';
 import Mouse from './input/Mouse';
+import Rect2 from './math/Rect2';
+import { round } from './math/round';
+import type { Vec2Like } from './math/Vec2';
 
 const bgColors = ['Custom', ...htmlColors];
 

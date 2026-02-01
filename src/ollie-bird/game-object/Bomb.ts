@@ -3,11 +3,11 @@ import { z } from 'zod';
 import { CELL_SIZE, TAG_DEADLY, TAG_LEVEL_STRUCTURE } from '../const';
 import GameObject from '../core/GameObject';
 import type IGame from '../core/IGame';
+import Collider2d from '../core/modules/Collider2d';
+import CircleCollider2d from '../core/modules/colliders/CircleCollider2d';
 import type { ISerializable } from '../LevelStore';
 import LevelStore from '../LevelStore';
 import Animation from '../modules/Animation';
-import CircleCollider2d from '../modules/CircleCollider2d';
-import Collider2d from '../modules/Collider2d';
 import Resources from '../Resources';
 import Bird from './Bird';
 

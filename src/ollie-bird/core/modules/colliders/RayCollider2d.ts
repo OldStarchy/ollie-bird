@@ -1,7 +1,7 @@
-import RayCollider from '../collider/RayCollider';
-import type { Vec2Like } from '../math/Vec2';
-import Vec2 from '../math/Vec2';
-import Collider2d from './Collider2d';
+import RayCollider from '../../collider/RayCollider';
+import type { Vec2Like } from '../../math/Vec2';
+import Vec2 from '../../math/Vec2';
+import Collider2d from '../Collider2d';
 
 export default class RayCollider2d extends Collider2d {
 	origin: Vec2Like = { x: 0, y: 0 };

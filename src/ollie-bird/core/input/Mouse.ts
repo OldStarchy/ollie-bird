@@ -1,4 +1,4 @@
-import type { Vec2Like } from '../../math/Vec2';
+import type { Vec2Like } from '../math/Vec2';
 import type ButtonState from './ButtonState';
 
 export default class Mouse {

@@ -2,7 +2,7 @@ import { z } from 'zod';
 import ContextSave from '../../ContextSave';
 import { Layer, TAG_LEVEL_STRUCTURE } from '../const';
 import type IGame from '../core/IGame';
-import Collider2d from '../modules/Collider2d';
+import Collider2d from '../core/modules/Collider2d';
 import Bird from './Bird';
 import RectangleTrigger, {
 	rectangleTriggerDtoSchema,

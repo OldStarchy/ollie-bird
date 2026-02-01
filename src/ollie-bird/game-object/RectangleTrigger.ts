@@ -1,10 +1,10 @@
 import { z } from 'zod';
 import { ReactInterop } from '../../react-interop/ReactInterop';
 import GameObject from '../core/GameObject';
+import Rect2 from '../core/math/Rect2';
+import RectangleCollider2d from '../core/modules/colliders/RectangleCollider2d';
+import Size2d from '../core/modules/Size2d';
 import type { ISerializable } from '../LevelStore';
-import Rect2 from '../math/Rect2';
-import RectangleCollider2d from '../modules/RectangleCollider2d';
-import Size2d from '../modules/Size2d';
 
 export const rectangleTriggerDtoSchema = z.object({
 	$type: z.string(),

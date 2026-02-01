@@ -2,7 +2,7 @@ import { Subject, type Observable } from 'rxjs';
 import type GameObject from '../core/GameObject';
 import Module from '../core/IModular';
 import type Sprite from '../core/Sprite';
-import Rect2 from '../math/Rect2';
+import Rect2 from '../core/math/Rect2';
 
 export type AnimationEvents = 'ended' | 'looped';
 

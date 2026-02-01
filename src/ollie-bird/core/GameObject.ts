@@ -2,10 +2,10 @@ import { Subject } from 'rxjs';
 import z from 'zod';
 import onChange from '../../react-interop/onChange';
 import { ReactInterop } from '../../react-interop/ReactInterop';
-import { vec2Schema } from '../math/Vec2';
-import Transform2d from '../modules/Transform2d';
 import type IGame from './IGame';
 import Module, { ModuleCollection, type IModular } from './IModular';
+import { vec2Schema } from './math/Vec2';
+import Transform2d from './modules/Transform2d';
 
 export const gameObjectViewSchema = z.object({
 	name: z.string().meta({ title: 'Name' }),

@@ -1,6 +1,6 @@
 import { Subject } from 'rxjs';
 import z from 'zod';
-import { ReactInterop } from '../../react-interop/ReactInterop';
+import { ReactInterop } from '../../../react-interop/ReactInterop';
 
 export const vec2Schema = z.object({
 	x: z.coerce.number(),
