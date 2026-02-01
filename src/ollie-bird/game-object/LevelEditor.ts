@@ -360,16 +360,7 @@ export default class LevelEditor extends GameObject {
 							obj.$type as string,
 						);
 						if (Class && 'spawnDeserialize' in Class) {
-							const spawned = Class.spawnDeserialize(
-								this.game,
-								obj,
-							);
-							if (!spawned) {
-								console.warn(
-									'Failed to deserialize level object',
-									obj,
-								);
-							}
+							Class.spawnDeserialize(this.game, obj);
 						} else {
 							console.warn(
 								`Unknown or unregistered type: ${obj.$type}`,

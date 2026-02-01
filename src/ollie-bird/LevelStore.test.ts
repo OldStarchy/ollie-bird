@@ -46,7 +46,8 @@ describe('LevelStore', () => {
 				obj.value = data.value;
 				return obj;
 			}
-			return null;
+
+			throw new Error();
 		}
 	}
 
@@ -101,7 +102,7 @@ describe('LevelStore', () => {
 		expect((deserialized as MockSerializable).value).toBe(42);
 	});
 
-	test('should handle invalid deserialization data', () => {
+	test('should throw on invalid deserialization data', () => {
 		LevelStore.instance.register('MockSerializable', MockSerializable);
 
 		const invalidData = {
@@ -109,9 +110,9 @@ describe('LevelStore', () => {
 			value: 'not a number',
 		};
 		const Class = LevelStore.instance.get('MockSerializable');
-		const result = Class!.spawnDeserialize(mockGame, invalidData);
-
-		expect(result).toBeNull();
+		expect(() => {
+			Class!.spawnDeserialize(mockGame, invalidData);
+		}).toThrow();
 	});
 
 	test('should throw when registering a duplicate type', () => {

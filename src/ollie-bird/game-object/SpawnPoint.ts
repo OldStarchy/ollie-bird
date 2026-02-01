@@ -50,17 +50,10 @@ export default class SpawnPoint extends GameObject implements ISerializable {
 		};
 	}
 
-	static spawnDeserialize(game: IGame, data: unknown): SpawnPoint | null {
-		const parseResult = spawnPointDtoSchema.safeParse(data);
-		if (!parseResult.success) {
-			console.error(
-				'Failed to parse SpawnPoint data:',
-				parseResult.error,
-			);
-			return null;
-		}
+	static spawnDeserialize(game: IGame, data: unknown): SpawnPoint {
+		const parseResult = spawnPointDtoSchema.parse(data);
 
-		const { x, y } = parseResult.data;
+		const { x, y } = parseResult;
 		const spawnPoint = game.spawn(SpawnPoint);
 		spawnPoint.transform.position.set(x, y);
 		return spawnPoint;

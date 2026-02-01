@@ -6,7 +6,7 @@ export interface ISerializable {
 }
 
 export interface IDeserializableClass {
-	spawnDeserialize(game: IGame, data: unknown): GameObject | null;
+	spawnDeserialize(game: IGame, data: unknown): GameObject;
 }
 
 export type SerializableClass = (new (game: IGame) => GameObject) &

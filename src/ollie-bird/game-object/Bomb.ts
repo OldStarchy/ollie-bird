@@ -107,14 +107,10 @@ export default class Bomb extends GameObject implements ISerializable {
 		};
 	}
 
-	static spawnDeserialize(game: IGame, data: unknown): Bomb | null {
-		const parseResult = bombDtoSchema.safeParse(data);
-		if (!parseResult.success) {
-			console.error('Failed to parse Bomb data:', parseResult.error);
-			return null;
-		}
+	static spawnDeserialize(game: IGame, data: unknown): Bomb {
+		const parseResult = bombDtoSchema.parse(data);
 
-		const { x, y } = parseResult.data;
+		const { x, y } = parseResult;
 		const bomb = game.spawn(Bomb);
 		bomb.transform.position.set(x, y);
 		return bomb;

@@ -15,14 +15,10 @@ class Goal extends RectangleTrigger {
 		this.tags.add(TAG_LEVEL_STRUCTURE);
 	}
 
-	static spawnDeserialize(game: IGame, data: unknown): Goal | null {
-		const parseResult = rectangleTriggerDtoSchema.safeParse(data);
-		if (!parseResult.success) {
-			console.error('Failed to parse Goal data:', parseResult.error);
-			return null;
-		}
+	static spawnDeserialize(game: IGame, data: unknown): Goal {
+		const parseResult = rectangleTriggerDtoSchema.parse(data);
 
-		const { x, y, width, height } = parseResult.data;
+		const { x, y, width, height } = parseResult;
 		const goal = game.spawn(Goal);
 		goal.transform.position.set(x, y);
 		goal.setSize(width, height);

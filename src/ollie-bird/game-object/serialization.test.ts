@@ -63,10 +63,12 @@ describe('GameObject Serialization', () => {
 			expect(obstacle!.height).toBe(75);
 		});
 
-		test('should return null for invalid data', () => {
+		test('should throw for invalid data', () => {
 			const invalidData = { $type: 'Obstacle', x: 'invalid' };
-			const obstacle = Obstacle.spawnDeserialize(mockGame, invalidData);
-			expect(obstacle).toBeNull();
+
+			expect(() => {
+				Obstacle.spawnDeserialize(mockGame, invalidData);
+			}).toThrow();
 		});
 	});
 
@@ -177,10 +179,12 @@ describe('GameObject Serialization', () => {
 			expect(spawn!.transform.position.y).toBe(100);
 		});
 
-		test('should return null for invalid data', () => {
+		test('should throw for invalid data', () => {
 			const invalidData = { $type: 'SpawnPoint' }; // missing x and y
-			const spawn = SpawnPoint.spawnDeserialize(mockGame, invalidData);
-			expect(spawn).toBeNull();
+
+			expect(() => {
+				SpawnPoint.spawnDeserialize(mockGame, invalidData);
+			}).toThrow();
 		});
 	});
 

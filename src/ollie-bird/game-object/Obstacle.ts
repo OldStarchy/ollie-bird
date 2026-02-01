@@ -111,14 +111,10 @@ class Obstacle extends RectangleTrigger {
 		}
 	}
 
-	static spawnDeserialize(game: IGame, data: unknown): Obstacle | null {
-		const parseResult = rectangleTriggerDtoSchema.safeParse(data);
-		if (!parseResult.success) {
-			console.error('Failed to parse Obstacle data:', parseResult.error);
-			return null;
-		}
+	static spawnDeserialize(game: IGame, data: unknown): Obstacle {
+		const parseResult = rectangleTriggerDtoSchema.parse(data);
 
-		const { x, y, width, height } = parseResult.data;
+		const { x, y, width, height } = parseResult;
 		const obstacle = game.spawn(Obstacle);
 		obstacle.transform.position.set(x, y);
 		obstacle.setSize(width, height);
