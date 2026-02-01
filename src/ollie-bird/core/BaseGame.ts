@@ -1,6 +1,6 @@
 import { Subject } from 'rxjs';
 import z from 'zod';
-import ContextSave from '../../ContextSave';
+import contextCheckpoint from '../../contextCheckpoint';
 import htmlColors, { type HtmlColor } from '../../htmlColors';
 import onChange from '../../react-interop/onChange';
 import { ReactInterop } from '../../react-interop/ReactInterop';
@@ -328,7 +328,7 @@ export class GameCanvas implements Disposable {
 
 		this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-		using _ = new ContextSave(this.context);
+		using _ = contextCheckpoint(this.context);
 
 		const box = new Rect2(0, 0, this.game.width, this.game.height);
 		const ratio = box.aspectRatio();

@@ -1,4 +1,4 @@
-import ContextSave from '../../ContextSave';
+import contextCheckpoint from '../../contextCheckpoint';
 import Module from '../core/IModular';
 
 export default class GameTimer extends Module {
@@ -49,7 +49,7 @@ export default class GameTimer extends Module {
 
 	protected override render(context: CanvasRenderingContext2D): void {
 		const timeString = this.formatTime(this.elapsedTime);
-		using _ = new ContextSave(context);
+		using _ = contextCheckpoint(context);
 
 		context.font = '20px Arial';
 		context.fillStyle = 'black';

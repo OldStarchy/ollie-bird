@@ -1,6 +1,6 @@
 import type { Observable } from 'rxjs';
 import z from 'zod';
-import ContextSave from '../../../ContextSave';
+import contextCheckpoint from '../../../contextCheckpoint';
 import { ReactInterop } from '../../../react-interop/ReactInterop';
 import Module from '../IModular';
 import type { Rect2Like } from '../math/Rect2';
@@ -33,7 +33,7 @@ class Transform2d extends Module implements ReactInterop<Transform2dView> {
 	readonly [ReactInterop.schema] = transform2dSchema;
 
 	push(context: CanvasRenderingContext2D): Disposable {
-		const save = new ContextSave(context);
+		const save = contextCheckpoint(context);
 		context.translate(...this.position.xy);
 
 		return save;

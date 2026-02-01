@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import ContextSave from '../../ContextSave';
+import contextCheckpoint from '../../contextCheckpoint';
 import { Layer, TAG_LEVEL_STRUCTURE } from '../const';
 import type IGame from '../core/IGame';
 import Collider2d from '../core/modules/Collider2d';
@@ -66,7 +66,7 @@ export default class SequentialGate extends RectangleTrigger {
 		const cx = this.transform.position.x + this.width / 2;
 		const cy = this.transform.position.y + this.height / 2;
 
-		using _ = new ContextSave(context);
+		using _ = contextCheckpoint(context);
 		context.fillStyle = 'black';
 		context.textAlign = 'center';
 		context.textBaseline = 'middle';

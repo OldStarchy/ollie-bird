@@ -1,5 +1,5 @@
 import { Observable, Subject, Subscription } from 'rxjs';
-import ContextSave from '../../ContextSave';
+import contextCheckpoint from '../../contextCheckpoint';
 import CircleCollider from '../core/collider/CircleCollider';
 import type GameObject from '../core/GameObject';
 import Module from '../core/IModular';
@@ -70,7 +70,7 @@ export default class ObjectSelector extends Module {
 	protected override render(context: CanvasRenderingContext2D): void {
 		if (!this.selectedObject) return;
 
-		using _ = new ContextSave(context);
+		using _ = contextCheckpoint(context);
 
 		const colliders = this.selectedObject.getModules(Collider2d);
 		for (const collider of colliders) {

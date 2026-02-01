@@ -1,7 +1,7 @@
 import birdDown from '../../assets/bird-down.png';
 import birdRight from '../../assets/bird-right.png';
 import birdUp from '../../assets/bird-up.png';
-import ContextSave from '../../ContextSave';
+import contextCheckpoint from '../../contextCheckpoint';
 import { Layer, TAG_DEADLY, TAG_LEVEL_OBJECT } from '../const';
 import GameObject from '../core/GameObject';
 import type IGame from '../core/IGame';
@@ -194,7 +194,7 @@ class Bird extends GameObject {
 
 		const sprite = Bird.sprites[spriteName as keyof typeof Bird.sprites];
 
-		using _ = new ContextSave(context);
+		using _ = contextCheckpoint(context);
 		context.translate(...this.position.xy);
 		if (flip) {
 			context.scale(-1, 1);

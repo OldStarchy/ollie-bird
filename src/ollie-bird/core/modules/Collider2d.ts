@@ -1,4 +1,4 @@
-import ContextSave from '../../../ContextSave';
+import contextCheckpoint from '../../../contextCheckpoint';
 import type ColliderShape from '../collider/ColliderShape';
 import type GameObject from '../GameObject';
 import Module from '../IModular';
@@ -35,7 +35,7 @@ export default abstract class Collider2d extends Module {
 	}
 
 	public doRenderGizmos(context: CanvasRenderingContext2D): void {
-		using _ = new ContextSave(context);
+		using _ = contextCheckpoint(context);
 
 		this.doGizmoPath(context);
 
