@@ -6,7 +6,7 @@ export default defineConfig({
 		coverage: {
 			provider: 'v8',
 			reporter: ['json', 'json-summary'],
-			exclude: ['src/assets/**'],
+			exclude: ['src/assets/**', '**/*.test.ts', '**/*.test.tsx'],
 		},
 	},
 });
