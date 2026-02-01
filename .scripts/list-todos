@@ -22,10 +22,10 @@
 ##   todo!();
 
 # Update the paths to search here for your project, use `--exclude=<filename>` to ignore files
-SEARCH_PATHS="./src --exclude=./src/generated"
+SEARCH_PATHS=(./src --exclude=./src/generated)
 
 FILTER_TICKET="$1"
-TODO_LINES=$(grep -nrE "(TODO|todo!\()" $SEARCH_PATHS 2> /dev/null)
+TODO_LINES=$(grep -nrE "(TODO|todo!\()" "${SEARCH_PATHS[@]}" 2> /dev/null)
 
 declare -A TODOS_PER_TICKET
 

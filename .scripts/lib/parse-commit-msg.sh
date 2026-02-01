@@ -35,7 +35,7 @@ parse_commit_msg() {
 	local -n _subject_out="$2"
 	local -n _body_out="$3"
 	local -n _footer_out="$4"
-	local -n _bypass="$5"
+	local -n _bypass_out="$5"
 	local lines=()
 
 	readarray -t lines <<< "$commit_msg"
@@ -43,12 +43,12 @@ parse_commit_msg() {
 	local subject="${lines[0]}"
 
 	if [[ "$subject" =~ ^(fixup|squash)!\  ]]; then
-		_bypass=true
+		_bypass_out=true
 		return 0
 	fi
 
 	if [[ "$subject" =~ ^(Merge|Revert)\  ]]; then
-		_bypass=true
+		_bypass_out=true
 		return 0
 	fi
 
@@ -61,13 +61,13 @@ parse_commit_msg() {
 	if [[ ! " ${VALID_TYPES[*]} " =~ " $type " ]]; then
 		echo "Invalid commit type '$type'"
 		echo " Allowed types: ${VALID_TYPES[*]}"
-		exit 1
+		return 1
 	fi
 
 	if [[ "${#lines[@]}" -gt 1 ]]; then
 		if [[ -n "${lines[1]}" && ! "${lines[1]}" =~ ^# ]]; then
 			echo "Line following subject must be empty or start with #"
-			exit 1
+			return 1
 		fi
 	fi
 
@@ -111,7 +111,7 @@ parse_commit_msg() {
 		if [[ -z "$line" ]]; then
 			if $was_empty; then
 				echo "Too many blank lines at line $i"
-				exit 1
+				return 1
 			fi
 			was_empty=true
 

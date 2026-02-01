@@ -3,4 +3,3 @@
 set -eu
 
 .scripts/lib/commit-msg-lint "$@"
-.scripts/lib/append-issue-number "$@"
