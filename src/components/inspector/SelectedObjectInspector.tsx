@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import Module from '../../ollie-bird/core/IModular';
+import Module from '../../ollie-bird/core/Module';
 import { ReactInterop } from '../../react-interop/ReactInterop';
 import { ReactInteropInspector } from '../../react-interop/ReactInteropInspector';
 import { useSelectedObject } from './useSelectedObject';

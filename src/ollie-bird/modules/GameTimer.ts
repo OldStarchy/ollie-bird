@@ -1,5 +1,5 @@
 import contextCheckpoint from '../../contextCheckpoint';
-import Module from '../core/IModular';
+import Module from '../core/Module';
 
 export default class GameTimer extends Module {
 	private elapsedTime: number = 0;

@@ -3,8 +3,10 @@ import z from 'zod';
 import onChange from '../../react-interop/onChange';
 import { ReactInterop } from '../../react-interop/ReactInterop';
 import type IGame from './IGame';
-import Module, { ModuleCollection, type IModular } from './IModular';
+import type IModular from './IModular';
 import { vec2Schema } from './math/Vec2';
+import Module from './Module';
+import ModuleCollection from './ModuleCollection';
 import Transform2d from './modules/Transform2d';
 
 export const gameObjectViewSchema = z.object({

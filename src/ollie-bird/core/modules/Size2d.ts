@@ -2,7 +2,7 @@ import { Subject, type Observable } from 'rxjs';
 import z from 'zod';
 import { ReactInterop } from '../../../react-interop/ReactInterop';
 import GameObject from '../GameObject';
-import Module from '../IModular';
+import Module from '../Module';
 
 const size2dSchema = z.object({
 	width: z.coerce.number().min(0),

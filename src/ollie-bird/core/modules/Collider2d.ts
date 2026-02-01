@@ -1,7 +1,7 @@
 import contextCheckpoint from '../../../contextCheckpoint';
 import type ColliderShape from '../collider/ColliderShape';
 import type GameObject from '../GameObject';
-import Module from '../IModular';
+import Module from '../Module';
 
 export default abstract class Collider2d extends Module {
 	renderWidget: boolean = false;

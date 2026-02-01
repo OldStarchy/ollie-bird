@@ -1,6 +1,6 @@
 import { CELL_SIZE } from '../const';
 import GameObject from '../core/GameObject';
-import Module from '../core/IModular';
+import Module from '../core/Module';
 import Collider2d from '../core/modules/Collider2d';
 import CircleCollider2d from '../core/modules/colliders/CircleCollider2d';
 import RectangleCollider2d from '../core/modules/colliders/RectangleCollider2d';

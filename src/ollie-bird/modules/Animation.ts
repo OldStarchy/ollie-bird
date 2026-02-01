@@ -1,6 +1,6 @@
 import { Subject, type Observable } from 'rxjs';
 import type GameObject from '../core/GameObject';
-import Module from '../core/IModular';
+import Module from '../core/Module';
 import type Sprite from '../core/Sprite';
 import Rect2 from '../core/math/Rect2';
 

@@ -2,7 +2,7 @@ import type { Observable } from 'rxjs';
 import z from 'zod';
 import contextCheckpoint from '../../../contextCheckpoint';
 import { ReactInterop } from '../../../react-interop/ReactInterop';
-import Module from '../IModular';
+import Module from '../Module';
 import type { Rect2Like } from '../math/Rect2';
 import Vec2, { vec2Schema, type Vec2Like } from '../math/Vec2';
 
