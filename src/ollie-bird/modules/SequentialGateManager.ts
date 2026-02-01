@@ -1,8 +1,10 @@
 import type GameObject from '../core/GameObject';
-import Module from '../core/IModular';
+import Module from '../core/Module';
 import SequentialGate from '../game-object/SequentialGate';
 
 export default class SequentialGateManager extends Module {
+	static readonly displayName = 'SequentialGateManager';
+
 	protected override initialize(): void {
 		super.initialize();
 

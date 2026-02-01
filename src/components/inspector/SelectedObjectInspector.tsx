@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import Module from '../../ollie-bird/core/IModular';
+import Module from '../../ollie-bird/core/Module';
 import { ReactInterop } from '../../react-interop/ReactInterop';
 import { ReactInteropInspector } from '../../react-interop/ReactInteropInspector';
 import { useSelectedObject } from './useSelectedObject';
@@ -19,7 +19,7 @@ export default function SelectedObjectInspector() {
 	return (
 		<div key={selectedObject.id}>
 			<h3>Selected Object</h3>
-			<p>Type: {selectedObject.constructor.name}</p>
+			<p>Type: {selectedObject.constructor.defaultName}</p>
 			<p>
 				Tags:{' '}
 				{Array.from(selectedObject.tags, (tag) => tag.toString()).join(
@@ -55,7 +55,7 @@ export default function SelectedObjectInspector() {
 							padding: '0 0.5em',
 						}}
 					>
-						{module.constructor.name}
+						{module.constructor.displayName}
 					</h4>
 					{ReactInterop.schema in module ? (
 						<ReactInteropInspector

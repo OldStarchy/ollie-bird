@@ -33,7 +33,10 @@ export default class BaddieSpawner
 	static readonly #serializationKey = 'BaddieSpawner';
 
 	static {
-		LevelStore.register(BaddieSpawner.#serializationKey, BaddieSpawner);
+		LevelStore.instance.register(
+			BaddieSpawner.#serializationKey,
+			BaddieSpawner,
+		);
 	}
 	layer = Layer.Foreground;
 
@@ -92,21 +95,14 @@ export default class BaddieSpawner
 		};
 	}
 
-	static spawnDeserialize(game: IGame, data: unknown): BaddieSpawner | null {
-		const parseResult = baddieSpawnerDtoSchema.safeParse(data);
-		if (!parseResult.success) {
-			console.error(
-				'Failed to parse BaddieSpawner data:',
-				parseResult.error,
-			);
-			return null;
-		}
+	static spawnDeserialize(game: IGame, data: unknown): BaddieSpawner {
+		const parseResult = baddieSpawnerDtoSchema.parse(data);
 
-		const { x, y } = parseResult.data.position;
+		const { x, y } = parseResult.position;
 		const spawner = game.spawn(BaddieSpawner);
-		spawner.name = parseResult.data.name;
+		spawner.name = parseResult.name;
 		spawner.transform.position.set(x, y);
-		spawner.startDirection = parseResult.data.startDirection;
+		spawner.startDirection = parseResult.startDirection;
 		return spawner;
 	}
 }

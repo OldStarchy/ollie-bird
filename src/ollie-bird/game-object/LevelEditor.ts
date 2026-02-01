@@ -44,6 +44,7 @@ const editorModeLabels = {
 } as const;
 
 export default class LevelEditor extends GameObject {
+	static readonly defaultName: string = 'Level Editor';
 	layer = 200;
 	mode: EditorMode = EditorMode.AddObstacle;
 
@@ -64,7 +65,8 @@ export default class LevelEditor extends GameObject {
 		];
 		types.forEach(
 			([name, cls]) =>
-				!LevelStore.has(name) && LevelStore.register(name, cls),
+				!LevelStore.instance.has(name) &&
+				LevelStore.instance.register(name, cls),
 		);
 
 		this.onGameEvent('getLevelData', (callback) =>
@@ -354,18 +356,11 @@ export default class LevelEditor extends GameObject {
 						obj !== null &&
 						'$type' in obj
 					) {
-						const Class = LevelStore.get(obj.$type as string);
+						const Class = LevelStore.instance.get(
+							obj.$type as string,
+						);
 						if (Class && 'spawnDeserialize' in Class) {
-							const spawned = Class.spawnDeserialize(
-								this.game,
-								obj,
-							);
-							if (!spawned) {
-								console.warn(
-									'Failed to deserialize level object',
-									obj,
-								);
-							}
+							Class.spawnDeserialize(this.game, obj);
 						} else {
 							console.warn(
 								`Unknown or unregistered type: ${obj.$type}`,

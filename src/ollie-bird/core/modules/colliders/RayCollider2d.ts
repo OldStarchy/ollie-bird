@@ -4,6 +4,8 @@ import Vec2 from '../../math/Vec2';
 import Collider2d from '../Collider2d';
 
 export default class RayCollider2d extends Collider2d {
+	static readonly displayName = 'RayCollider2d';
+
 	origin: Vec2Like = { x: 0, y: 0 };
 	direction: Vec2Like = { x: 1, y: 0 };
 	distance: number = 10;

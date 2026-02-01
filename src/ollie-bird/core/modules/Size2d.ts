@@ -2,7 +2,7 @@ import { Subject, type Observable } from 'rxjs';
 import z from 'zod';
 import { ReactInterop } from '../../../react-interop/ReactInterop';
 import GameObject from '../GameObject';
-import Module from '../IModular';
+import Module from '../Module';
 
 const size2dSchema = z.object({
 	width: z.coerce.number().min(0),
@@ -12,6 +12,8 @@ const size2dSchema = z.object({
 export type Size2dView = z.infer<typeof size2dSchema>;
 
 export default class Size2d extends Module implements ReactInterop<Size2dView> {
+	static readonly displayName = 'Size2d';
+
 	accessor width: number;
 	accessor height: number;
 

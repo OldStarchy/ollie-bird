@@ -4,6 +4,8 @@ import type { Rect2Like } from '../../math/Rect2';
 import Collider2d from '../Collider2d';
 
 export default class RectangleCollider2d extends Collider2d {
+	static readonly displayName = 'RectangleCollider2d';
+
 	x: number;
 	y: number;
 	width: number;

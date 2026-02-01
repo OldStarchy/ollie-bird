@@ -3,6 +3,7 @@ import { Layer, TAG_LEVEL_STRUCTURE } from '../const';
 import GameObject from '../core/GameObject';
 import type IGame from '../core/IGame';
 import type { ISerializable } from '../LevelStore';
+import LevelStore from '../LevelStore';
 import Bird from './Bird';
 
 export const spawnPointDtoSchema = z.object({
@@ -13,8 +14,15 @@ export const spawnPointDtoSchema = z.object({
 
 export type SpawnPointDto = z.infer<typeof spawnPointDtoSchema>;
 
+export const SpawnPointSerializationKey = 'SpawnPoint';
+
 export default class SpawnPoint extends GameObject implements ISerializable {
+	static readonly defaultName: string = 'Spawn Point';
 	layer = Layer.Foreground;
+
+	static {
+		LevelStore.instance.register(SpawnPointSerializationKey, SpawnPoint);
+	}
 
 	protected override initialize() {
 		this.onGameEvent('gameStart', () => {
@@ -36,23 +44,16 @@ export default class SpawnPoint extends GameObject implements ISerializable {
 
 	serialize(): SpawnPointDto {
 		return {
-			$type: this.constructor.name,
+			$type: SpawnPointSerializationKey,
 			x: this.transform.position.x,
 			y: this.transform.position.y,
 		};
 	}
 
-	static spawnDeserialize(game: IGame, data: unknown): SpawnPoint | null {
-		const parseResult = spawnPointDtoSchema.safeParse(data);
-		if (!parseResult.success) {
-			console.error(
-				'Failed to parse SpawnPoint data:',
-				parseResult.error,
-			);
-			return null;
-		}
+	static spawnDeserialize(game: IGame, data: unknown): SpawnPoint {
+		const parseResult = spawnPointDtoSchema.parse(data);
 
-		const { x, y } = parseResult.data;
+		const { x, y } = parseResult;
 		const spawnPoint = game.spawn(SpawnPoint);
 		spawnPoint.transform.position.set(x, y);
 		return spawnPoint;

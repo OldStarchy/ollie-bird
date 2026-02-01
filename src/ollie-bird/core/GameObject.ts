@@ -3,8 +3,10 @@ import z from 'zod';
 import onChange from '../../react-interop/onChange';
 import { ReactInterop } from '../../react-interop/ReactInterop';
 import type IGame from './IGame';
-import Module, { ModuleCollection, type IModular } from './IModular';
+import type IModular from './IModular';
 import { vec2Schema } from './math/Vec2';
+import Module from './Module';
+import ModuleCollection from './ModuleCollection';
 import Transform2d from './modules/Transform2d';
 
 export const gameObjectViewSchema = z.object({
@@ -17,6 +19,10 @@ export type GameObjectView = z.infer<typeof gameObjectViewSchema>;
 export default class GameObject
 	implements IModular, Disposable, ReactInterop<GameObjectView>
 {
+	declare ['constructor']: Pick<typeof GameObject, keyof typeof GameObject>;
+
+	static readonly defaultName: string = 'Game Object';
+
 	protected disposableStack = new DisposableStack();
 	private modules: ModuleCollection;
 
@@ -34,9 +40,10 @@ export default class GameObject
 	}
 
 	@onChange((self) => self.notify())
-	accessor name: string = 'Game Object';
+	accessor name: string;
 
 	constructor(readonly game: IGame) {
+		this.name = this.constructor.defaultName;
 		this.modules = new ModuleCollection(this);
 		this.disposableStack.use(this.modules);
 

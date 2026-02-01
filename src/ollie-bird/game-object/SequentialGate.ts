@@ -15,9 +15,13 @@ export const sequentialGateDtoSchema = rectangleTriggerDtoSchema.extend({
 export type SequentialGateDto = z.infer<typeof sequentialGateDtoSchema>;
 
 export default class SequentialGate extends RectangleTrigger {
+	static readonly defaultName: string = 'Sequential Gate';
+
 	layer = Layer.Items;
 
 	state: 'unavailable' | 'ready' | 'passed' = 'unavailable';
+
+	readonly serializationKey = 'SequentialGate';
 
 	sequenceNumber: number = 0;
 	nextGate: SequentialGate | null = null;
@@ -81,17 +85,10 @@ export default class SequentialGate extends RectangleTrigger {
 		};
 	}
 
-	static spawnDeserialize(game: IGame, data: unknown): SequentialGate | null {
-		const parseResult = sequentialGateDtoSchema.safeParse(data);
-		if (!parseResult.success) {
-			console.error(
-				'Failed to parse SequentialGate data:',
-				parseResult.error,
-			);
-			return null;
-		}
+	static spawnDeserialize(game: IGame, data: unknown): SequentialGate {
+		const parseResult = sequentialGateDtoSchema.parse(data);
 
-		const { x, y, width, height, sequenceNumber } = parseResult.data;
+		const { x, y, width, height, sequenceNumber } = parseResult;
 		const gate = game.spawn(SequentialGate);
 		gate.transform.position.set(x, y);
 		gate.setSize(width, height);

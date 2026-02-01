@@ -11,6 +11,7 @@ import Animation from '../modules/Animation';
 import Resources from '../Resources';
 import Bird from './Bird';
 
+const BombSerializationKey = 'Bomb';
 export const bombDtoSchema = z.object({
 	$type: z.string(),
 	x: z.number(),
@@ -20,8 +21,9 @@ export const bombDtoSchema = z.object({
 export type BombDto = z.infer<typeof bombDtoSchema>;
 
 export default class Bomb extends GameObject implements ISerializable {
+	static readonly defaultName: string = 'Bomb';
 	static {
-		LevelStore.register(Bomb.name, Bomb);
+		LevelStore.instance.register(BombSerializationKey, Bomb);
 	}
 
 	private anim!: Animation;
@@ -99,20 +101,16 @@ export default class Bomb extends GameObject implements ISerializable {
 
 	serialize(): BombDto {
 		return {
-			$type: this.constructor.name,
+			$type: BombSerializationKey,
 			x: this.transform.position.x,
 			y: this.transform.position.y,
 		};
 	}
 
-	static spawnDeserialize(game: IGame, data: unknown): Bomb | null {
-		const parseResult = bombDtoSchema.safeParse(data);
-		if (!parseResult.success) {
-			console.error('Failed to parse Bomb data:', parseResult.error);
-			return null;
-		}
+	static spawnDeserialize(game: IGame, data: unknown): Bomb {
+		const parseResult = bombDtoSchema.parse(data);
 
-		const { x, y } = parseResult.data;
+		const { x, y } = parseResult;
 		const bomb = game.spawn(Bomb);
 		bomb.transform.position.set(x, y);
 		return bomb;

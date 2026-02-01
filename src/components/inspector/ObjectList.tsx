@@ -50,6 +50,7 @@ function GameObjectListEntry({
 	onSelect: (obj: GameObject) => void;
 }) {
 	const [name, setName] = useState(obj.name);
+	const defaultName = obj.constructor.defaultName;
 
 	useEffect(() => {
 		const sub = obj.change$.subscribe(() => {
@@ -73,7 +74,9 @@ function GameObjectListEntry({
 			value={obj.id}
 			onClick={() => onSelect(obj)}
 		>
-			{name} ({obj.constructor.name}) ({Array.from(obj.tags).join(', ')})
+			{name}
+			{defaultName !== name ? ` (${defaultName})` : ''} (
+			{Array.from(obj.tags).join(', ')})
 		</li>
 	);
 }

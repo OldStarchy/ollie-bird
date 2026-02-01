@@ -6,19 +6,21 @@ export interface ISerializable {
 }
 
 export interface IDeserializableClass {
-	spawnDeserialize(game: IGame, data: unknown): GameObject | null;
+	spawnDeserialize(game: IGame, data: unknown): GameObject;
 }
 
 export type SerializableClass = (new (game: IGame) => GameObject) &
 	IDeserializableClass;
 
-class LevelStore {
+export default class LevelStore {
+	static instance: LevelStore = new LevelStore();
+
 	private registry = new Map<string, SerializableClass>();
 
 	register(typeName: string, cls: SerializableClass): void {
 		if (this.registry.has(typeName)) {
-			console.warn(
-				`LevelStore: Type "${typeName}" is already registered. Overwriting.`,
+			throw new Error(
+				`LevelStore: Type "${typeName}" is already registered.`,
 			);
 		}
 		this.registry.set(typeName, cls);
@@ -36,5 +38,3 @@ class LevelStore {
 		return Array.from(this.registry.keys());
 	}
 }
-
-export default new LevelStore();

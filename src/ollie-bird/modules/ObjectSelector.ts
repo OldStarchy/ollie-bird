@@ -2,12 +2,14 @@ import { Observable, Subject, Subscription } from 'rxjs';
 import contextCheckpoint from '../../contextCheckpoint';
 import CircleCollider from '../core/collider/CircleCollider';
 import type GameObject from '../core/GameObject';
-import Module from '../core/IModular';
 import ButtonState from '../core/input/ButtonState';
 import Mouse from '../core/input/Mouse';
+import Module from '../core/Module';
 import Collider2d from '../core/modules/Collider2d';
 
 export default class ObjectSelector extends Module {
+	static readonly displayName = 'ObjectSelector';
+
 	#change$ = new Subject<void>();
 
 	private notify(): void {
