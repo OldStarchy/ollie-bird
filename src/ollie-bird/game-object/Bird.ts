@@ -1,15 +1,15 @@
 import birdDown from '../../assets/bird-down.png';
 import birdRight from '../../assets/bird-right.png';
 import birdUp from '../../assets/bird-up.png';
-import ContextSave from '../../ContextSave';
+import contextCheckpoint from '../../contextCheckpoint';
 import { Layer, TAG_DEADLY, TAG_LEVEL_OBJECT } from '../const';
 import GameObject from '../core/GameObject';
 import type IGame from '../core/IGame';
 import ButtonState from '../core/input/ButtonState';
+import Vec2 from '../core/math/Vec2';
+import Collider2d from '../core/modules/Collider2d';
+import CircleCollider2d from '../core/modules/colliders/CircleCollider2d';
 import Sprite from '../core/Sprite';
-import Vec2 from '../math/Vec2';
-import CircleCollider2d from '../modules/CircleCollider2d';
-import Collider2d from '../modules/Collider2d';
 import Explosion from './Explosion';
 import Goal from './Goal';
 import SequentialGate from './SequentialGate';
@@ -194,7 +194,7 @@ class Bird extends GameObject {
 
 		const sprite = Bird.sprites[spriteName as keyof typeof Bird.sprites];
 
-		using _ = new ContextSave(context);
+		using _ = contextCheckpoint(context);
 		context.translate(...this.position.xy);
 		if (flip) {
 			context.scale(-1, 1);

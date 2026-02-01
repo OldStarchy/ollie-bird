@@ -1,4 +1,5 @@
-import type { Vec2Like } from '../../math/Vec2';
+import { fromEvent } from 'rxjs';
+import type { Vec2Like } from '../math/Vec2';
 import type ButtonState from './ButtonState';
 
 export default class Mouse {
@@ -31,56 +32,46 @@ export default class Mouse {
 	private previousX: number = 0;
 	private previousY: number = 0;
 
-	attachTo(
-		element: HTMLElement,
-		signal: AbortSignal,
-		projectMouse: (e: MouseEvent) => Vec2Like,
-	) {
-		element.addEventListener(
-			'mousedown',
-			(e) => {
+	attachTo(element: HTMLElement, projectMouse: (e: MouseEvent) => Vec2Like) {
+		using ds = new DisposableStack();
+
+		ds.use(
+			fromEvent<MouseEvent>(element, 'mousedown').subscribe((e) => {
 				this.buttonsPressed.add(e.button);
-			},
-			{ signal },
+			}),
 		);
 
-		element.addEventListener(
-			'mouseup',
-			(e) => {
+		ds.use(
+			fromEvent<MouseEvent>(element, 'mouseup').subscribe((e) => {
 				this.buttonsPressed.delete(e.button);
-			},
-			{ signal },
+			}),
 		);
 
-		element.addEventListener(
-			'mouseleave',
-			(_e) => {
+		ds.use(
+			fromEvent<MouseEvent>(element, 'mouseleave').subscribe((_e) => {
 				this.buttonsPressed.clear();
-			},
-			{ signal },
+			}),
 		);
 
-		element.addEventListener(
-			'mousemove',
-			(e) => {
+		ds.use(
+			fromEvent<MouseEvent>(element, 'mousemove').subscribe((e) => {
 				const { x, y } = projectMouse(e);
 				this.#x = x;
 				this.#y = y;
-			},
-			{ signal },
+			}),
 		);
 
-		element.addEventListener(
-			'mouseenter',
-			(e) => {
+		ds.use(
+			fromEvent<MouseEvent>(element, 'mouseenter').subscribe((e) => {
 				const { x, y } = projectMouse(e);
 				this.#x = x;
 				this.#y = y;
 				this.previousX = this.#x;
 				this.previousY = this.#y;
-			},
-			{ signal },
+			}),
 		);
+
+		return ds.move();
 	}
 
 	step() {

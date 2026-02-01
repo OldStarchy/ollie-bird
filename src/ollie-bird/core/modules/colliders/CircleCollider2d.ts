@@ -1,6 +1,6 @@
-import CircleCollider from '../collider/CircleCollider';
-import type { Vec2Like } from '../math/Vec2';
-import Collider2d from './Collider2d';
+import CircleCollider from '../../collider/CircleCollider';
+import type { Vec2Like } from '../../math/Vec2';
+import Collider2d from '../Collider2d';
 
 export default class CircleCollider2d extends Collider2d {
 	center: Vec2Like = { x: 0, y: 0 };

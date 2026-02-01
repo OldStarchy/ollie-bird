@@ -1,8 +1,8 @@
 import { Subject } from 'rxjs';
 import z from 'zod';
 import { ReactInterop } from '../../react-interop/ReactInterop';
-import Rect2, { rect2Schema, type Rect2Like } from '../math/Rect2';
-import Vec2, { vec2Schema } from '../math/Vec2';
+import Rect2, { rect2Schema, type Rect2Like } from './math/Rect2';
+import Vec2, { vec2Schema } from './math/Vec2';
 
 export const spriteViewSchema = z.object({
 	src: z.string().meta({ title: 'Image Source' }),

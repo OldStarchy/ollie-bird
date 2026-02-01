@@ -1,12 +1,13 @@
+import { filter } from 'rxjs';
 import { z } from 'zod';
 import { CELL_SIZE, TAG_DEADLY, TAG_LEVEL_STRUCTURE } from '../const';
 import GameObject from '../core/GameObject';
 import type IGame from '../core/IGame';
+import Collider2d from '../core/modules/Collider2d';
+import CircleCollider2d from '../core/modules/colliders/CircleCollider2d';
 import type { ISerializable } from '../LevelStore';
 import LevelStore from '../LevelStore';
 import Animation from '../modules/Animation';
-import CircleCollider2d from '../modules/CircleCollider2d';
-import Collider2d from '../modules/Collider2d';
 import Resources from '../Resources';
 import Bird from './Bird';
 
@@ -35,10 +36,14 @@ export default class Bomb extends GameObject implements ISerializable {
 
 		this.anim = this.addModule(Animation, Resources.bomb, 0.4, false);
 		this.anim.paused = true;
-		this.anim.events.on('ended', () => {
-			this.anim.enabled = false;
-			this.collider.enabled = false;
-		});
+		this.disposableStack.use(
+			this.anim.events$
+				.pipe(filter((e) => e === 'ended'))
+				.subscribe(() => {
+					this.anim.enabled = false;
+					this.collider.enabled = false;
+				}),
+		);
 
 		this.anim.rectangle.set(
 			-CELL_SIZE,

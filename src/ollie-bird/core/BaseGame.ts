@@ -1,19 +1,19 @@
 import { Subject } from 'rxjs';
 import z from 'zod';
-import ContextSave from '../../ContextSave';
+import contextCheckpoint from '../../contextCheckpoint';
 import htmlColors, { type HtmlColor } from '../../htmlColors';
 import onChange from '../../react-interop/onChange';
 import { ReactInterop } from '../../react-interop/ReactInterop';
 import seconds from '../../unit/time/seconds';
 import { CELL_SIZE, TAG_LEVEL_OBJECT } from '../const';
 import EventSource from '../EventSource';
-import Rect2 from '../math/Rect2';
-import { round } from '../math/round';
-import type { Vec2Like } from '../math/Vec2';
 import type GameObject from './GameObject';
 import type IGame from './IGame';
 import Keyboard from './input/Keyboard';
 import Mouse from './input/Mouse';
+import Rect2 from './math/Rect2';
+import { round } from './math/round';
+import type { Vec2Like } from './math/Vec2';
 
 const bgColors = ['Custom', ...htmlColors];
 
@@ -278,13 +278,13 @@ export class GameCanvas implements Disposable {
 
 	context: CanvasRenderingContext2D;
 
-	readonly abort: AbortController;
+	readonly disposableStack: DisposableStack;
 
 	constructor(
 		public game: BaseGame,
 		public canvas: HTMLCanvasElement,
 	) {
-		this.abort = new AbortController();
+		using ds = new DisposableStack();
 
 		const context = canvas.getContext('2d');
 		if (!context) {
@@ -294,19 +294,19 @@ export class GameCanvas implements Disposable {
 		this.context = context;
 		this.requestResize();
 
-		game.keyboard.attachTo(canvas, this.abort.signal);
-		game.mouse.attachTo(canvas, this.abort.signal, (e) =>
-			this.projectMouseCoordinates(e),
-		);
+		ds.use(game.keyboard.attachTo(canvas));
+		ds.use(game.mouse.attachTo(canvas, this.projectMouseCoordinates));
+
+		this.disposableStack = ds.move();
 	}
 
 	[Symbol.dispose](): void {
-		this.abort.abort();
+		this.disposableStack.dispose();
 		this.game['canvases'].delete(this);
 	}
 
-	lastTransform: DOMMatrix = new DOMMatrix();
-	private projectMouseCoordinates(e: MouseEvent): Vec2Like {
+	lastTransform = new DOMMatrix();
+	private projectMouseCoordinates = (e: MouseEvent): Vec2Like => {
 		const rect = this.canvas.getBoundingClientRect();
 		const x = e.clientX - rect.left;
 		const y = e.clientY - rect.top;
@@ -315,7 +315,7 @@ export class GameCanvas implements Disposable {
 		const transformedPoint = inverted.transformPoint(new DOMPoint(x, y));
 
 		return transformedPoint;
-	}
+	};
 
 	doRender(
 		renderCallback: (context: CanvasRenderingContext2D) => void,
@@ -328,7 +328,7 @@ export class GameCanvas implements Disposable {
 
 		this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-		using _ = new ContextSave(this.context);
+		using _ = contextCheckpoint(this.context);
 
 		const box = new Rect2(0, 0, this.game.width, this.game.height);
 		const ratio = box.aspectRatio();

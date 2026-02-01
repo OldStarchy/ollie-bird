@@ -1,15 +1,15 @@
-import RectangleCollider from '../collider/RectangleCollider';
 import { CELL_SIZE, TAG_LEVEL_OBJECT, TAG_LEVEL_STRUCTURE } from '../const';
+import RectangleCollider from '../core/collider/RectangleCollider';
 import GameObject from '../core/GameObject';
 import type IGame from '../core/IGame';
 import ButtonState from '../core/input/ButtonState';
 import Mouse from '../core/input/Mouse';
+import Rect2 from '../core/math/Rect2';
+import Collider2d from '../core/modules/Collider2d';
 import LevelStore, {
 	type ISerializable,
 	type SerializableClass,
 } from '../LevelStore';
-import Rect2 from '../math/Rect2';
-import Collider2d from '../modules/Collider2d';
 import GameTimer from '../modules/GameTimer';
 import ObjectSelector from '../modules/ObjectSelector';
 import SequentialGateManager from '../modules/SequentialGateManager';

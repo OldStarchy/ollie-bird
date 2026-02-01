@@ -1,11 +1,11 @@
 import { Observable, Subject, Subscription } from 'rxjs';
-import ContextSave from '../../ContextSave';
-import CircleCollider from '../collider/CircleCollider';
+import contextCheckpoint from '../../contextCheckpoint';
+import CircleCollider from '../core/collider/CircleCollider';
 import type GameObject from '../core/GameObject';
 import Module from '../core/IModular';
 import ButtonState from '../core/input/ButtonState';
 import Mouse from '../core/input/Mouse';
-import Collider2d from './Collider2d';
+import Collider2d from '../core/modules/Collider2d';
 
 export default class ObjectSelector extends Module {
 	#change$ = new Subject<void>();
@@ -70,7 +70,7 @@ export default class ObjectSelector extends Module {
 	protected override render(context: CanvasRenderingContext2D): void {
 		if (!this.selectedObject) return;
 
-		using _ = new ContextSave(context);
+		using _ = contextCheckpoint(context);
 
 		const colliders = this.selectedObject.getModules(Collider2d);
 		for (const collider of colliders) {
