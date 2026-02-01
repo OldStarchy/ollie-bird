@@ -7,6 +7,8 @@ import Rect2 from '../core/math/Rect2';
 export type AnimationEvents = 'ended' | 'looped';
 
 export default class Animation extends Module {
+	static readonly displayName = 'Animation';
+
 	#timeSinceFrameStart = 0;
 	#currentFrame = 0;
 

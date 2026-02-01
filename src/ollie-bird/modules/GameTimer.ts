@@ -2,6 +2,8 @@ import contextCheckpoint from '../../contextCheckpoint';
 import Module from '../core/Module';
 
 export default class GameTimer extends Module {
+	static readonly displayName = 'GameTimer';
+
 	private elapsedTime: number = 0;
 	private running: boolean = false;
 

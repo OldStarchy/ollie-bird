@@ -12,6 +12,8 @@ const size2dSchema = z.object({
 export type Size2dView = z.infer<typeof size2dSchema>;
 
 export default class Size2d extends Module implements ReactInterop<Size2dView> {
+	static readonly displayName = 'Size2d';
+
 	accessor width: number;
 	accessor height: number;
 

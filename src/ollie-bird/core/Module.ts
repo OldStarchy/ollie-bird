@@ -2,7 +2,9 @@ import type GameObject from './GameObject';
 import type IModular from './IModular';
 
 export default abstract class Module implements Disposable, IModular {
-	static readonly displayName = 'Module';
+	declare ['constructor']: Pick<typeof Module, keyof typeof Module>;
+
+	static readonly displayName: string = 'Module';
 
 	constructor(protected owner: GameObject) {}
 

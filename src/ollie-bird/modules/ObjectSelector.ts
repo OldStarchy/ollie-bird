@@ -8,6 +8,8 @@ import Module from '../core/Module';
 import Collider2d from '../core/modules/Collider2d';
 
 export default class ObjectSelector extends Module {
+	static readonly displayName = 'ObjectSelector';
+
 	#change$ = new Subject<void>();
 
 	private notify(): void {

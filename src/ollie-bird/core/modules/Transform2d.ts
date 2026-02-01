@@ -13,6 +13,8 @@ export const transform2dSchema = z.object({
 type Transform2dView = z.infer<typeof transform2dSchema>;
 
 class Transform2d extends Module implements ReactInterop<Transform2dView> {
+	static readonly displayName = 'Transform2d';
+
 	readonly position: Vec2 = Vec2.zero;
 
 	[ReactInterop.get](): Transform2dView {
