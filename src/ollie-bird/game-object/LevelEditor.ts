@@ -44,6 +44,7 @@ const editorModeLabels = {
 } as const;
 
 export default class LevelEditor extends GameObject {
+	static readonly defaultName: string = 'Level Editor';
 	layer = 200;
 	mode: EditorMode = EditorMode.AddObstacle;
 

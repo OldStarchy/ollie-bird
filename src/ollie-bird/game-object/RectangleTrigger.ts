@@ -17,6 +17,7 @@ export const rectangleTriggerDtoSchema = z.object({
 export type RectangleTriggerDto = z.infer<typeof rectangleTriggerDtoSchema>;
 
 abstract class RectangleTrigger extends GameObject implements ISerializable {
+	static readonly defaultName: string = 'Rectangle Trigger';
 	layer = 0;
 	style: string | null = null;
 

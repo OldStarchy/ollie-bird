@@ -15,6 +15,8 @@ import wallTop from '../../assets/wall-top.png';
 import type IGame from '../core/IGame';
 
 class Obstacle extends RectangleTrigger {
+	static readonly defaultName: string = 'Obstacle';
+
 	static sprites = {
 		wallTopLeft: new Image(),
 		wallTopRight: new Image(),

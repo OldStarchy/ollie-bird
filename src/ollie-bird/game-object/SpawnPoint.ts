@@ -17,6 +17,7 @@ export type SpawnPointDto = z.infer<typeof spawnPointDtoSchema>;
 export const SpawnPointSerializationKey = 'SpawnPoint';
 
 export default class SpawnPoint extends GameObject implements ISerializable {
+	static readonly defaultName: string = 'Spawn Point';
 	layer = Layer.Foreground;
 
 	static {

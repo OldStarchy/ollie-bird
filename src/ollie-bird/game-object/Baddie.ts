@@ -11,6 +11,8 @@ import Animation from '../modules/Animation';
 import Obstacle from './Obstacle';
 
 export default class Baddie extends GameObject {
+	static readonly defaultName: string = 'Baddie';
+
 	layer = Layer.Enemys;
 	dir = Math.sign(Math.random() - 0.5) || 1;
 	speed = 2;

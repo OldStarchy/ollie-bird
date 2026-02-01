@@ -5,6 +5,8 @@ import RectangleTrigger, {
 } from './RectangleTrigger';
 
 class Goal extends RectangleTrigger {
+	static readonly defaultName: string = 'Goal';
+
 	readonly serializationKey = 'Goal';
 
 	protected override initialize() {

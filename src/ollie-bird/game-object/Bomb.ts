@@ -21,6 +21,7 @@ export const bombDtoSchema = z.object({
 export type BombDto = z.infer<typeof bombDtoSchema>;
 
 export default class Bomb extends GameObject implements ISerializable {
+	static readonly defaultName: string = 'Bomb';
 	static {
 		LevelStore.instance.register(BombSerializationKey, Bomb);
 	}

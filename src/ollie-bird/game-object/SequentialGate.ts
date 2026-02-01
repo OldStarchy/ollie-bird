@@ -15,6 +15,8 @@ export const sequentialGateDtoSchema = rectangleTriggerDtoSchema.extend({
 export type SequentialGateDto = z.infer<typeof sequentialGateDtoSchema>;
 
 export default class SequentialGate extends RectangleTrigger {
+	static readonly defaultName: string = 'Sequential Gate';
+
 	layer = Layer.Items;
 
 	state: 'unavailable' | 'ready' | 'passed' = 'unavailable';

@@ -19,6 +19,10 @@ export type GameObjectView = z.infer<typeof gameObjectViewSchema>;
 export default class GameObject
 	implements IModular, Disposable, ReactInterop<GameObjectView>
 {
+	declare ['constructor']: Pick<typeof GameObject, keyof typeof GameObject>;
+
+	static readonly defaultName: string = 'Game Object';
+
 	protected disposableStack = new DisposableStack();
 	private modules: ModuleCollection;
 
@@ -36,9 +40,10 @@ export default class GameObject
 	}
 
 	@onChange((self) => self.notify())
-	accessor name: string = 'Game Object';
+	accessor name: string;
 
 	constructor(readonly game: IGame) {
+		this.name = this.constructor.defaultName;
 		this.modules = new ModuleCollection(this);
 		this.disposableStack.use(this.modules);
 

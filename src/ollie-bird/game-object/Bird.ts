@@ -19,6 +19,7 @@ declare global {
 	}
 }
 class Bird extends GameObject {
+	static readonly defaultName: string = 'Bird';
 	layer = Layer.Player;
 	public ySpeed: number = 0;
 	private holdTime = 0;
