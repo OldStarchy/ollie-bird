@@ -278,13 +278,13 @@ export class GameCanvas implements Disposable {
 
 	context: CanvasRenderingContext2D;
 
-	readonly abort: AbortController;
+	readonly disposableStack: DisposableStack;
 
 	constructor(
 		public game: BaseGame,
 		public canvas: HTMLCanvasElement,
 	) {
-		this.abort = new AbortController();
+		using ds = new DisposableStack();
 
 		const context = canvas.getContext('2d');
 		if (!context) {
@@ -294,19 +294,19 @@ export class GameCanvas implements Disposable {
 		this.context = context;
 		this.requestResize();
 
-		game.keyboard.attachTo(canvas, this.abort.signal);
-		game.mouse.attachTo(canvas, this.abort.signal, (e) =>
-			this.projectMouseCoordinates(e),
-		);
+		ds.use(game.keyboard.attachTo(canvas));
+		ds.use(game.mouse.attachTo(canvas, this.projectMouseCoordinates));
+
+		this.disposableStack = ds.move();
 	}
 
 	[Symbol.dispose](): void {
-		this.abort.abort();
+		this.disposableStack.dispose();
 		this.game['canvases'].delete(this);
 	}
 
-	lastTransform: DOMMatrix = new DOMMatrix();
-	private projectMouseCoordinates(e: MouseEvent): Vec2Like {
+	lastTransform = new DOMMatrix();
+	private projectMouseCoordinates = (e: MouseEvent): Vec2Like => {
 		const rect = this.canvas.getBoundingClientRect();
 		const x = e.clientX - rect.left;
 		const y = e.clientY - rect.top;
@@ -315,7 +315,7 @@ export class GameCanvas implements Disposable {
 		const transformedPoint = inverted.transformPoint(new DOMPoint(x, y));
 
 		return transformedPoint;
-	}
+	};
 
 	doRender(
 		renderCallback: (context: CanvasRenderingContext2D) => void,

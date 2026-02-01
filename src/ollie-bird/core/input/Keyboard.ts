@@ -1,27 +1,28 @@
+import { fromEvent } from 'rxjs';
 import type ButtonState from './ButtonState';
 
 export default class Keyboard {
 	private pressedKeys: Set<string> = new Set();
 	private wasPressedKeys: Set<string> = new Set();
 
-	attachTo(element: HTMLElement, signal: AbortSignal) {
-		element.addEventListener(
-			'keydown',
-			(event) => {
+	attachTo(element: HTMLElement): Disposable {
+		using ds = new DisposableStack();
+
+		ds.use(
+			fromEvent<KeyboardEvent>(element, 'keydown').subscribe((event) => {
 				this.pressedKeys.add(event.code);
 				if (!event.code.match(/^F[1-9]$|^F1[0-2]$/))
 					event.preventDefault();
-			},
-			{ signal },
+			}),
 		);
 
-		element.addEventListener(
-			'keyup',
-			(event) => {
+		ds.use(
+			fromEvent<KeyboardEvent>(element, 'keyup').subscribe((event) => {
 				this.pressedKeys.delete(event.code);
-			},
-			{ signal },
+			}),
 		);
+
+		return ds.move();
 	}
 
 	step() {
