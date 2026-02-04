@@ -172,15 +172,12 @@ export const XboxGamepadAxisMap = {
 } as const;
 
 class GamepadButton extends PollingButton {
-	constructor(
-		private gamepadIndex: number,
-		buttonIndex: number,
-	) {
-		super(() => this.gamepad?.buttons[buttonIndex]?.pressed ?? false);
-	}
-
-	private get gamepad(): Gamepad | null {
-		return navigator.getGamepads()[this.gamepadIndex] ?? null;
+	constructor(gamepadIndex: number, buttonIndex: number) {
+		super(
+			() =>
+				navigator.getGamepads()[gamepadIndex]?.buttons[buttonIndex]
+					?.pressed ?? false,
+		);
 	}
 }
 
