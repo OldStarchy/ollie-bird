@@ -68,7 +68,7 @@ export default class Keyboard {
 	}
 
 	/**
-	 * @deprecated use getButton(key)
+	 * @deprecated #44: use getButton(key)
 	 */
 	getKey(key: KeyCode): ButtonState {
 		const isPressed = this.pressedKeys.has(key);
@@ -78,7 +78,7 @@ export default class Keyboard {
 	}
 
 	/**
-	 * @deprecated use getButton(key).isDown
+	 * @deprecated #44: use getButton(key).isDown
 	 */
 	isKeyDown(key: KeyCode): boolean {
 		return this.pressedKeys.has(key);
