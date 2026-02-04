@@ -187,7 +187,7 @@ class Bird extends GameObject {
 
 	die() {
 		this.game.event.emit('gameOver', void 0);
-		//TODO: move vibration to BirdControls
+		//TODO(#44): move vibration to BirdControls
 		const gamepad = navigator.getGamepads()[this.playerIndex];
 		gamepad?.vibrationActuator?.playEffect('dual-rumble', {
 			duration: 600,

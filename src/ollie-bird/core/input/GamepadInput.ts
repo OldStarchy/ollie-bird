@@ -120,7 +120,7 @@ export default class GamepadInput {
 	#buttons: WeakRef<{ step(): void }>[] = [];
 
 	step() {
-		// TODO: don't recreate array every frame
+		// TODO(#44): don't recreate array every frame
 		this.#buttons = this.#buttons.filter((ref) => {
 			const button = ref.deref();
 
@@ -216,7 +216,7 @@ class GamepadAxis extends InputAxis {
 	}
 }
 
-//TODO: improve axis value / threashold / deadzone handling
+//TODO(#44): improve axis value / threashold / deadzone handling
 class GamepadAxisButton extends PollingButton {
 	constructor(axis: GamepadAxis, threshold: number) {
 		super(() => axis.valueUnclipped > threshold);
