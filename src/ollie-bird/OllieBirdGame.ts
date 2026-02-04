@@ -1,3 +1,4 @@
+import type { BirdControls } from './BirdControls';
 import BaseGame from './core/BaseGame';
 import {
 	XboxGamepadAxisMap,
@@ -50,18 +51,22 @@ class OllieBirdGame extends BaseGame {
 		const keyUp = this.input.keyboard.getButton('ArrowUp');
 		const keyR = this.input.keyboard.getButton('KeyR');
 
-		this.input.buttons['Flap'] = this.input.anyButton([gamepadA, keyUp]);
-		this.input.buttons['Left'] = this.input.anyButton([
-			xLeft,
-			keyLeft,
-			dPadLeft,
-		]);
-		this.input.buttons['Right'] = this.input.anyButton([
-			xRight,
-			keyRight,
-			dPadRight,
-		]);
-		this.input.buttons['Restart'] = this.input.anyButton([gamepadX, keyR]);
+		const birdControls: BirdControls = {
+			Flap: this.input.anyButton([gamepadA, keyUp]),
+			Left: this.input.anyButton([xLeft, keyLeft, dPadLeft]),
+			Right: this.input.anyButton([xRight, keyRight, dPadRight]),
+			Restart: this.input.anyButton([gamepadX, keyR]),
+		};
+
+		this.input.defineSchema<BirdControls>('Player 1', birdControls);
+		this.input.defineSchema<BirdControls>('Player 2', {
+			Flap: this.input.keyboard.getButton('KeyW'),
+			Left: this.input.keyboard.getButton('KeyA'),
+			Right: this.input.keyboard.getButton('KeyD'),
+			Restart: this.input.keyboard.getButton('KeyR'),
+		});
+
+		this.input.defineButton(Bindings.Restart, birdControls.Restart);
 	}
 
 	override preStart(): void {

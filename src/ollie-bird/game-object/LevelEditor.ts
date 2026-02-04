@@ -82,6 +82,7 @@ export default class LevelEditor extends GameObject {
 	#changeToolKey = this.game.input.keyboard.getButton('Tab');
 	#cancelKey = this.game.input.keyboard.getButton('Escape');
 	#pauseKey = this.game.input.keyboard.getButton('KeyP');
+	#ctrlKey = this.game.input.keyboard.getButton('ControlLeft');
 
 	#restartKey = this.game.input.getButton(Bindings.Restart);
 
@@ -219,10 +220,16 @@ export default class LevelEditor extends GameObject {
 				break;
 			case EditorMode.SetSpawnPoint:
 				if (this.#primaryMbutton.isPressed) {
+					const player = this.#ctrlKey.isDown ? 1 : 0;
+
 					this.game
 						.findObjectsByType(SpawnPoint)
+						.filter((sp) => sp.playerIndex === player)
 						.forEach((obj) => obj.destroy());
-					this.game.spawn(SpawnPoint).transform.position.copy(mPos);
+
+					const sp = this.game.spawn(SpawnPoint);
+					sp.transform.position.copy(mPos);
+					sp.playerIndex = player;
 				}
 				break;
 			case EditorMode.CreateBomb:
