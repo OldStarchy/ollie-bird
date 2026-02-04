@@ -1,25 +1,56 @@
-import { fromEvent } from 'rxjs';
+import { fromEvent, map, Subject, tap } from 'rxjs';
 import type ButtonState from './ButtonState';
 
 export default class Keyboard {
 	private pressedKeys: Set<string> = new Set();
 	private wasPressedKeys: Set<string> = new Set();
 
-	attachTo(element: HTMLElement): Disposable {
+	readonly #keyDown$ = new Subject<string>();
+	readonly #keyUp$ = new Subject<string>();
+
+	private readonly disposableStack = new DisposableStack();
+
+	constructor() {
 		using ds = new DisposableStack();
 
 		ds.use(
-			fromEvent<KeyboardEvent>(element, 'keydown').subscribe((event) => {
-				this.pressedKeys.add(event.code);
-				if (!event.code.match(/^F[1-9]$|^F1[0-2]$/))
-					event.preventDefault();
+			this.#keyDown$.subscribe((key) => {
+				this.pressedKeys.add(key);
 			}),
 		);
 
 		ds.use(
-			fromEvent<KeyboardEvent>(element, 'keyup').subscribe((event) => {
-				this.pressedKeys.delete(event.code);
+			this.#keyUp$.subscribe((key) => {
+				this.pressedKeys.delete(key);
 			}),
+		);
+
+		this.disposableStack = ds.move();
+	}
+
+	[Symbol.dispose](): void {
+		this.disposableStack.dispose();
+	}
+
+	attachTo(element: HTMLElement): Disposable {
+		using ds = new DisposableStack();
+
+		ds.use(
+			fromEvent<KeyboardEvent>(element, 'keydown')
+				.pipe(
+					tap((event) => {
+						if (!event.code.match(/^F[1-9]$|^F1[0-2]$/))
+							event.preventDefault();
+					}),
+					map((event) => event.code),
+				)
+				.subscribe(this.#keyDown$),
+		);
+
+		ds.use(
+			fromEvent<KeyboardEvent>(element, 'keyup')
+				.pipe(map((event) => event.code))
+				.subscribe(this.#keyUp$),
 		);
 
 		return ds.move();

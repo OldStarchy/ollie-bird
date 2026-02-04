@@ -1,8 +1,8 @@
-import { fromEvent } from 'rxjs';
+import { fromEvent, map, Subject } from 'rxjs';
 import type { Vec2Like } from '../math/Vec2';
 import type ButtonState from './ButtonState';
 
-export default class Mouse {
+export default class Mouse implements Disposable {
 	static BUTTON_LEFT = 0;
 	static BUTTON_MIDDLE = 1;
 	static BUTTON_RIGHT = 2;
@@ -32,43 +32,89 @@ export default class Mouse {
 	private previousX: number = 0;
 	private previousY: number = 0;
 
-	attachTo(element: HTMLElement, projectMouse: (e: MouseEvent) => Vec2Like) {
+	private readonly mouseDown$ = new Subject<number>();
+	private readonly mouseUp$ = new Subject<number>();
+	private readonly mouseLeave$ = new Subject<void>();
+	private readonly mouseMove$ = new Subject<{ x: number; y: number }>();
+	private readonly mouseEnter$ = new Subject<{ x: number; y: number }>();
+
+	private readonly disposableStack = new DisposableStack();
+
+	constructor() {
 		using ds = new DisposableStack();
 
 		ds.use(
-			fromEvent<MouseEvent>(element, 'mousedown').subscribe((e) => {
-				this.buttonsPressed.add(e.button);
+			this.mouseDown$.subscribe((button) => {
+				this.buttonsPressed.add(button);
 			}),
 		);
 
 		ds.use(
-			fromEvent<MouseEvent>(element, 'mouseup').subscribe((e) => {
-				this.buttonsPressed.delete(e.button);
+			this.mouseUp$.subscribe((button) => {
+				this.buttonsPressed.delete(button);
 			}),
 		);
 
 		ds.use(
-			fromEvent<MouseEvent>(element, 'mouseleave').subscribe((_e) => {
+			this.mouseLeave$.subscribe(() => {
 				this.buttonsPressed.clear();
 			}),
 		);
 
 		ds.use(
-			fromEvent<MouseEvent>(element, 'mousemove').subscribe((e) => {
-				const { x, y } = projectMouse(e);
+			this.mouseMove$.subscribe(({ x, y }) => {
 				this.#x = x;
 				this.#y = y;
 			}),
 		);
 
 		ds.use(
-			fromEvent<MouseEvent>(element, 'mouseenter').subscribe((e) => {
-				const { x, y } = projectMouse(e);
+			this.mouseEnter$.subscribe(({ x, y }) => {
 				this.#x = x;
 				this.#y = y;
 				this.previousX = this.#x;
 				this.previousY = this.#y;
 			}),
+		);
+
+		this.disposableStack = ds.move();
+	}
+
+	[Symbol.dispose](): void {
+		this.disposableStack.dispose();
+	}
+
+	attachTo(element: HTMLElement, projectMouse: (e: MouseEvent) => Vec2Like) {
+		using ds = new DisposableStack();
+
+		ds.use(
+			fromEvent<MouseEvent>(element, 'mousedown')
+				.pipe(map((e) => e.button))
+				.subscribe(this.mouseDown$),
+		);
+
+		ds.use(
+			fromEvent<MouseEvent>(element, 'mouseup')
+				.pipe(map((e) => e.button))
+				.subscribe(this.mouseUp$),
+		);
+
+		ds.use(
+			fromEvent<MouseEvent>(element, 'mouseleave')
+				.pipe(map(() => void 0))
+				.subscribe(this.mouseLeave$),
+		);
+
+		ds.use(
+			fromEvent<MouseEvent>(element, 'mousemove')
+				.pipe(map(projectMouse))
+				.subscribe(this.mouseMove$),
+		);
+
+		ds.use(
+			fromEvent<MouseEvent>(element, 'mouseenter')
+				.pipe(map(projectMouse))
+				.subscribe(this.mouseEnter$),
 		);
 
 		return ds.move();
