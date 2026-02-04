@@ -79,6 +79,15 @@ export default class Bomb extends GameObject implements ISerializable {
 
 		if (currentFrame === 4) {
 			this.collider.enabled = true;
+
+			navigator
+				.getGamepads()[0]
+				?.vibrationActuator?.playEffect('dual-rumble', {
+					duration: 100,
+					startDelay: 0,
+					strongMagnitude: 0.0,
+					weakMagnitude: 0.5,
+				});
 		}
 	}
 

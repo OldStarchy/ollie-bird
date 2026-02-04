@@ -42,6 +42,16 @@ export default class SequentialGate extends RectangleTrigger {
 
 		if (hitABird) {
 			this.state = 'passed';
+
+			navigator
+				.getGamepads()[0]
+				?.vibrationActuator?.playEffect('dual-rumble', {
+					duration: 50,
+					startDelay: 0,
+					strongMagnitude: 0.5,
+					weakMagnitude: 0.0,
+				});
+
 			if (this.nextGate) {
 				this.nextGate.state = 'ready';
 			}

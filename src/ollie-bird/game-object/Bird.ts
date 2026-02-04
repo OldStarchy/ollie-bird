@@ -103,19 +103,15 @@ class Bird extends GameObject {
 			this.die();
 		}
 
+		const passedAllGates = !this.game
+			.findObjectsByType(SequentialGate)
+			.some((gate) => gate.state !== 'passed');
 		if (
+			passedAllGates &&
 			this.game
 				.findObjectsByType(Goal)
 				.some(Collider2d.collidingWith(myCollider.getCollider()))
 		) {
-			if (
-				this.game
-					.findObjectsByType(SequentialGate)
-					.some((gate) => gate.state !== 'passed')
-			) {
-				return;
-			}
-
 			this.game.event.emit('gameOver', void 0);
 			this.togglePause();
 
@@ -168,7 +164,14 @@ class Bird extends GameObject {
 
 	die() {
 		this.game.event.emit('gameOver', void 0);
-		console.log('Collision detected!');
+		navigator
+			.getGamepads()[0]
+			?.vibrationActuator?.playEffect('dual-rumble', {
+				duration: 600,
+				startDelay: 0,
+				strongMagnitude: 1.0,
+				weakMagnitude: 1.0,
+			});
 		this.createExplosion(...this.position.xy, 10, 50, 2);
 		this.destroy();
 	}
