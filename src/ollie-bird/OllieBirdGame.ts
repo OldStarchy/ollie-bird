@@ -7,10 +7,6 @@ import {
 import LevelEditor from './game-object/LevelEditor';
 
 export const Bindings = {
-	Flap: 'Flap',
-	Left: 'Left',
-	Right: 'Right',
-
 	Restart: 'Restart',
 } as const;
 

@@ -1,23 +1,20 @@
 import { InputButton } from './InputButton';
 
 export class PollingButton extends InputButton {
-	#isDown: boolean | null = null;
+	#isDown: boolean;
 	#wasDown: boolean = false;
 
 	constructor(private poll: () => boolean) {
 		super();
+		this.#isDown = this.poll();
 	}
 
 	step() {
 		this.#wasDown = this.isDown;
-		this.#isDown = null;
+		this.#isDown = this.poll();
 	}
 
 	get isDown(): boolean {
-		if (this.#isDown === null) {
-			this.#isDown = this.poll();
-		}
-
 		return this.#isDown;
 	}
 	get wasDown(): boolean {

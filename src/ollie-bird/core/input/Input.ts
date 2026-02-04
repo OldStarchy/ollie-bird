@@ -12,6 +12,8 @@ export default class Input implements Disposable {
 	#disposableStack = new DisposableStack();
 
 	constructor() {
+		this.#disposableStack.use(this.keyboard);
+		this.#disposableStack.use(this.mouse);
 		this.#disposableStack.use(this.gamepads.attachTo(window));
 	}
 
