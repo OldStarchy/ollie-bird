@@ -68,6 +68,7 @@ export default class Bomb extends GameObject implements ISerializable {
 			this.anim.enabled = true;
 			this.anim.paused = true;
 			this.anim.currentFrame = 0;
+			this.anim.frameDuration = 0.4;
 			this.collider.enabled = false;
 			this.triggerCollider.enabled = false;
 		});
