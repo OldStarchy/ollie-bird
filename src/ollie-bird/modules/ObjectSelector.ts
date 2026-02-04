@@ -42,9 +42,9 @@ export default class ObjectSelector extends Module {
 	}
 
 	protected override update(): void {
-		const mouse = this.owner.game.mouse;
+		const mouse = this.owner.game.input.mouse;
 
-		if (mouse.getButton(Mouse.BUTTON_LEFT) === ButtonState.Pressed) {
+		if (mouse.getButtonState(Mouse.BUTTON_LEFT) === ButtonState.Pressed) {
 			const mousePoint = new CircleCollider(mouse.x, mouse.y, 5);
 
 			const collidingObjects = this.owner.game

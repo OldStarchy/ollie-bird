@@ -159,6 +159,7 @@ describe('GameObject Serialization', () => {
 
 			expect(serialized).toEqual({
 				$type: 'SpawnPoint',
+				playerIndex: 0,
 				x: 50,
 				y: 100,
 			});

@@ -2,10 +2,11 @@ import birdDown from '../../assets/bird-down.png';
 import birdRight from '../../assets/bird-right.png';
 import birdUp from '../../assets/bird-up.png';
 import contextCheckpoint from '../../contextCheckpoint';
+import onChange from '../../react-interop/onChange';
+import type { BirdControls } from '../BirdControls';
 import { Layer, TAG_DEADLY, TAG_LEVEL_OBJECT } from '../const';
 import GameObject from '../core/GameObject';
 import type IGame from '../core/IGame';
-import ButtonState from '../core/input/ButtonState';
 import Vec2 from '../core/math/Vec2';
 import Collider2d from '../core/modules/Collider2d';
 import CircleCollider2d from '../core/modules/colliders/CircleCollider2d';
@@ -47,13 +48,35 @@ class Bird extends GameObject {
 
 	private paused: boolean = false;
 
+	@onChange(
+		(self) =>
+			(self.#schema = self.game.input.getSchema<BirdControls>(
+				`Player ${self.playerIndex + 1}`,
+			)),
+	)
+	accessor playerIndex = 0;
+
+	#schema: BirdControls = this.game.input.getSchema<BirdControls>(
+		`Player ${this.playerIndex + 1}`,
+	);
+
+	get #keyFlap() {
+		return this.#schema.Flap;
+	}
+	get #keyLeft() {
+		return this.#schema.Left;
+	}
+	get #keyRight() {
+		return this.#schema.Right;
+	}
+
 	togglePause() {
 		this.paused = !this.paused;
 	}
 
 	protected handleInput() {
 		// Key Downs
-		if (this.game.keyboard.isKeyDown('ArrowUp')) {
+		if (this.#keyFlap.isDown) {
 			this.holdTime += this.game.secondsPerFrame;
 			if (this.holdTime > 0.3 && !this.flappedOnce) {
 				this.ySpeed = -6;
@@ -69,16 +92,16 @@ class Bird extends GameObject {
 			this.gravity = this.game.physics.gravity * (this.holdTime / 0.3);
 		}
 
-		if (this.game.keyboard.isKeyDown('ArrowRight')) {
+		if (this.#keyRight.isDown) {
 			this.position.x += 5;
 		}
 
-		if (this.game.keyboard.isKeyDown('ArrowLeft')) {
+		if (this.#keyLeft.isDown) {
 			this.position.x -= 5;
 		}
 
 		// Key Releaseds
-		if (this.game.keyboard.getKey('ArrowUp') == ButtonState.Released) {
+		if (this.#keyFlap.isReleased) {
 			if (!this.flappedOnce) {
 				this.ySpeed = (-this.holdTime / 0.3) * 6;
 			}
@@ -103,19 +126,15 @@ class Bird extends GameObject {
 			this.die();
 		}
 
+		const passedAllGates = !this.game
+			.findObjectsByType(SequentialGate)
+			.some((gate) => gate.state !== 'passed');
 		if (
+			passedAllGates &&
 			this.game
 				.findObjectsByType(Goal)
 				.some(Collider2d.collidingWith(myCollider.getCollider()))
 		) {
-			if (
-				this.game
-					.findObjectsByType(SequentialGate)
-					.some((gate) => gate.state !== 'passed')
-			) {
-				return;
-			}
-
 			this.game.event.emit('gameOver', void 0);
 			this.togglePause();
 
@@ -168,7 +187,15 @@ class Bird extends GameObject {
 
 	die() {
 		this.game.event.emit('gameOver', void 0);
-		console.log('Collision detected!');
+		//TODO(#44): move vibration to BirdControls
+		const gamepad = navigator.getGamepads()[this.playerIndex];
+		gamepad?.vibrationActuator?.playEffect('dual-rumble', {
+			duration: 600,
+			startDelay: 0,
+			strongMagnitude: 1.0,
+			weakMagnitude: 1.0,
+		});
+
 		this.createExplosion(...this.position.xy, 10, 50, 2);
 		this.destroy();
 	}
@@ -185,10 +212,10 @@ class Bird extends GameObject {
 			spriteName = 'up';
 		}
 
-		if (this.game.keyboard.isKeyDown('ArrowRight')) {
+		if (this.#keyRight.isDown) {
 			spriteName = 'right';
 		}
-		if (this.game.keyboard.isKeyDown('ArrowLeft')) {
+		if (this.#keyLeft.isDown) {
 			spriteName = 'right';
 			flip = true;
 		}
