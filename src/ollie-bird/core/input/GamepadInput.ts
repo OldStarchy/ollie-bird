@@ -3,6 +3,27 @@ import { InputAxis } from './InputAxis';
 import { InputButton } from './InputButton';
 import { PollingButton } from './PollingButton';
 
+type GamepadCode = 0 | 1 | 2 | 3;
+type GamepadButtonCode =
+	| 0
+	| 1
+	| 2
+	| 3
+	| 4
+	| 5
+	| 6
+	| 7
+	| 8
+	| 9
+	| 10
+	| 11
+	| 12
+	| 13
+	| 14
+	| 15
+	| 16;
+type GamepadAxisCode = 0 | 1 | 2 | 3;
+
 export default class GamepadInput {
 	#gamepadsChanged$ = new Subject<void>();
 	gamepadsChanged$ = this.#gamepadsChanged$.asObservable();
@@ -30,7 +51,10 @@ export default class GamepadInput {
 	}
 
 	#buttonCache = new Map<string, InputButton>();
-	getButton(gamepadIndex: number, buttonIndex: number): InputButton {
+	getButton(
+		gamepadIndex: GamepadCode,
+		buttonIndex: GamepadButtonCode,
+	): InputButton {
 		const key = `${gamepadIndex}:${buttonIndex}`;
 		if (!this.#buttonCache.has(key)) {
 			this.#buttonCache.set(
@@ -43,8 +67,8 @@ export default class GamepadInput {
 	}
 
 	private createButton(
-		gamepadIndex: number,
-		buttonIndex: number,
+		gamepadIndex: GamepadCode,
+		buttonIndex: GamepadButtonCode,
 	): InputButton {
 		const button = new GamepadButton(gamepadIndex, buttonIndex);
 
@@ -53,17 +77,23 @@ export default class GamepadInput {
 		return button;
 	}
 
+	/**
+	 * Gets an axis input with a range from -1 to 1
+	 */
 	getAxis(
-		gamepadIndex: number,
-		axisIndex: number,
+		gamepadIndex: GamepadCode,
+		axisIndex: GamepadAxisCode,
 		deadzone: number = 0.05,
 	): InputAxis {
 		return new GamepadAxis(gamepadIndex, axisIndex, deadzone);
 	}
 
+	/**
+	 * Turns an axis into a button based on a threshold
+	 */
 	getAxisButton(
-		gamepadIndex: number,
-		axisIndex: number,
+		gamepadIndex: GamepadCode,
+		axisIndex: GamepadAxisCode,
 		threshold: number,
 		inverted: boolean = false,
 	): InputButton {
@@ -74,6 +104,17 @@ export default class GamepadInput {
 		this.#buttons.push(new WeakRef(button));
 
 		return button;
+	}
+
+	/**
+	 * Some buttons (eg. trggers) have a value from 0 to 1.
+	 * This method gets an axis for such buttons, keeping that range.
+	 */
+	getButtonAxis(
+		gamepadIndex: GamepadCode,
+		buttonIndex: GamepadButtonCode,
+	): InputAxis {
+		return new GamepadButtonAxis(gamepadIndex, buttonIndex);
 	}
 
 	#buttons: WeakRef<{ step(): void }>[] = [];
@@ -177,5 +218,30 @@ class GamepadAxis extends InputAxis {
 class GamepadAxisButton extends PollingButton {
 	constructor(axis: GamepadAxis, threshold: number) {
 		super(() => axis.valueUnclipped > threshold);
+	}
+}
+
+class GamepadButtonAxis extends InputAxis {
+	accessor inverted = false;
+	accessor deadzone: number;
+
+	constructor(
+		private gamepadIndex: number,
+		private buttonPositiveIndex: number,
+	) {
+		super();
+		this.deadzone = 0;
+	}
+
+	get gamepad(): Gamepad | null {
+		return navigator.getGamepads()[this.gamepadIndex] ?? null;
+	}
+
+	get value(): number {
+		const button = this.gamepad?.buttons[this.buttonPositiveIndex];
+		if (!button) return 0;
+		const unclipped = this.inverted ? 1 - button.value : button.value;
+		if (Math.abs(unclipped) < this.deadzone) return 0;
+		return unclipped;
 	}
 }

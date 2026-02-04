@@ -4,15 +4,17 @@ import type ButtonState from './ButtonState';
 import { GenericButton } from './GenericButton';
 import type { InputButton } from './InputButton';
 
-export default class Mouse implements Disposable {
-	static BUTTON_LEFT = 0;
-	static BUTTON_MIDDLE = 1;
-	static BUTTON_RIGHT = 2;
-	static BUTTON_BACK = 3;
-	static BUTTON_FORWARD = 4;
+type MouseButtonCode = 0 | 1 | 2 | 3 | 4;
 
-	private buttonsPressed: Set<number> = new Set();
-	private previousButtonsPressed: Set<number> = new Set();
+export default class Mouse implements Disposable {
+	static readonly BUTTON_LEFT = 0;
+	static readonly BUTTON_MIDDLE = 1;
+	static readonly BUTTON_RIGHT = 2;
+	static readonly BUTTON_BACK = 3;
+	static readonly BUTTON_FORWARD = 4;
+
+	private buttonsPressed: Set<MouseButtonCode> = new Set();
+	private previousButtonsPressed: Set<MouseButtonCode> = new Set();
 	#x: number = 0;
 	#y: number = 0;
 
@@ -34,8 +36,8 @@ export default class Mouse implements Disposable {
 	private previousX: number = 0;
 	private previousY: number = 0;
 
-	readonly #mouseDown$ = new Subject<number>();
-	readonly #mouseUp$ = new Subject<number>();
+	readonly #mouseDown$ = new Subject<MouseButtonCode>();
+	readonly #mouseUp$ = new Subject<MouseButtonCode>();
 	readonly #mouseLeave$ = new Subject<void>();
 	readonly #mouseMove$ = new Subject<{ x: number; y: number }>();
 	readonly #mouseEnter$ = new Subject<{ x: number; y: number }>();
@@ -91,13 +93,13 @@ export default class Mouse implements Disposable {
 
 		ds.use(
 			fromEvent<MouseEvent>(element, 'mousedown')
-				.pipe(map((e) => e.button))
+				.pipe(map((e) => e.button as MouseButtonCode))
 				.subscribe(this.#mouseDown$),
 		);
 
 		ds.use(
 			fromEvent<MouseEvent>(element, 'mouseup')
-				.pipe(map((e) => e.button))
+				.pipe(map((e) => e.button as MouseButtonCode))
 				.subscribe(this.#mouseUp$),
 		);
 
@@ -128,19 +130,19 @@ export default class Mouse implements Disposable {
 		this.previousY = this.#y;
 	}
 
-	getButtonState(button: number): ButtonState {
+	getButtonState(button: MouseButtonCode): ButtonState {
 		const isPressed = this.buttonsPressed.has(button);
 		const wasPressed = this.previousButtonsPressed.has(button);
 
 		return (isPressed ? 0b01 : 0b00) | (wasPressed ? 0b10 : 0b00);
 	}
 
-	getButtonDown(button: number): boolean {
+	getButtonDown(button: MouseButtonCode): boolean {
 		return this.buttonsPressed.has(button);
 	}
 
-	#buttonCache = new Map<number, InputButton>();
-	getButton(button: number): InputButton {
+	#buttonCache = new Map<MouseButtonCode, InputButton>();
+	getButton(button: MouseButtonCode): InputButton {
 		if (!this.#buttonCache.has(button)) {
 			this.#buttonCache.set(button, this.createButton(button));
 		}
@@ -148,7 +150,7 @@ export default class Mouse implements Disposable {
 		return this.#buttonCache.get(button)!;
 	}
 
-	private createButton(button: number): InputButton {
+	private createButton(button: MouseButtonCode): InputButton {
 		const initialState = this.getButtonState(button);
 
 		return new GenericButton(

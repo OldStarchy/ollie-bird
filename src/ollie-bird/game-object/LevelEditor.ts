@@ -2,7 +2,6 @@ import { CELL_SIZE, TAG_LEVEL_OBJECT, TAG_LEVEL_STRUCTURE } from '../const';
 import RectangleCollider from '../core/collider/RectangleCollider';
 import GameObject from '../core/GameObject';
 import type IGame from '../core/IGame';
-import ButtonState from '../core/input/ButtonState';
 import Mouse from '../core/input/Mouse';
 import Rect2 from '../core/math/Rect2';
 import Collider2d from '../core/modules/Collider2d';
@@ -80,6 +79,14 @@ export default class LevelEditor extends GameObject {
 		this.addModule(ObjectSelector);
 	}
 
+	#changeToolKey = this.game.input.keyboard.getButton('Tab');
+	#cancelKey = this.game.input.keyboard.getButton('Escape');
+	#pauseKey = this.game.input.keyboard.getButton('KeyP');
+
+	#restartKey = this.game.input.getButton(Bindings.Restart);
+
+	#primaryMbutton = this.game.input.mouse.getButton(Mouse.BUTTON_LEFT);
+
 	alignToGrid(obj: { x: number; y: number }): { x: number; y: number } {
 		return {
 			x: Math.round(obj.x / this.gridSize) * this.gridSize,
@@ -102,15 +109,15 @@ export default class LevelEditor extends GameObject {
 	}
 
 	protected override update(): void {
-		if (this.game.input.keyboard.getKey('Tab') === ButtonState.Pressed) {
+		if (this.#changeToolKey.isPressed) {
 			this.mode = (this.mode + 1) % (EditorMode.LAST + 1);
 		}
 
-		if (this.game.input.keyboard.getKey('Escape') === ButtonState.Pressed) {
+		if (this.#cancelKey.isPressed) {
 			this.dragStart = null;
 		}
 
-		if (this.game.input.keyboard.getKey('KeyP') === ButtonState.Pressed) {
+		if (this.#pauseKey.isPressed) {
 			const bird = this.game.findObjectsByType(Bird)[0];
 
 			if (bird) {
@@ -118,7 +125,7 @@ export default class LevelEditor extends GameObject {
 			}
 		}
 
-		if (this.game.input.buttons[Bindings.Restart]!.isPressed) {
+		if (this.#restartKey.isPressed) {
 			this.game.restart();
 			this.dragStart = null;
 		}
@@ -134,17 +141,11 @@ export default class LevelEditor extends GameObject {
 			case EditorMode.SetGoal:
 			case EditorMode.AddGate:
 				if (this.dragStart === null) {
-					if (
-						this.game.input.mouse.getButtonState(
-							Mouse.BUTTON_LEFT,
-						) === ButtonState.Pressed
-					) {
+					if (this.#primaryMbutton.isPressed) {
 						this.dragStart = { ...mPos };
 					}
 				} else {
-					if (
-						!this.game.input.mouse.getButtonDown(Mouse.BUTTON_LEFT)
-					) {
+					if (!this.#primaryMbutton.isDown) {
 						const rect = Rect2.fromAABB(
 							this.dragStart.x,
 							this.dragStart.y,
@@ -217,10 +218,7 @@ export default class LevelEditor extends GameObject {
 				}
 				break;
 			case EditorMode.SetSpawnPoint:
-				if (
-					this.game.input.mouse.getButtonState(Mouse.BUTTON_LEFT) ===
-					ButtonState.Pressed
-				) {
+				if (this.#primaryMbutton.isPressed) {
 					this.game
 						.findObjectsByType(SpawnPoint)
 						.forEach((obj) => obj.destroy());
@@ -228,18 +226,12 @@ export default class LevelEditor extends GameObject {
 				}
 				break;
 			case EditorMode.CreateBomb:
-				if (
-					this.game.input.mouse.getButtonState(Mouse.BUTTON_LEFT) ===
-					ButtonState.Pressed
-				) {
+				if (this.#primaryMbutton.isPressed) {
 					this.game.spawn(Bomb).transform.position.copy(mPos);
 				}
 				break;
 			case EditorMode.AddBaddie:
-				if (
-					this.game.input.mouse.getButtonState(Mouse.BUTTON_LEFT) ===
-					ButtonState.Pressed
-				) {
+				if (this.#primaryMbutton.isPressed) {
 					this.game
 						.spawn(BaddieSpawner)
 						.transform.position.copy(mPos);
@@ -247,7 +239,7 @@ export default class LevelEditor extends GameObject {
 				break;
 		}
 
-		if (!this.game.input.mouse.getButtonDown(Mouse.BUTTON_LEFT)) {
+		if (!this.#primaryMbutton.isDown) {
 			this.dragStart = null;
 		}
 	}

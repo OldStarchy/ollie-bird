@@ -21,11 +21,51 @@ export default class Input implements Disposable {
 		this.gamepads.step();
 	}
 
-	readonly buttons: Record<string | symbol, InputButton> = {};
-	readonly axes: Record<string | symbol, InputAxis> = {};
+	private readonly buttons: Record<string | symbol, InputButton> = {};
+	private readonly axes: Record<string | symbol, InputAxis> = {};
+
+	defineButton(name: string | symbol, button: InputButton): void {
+		this.buttons[name] = button;
+	}
+
+	getButton(name: string | symbol): InputButton {
+		const button = this.buttons[name];
+		if (!button) {
+			throw new Error(`Button "${String(name)}" is not defined`);
+		}
+
+		return button;
+	}
+
+	defineAxis(name: string | symbol, axis: InputAxis): void {
+		this.axes[name] = axis;
+	}
+
+	getAxis(name: string | symbol): InputAxis {
+		const axis = this.axes[name];
+		if (!axis) {
+			throw new Error(`Axis "${String(name)}" is not defined`);
+		}
+
+		return axis;
+	}
 
 	anyButton(buttons: InputButton[]): InputButton {
 		return new MergedButton(buttons);
+	}
+
+	#schemas: Record<string, Record<string | symbol, InputButton>> = {};
+	defineSchema<T>(name: string, schema: T): void {
+		this.#schemas[name] = schema as Record<string | symbol, InputButton>;
+	}
+
+	getSchema<T>(name: string): T {
+		const schema = this.#schemas[name];
+		if (!schema) {
+			throw new Error(`Schema "${name}" is not defined`);
+		}
+
+		return schema as T;
 	}
 
 	[Symbol.dispose](): void {

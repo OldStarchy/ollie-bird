@@ -2,6 +2,7 @@ import birdDown from '../../assets/bird-down.png';
 import birdRight from '../../assets/bird-right.png';
 import birdUp from '../../assets/bird-up.png';
 import contextCheckpoint from '../../contextCheckpoint';
+import type { BirdControls } from '../BirdControls';
 import { Layer, TAG_DEADLY, TAG_LEVEL_OBJECT } from '../const';
 import GameObject from '../core/GameObject';
 import type IGame from '../core/IGame';
@@ -9,7 +10,6 @@ import Vec2 from '../core/math/Vec2';
 import Collider2d from '../core/modules/Collider2d';
 import CircleCollider2d from '../core/modules/colliders/CircleCollider2d';
 import Sprite from '../core/Sprite';
-import { Bindings } from '../OllieBirdGame';
 import Explosion from './Explosion';
 import Goal from './Goal';
 import SequentialGate from './SequentialGate';
@@ -47,13 +47,25 @@ class Bird extends GameObject {
 
 	private paused: boolean = false;
 
+	#schema: BirdControls = this.game.input.getSchema<BirdControls>('Player 1');
+
+	get #keyFlap() {
+		return this.#schema.Flap;
+	}
+	get #keyLeft() {
+		return this.#schema.Left;
+	}
+	get #keyRight() {
+		return this.#schema.Right;
+	}
+
 	togglePause() {
 		this.paused = !this.paused;
 	}
 
 	protected handleInput() {
 		// Key Downs
-		if (this.game.input.buttons[Bindings.Flap]!.isDown) {
+		if (this.#keyFlap.isDown) {
 			this.holdTime += this.game.secondsPerFrame;
 			if (this.holdTime > 0.3 && !this.flappedOnce) {
 				this.ySpeed = -6;
@@ -69,16 +81,16 @@ class Bird extends GameObject {
 			this.gravity = this.game.physics.gravity * (this.holdTime / 0.3);
 		}
 
-		if (this.game.input.buttons[Bindings.Right]!.isDown) {
+		if (this.#keyRight.isDown) {
 			this.position.x += 5;
 		}
 
-		if (this.game.input.buttons[Bindings.Left]!.isDown) {
+		if (this.#keyLeft.isDown) {
 			this.position.x -= 5;
 		}
 
 		// Key Releaseds
-		if (this.game.input.buttons[Bindings.Flap]!.isReleased) {
+		if (this.#keyFlap.isReleased) {
 			if (!this.flappedOnce) {
 				this.ySpeed = (-this.holdTime / 0.3) * 6;
 			}
@@ -188,10 +200,10 @@ class Bird extends GameObject {
 			spriteName = 'up';
 		}
 
-		if (this.game.input.buttons[Bindings.Right]!.isDown) {
+		if (this.#keyRight.isDown) {
 			spriteName = 'right';
 		}
-		if (this.game.input.buttons[Bindings.Left]!.isDown) {
+		if (this.#keyLeft.isDown) {
 			spriteName = 'right';
 			flip = true;
 		}
