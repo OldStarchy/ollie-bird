@@ -27,6 +27,8 @@ export default class Keyboard {
 			}),
 		);
 
+		ds.defer(() => this.#step$.complete());
+
 		this.disposableStack = ds.move();
 	}
 
@@ -58,8 +60,10 @@ export default class Keyboard {
 		return ds.move();
 	}
 
+	#step$ = new Subject<void>();
 	step() {
 		this.wasPressedKeys = new Set(this.pressedKeys);
+		this.#step$.next();
 	}
 
 	getKey(key: string): ButtonState {
@@ -87,8 +91,8 @@ export default class Keyboard {
 
 		return new GenericButton(
 			initialState,
-			merge(this.#keyDown$, this.#keyUp$).pipe(
-				filter((k) => k === key),
+			merge(this.#keyDown$, this.#keyUp$, this.#step$).pipe(
+				filter((k) => k === undefined || k === key),
 				map(() => this.getKey(key)),
 			),
 		);
