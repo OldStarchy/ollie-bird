@@ -5,11 +5,11 @@ import contextCheckpoint from '../../contextCheckpoint';
 import { Layer, TAG_DEADLY, TAG_LEVEL_OBJECT } from '../const';
 import GameObject from '../core/GameObject';
 import type IGame from '../core/IGame';
-import ButtonState from '../core/input/ButtonState';
 import Vec2 from '../core/math/Vec2';
 import Collider2d from '../core/modules/Collider2d';
 import CircleCollider2d from '../core/modules/colliders/CircleCollider2d';
 import Sprite from '../core/Sprite';
+import { Bindings } from '../OllieBirdGame';
 import Explosion from './Explosion';
 import Goal from './Goal';
 import SequentialGate from './SequentialGate';
@@ -53,7 +53,7 @@ class Bird extends GameObject {
 
 	protected handleInput() {
 		// Key Downs
-		if (this.game.keyboard.isKeyDown('ArrowUp')) {
+		if (this.game.input.buttons[Bindings.Flap]!.isDown) {
 			this.holdTime += this.game.secondsPerFrame;
 			if (this.holdTime > 0.3 && !this.flappedOnce) {
 				this.ySpeed = -6;
@@ -69,16 +69,16 @@ class Bird extends GameObject {
 			this.gravity = this.game.physics.gravity * (this.holdTime / 0.3);
 		}
 
-		if (this.game.keyboard.isKeyDown('ArrowRight')) {
+		if (this.game.input.buttons[Bindings.Right]!.isDown) {
 			this.position.x += 5;
 		}
 
-		if (this.game.keyboard.isKeyDown('ArrowLeft')) {
+		if (this.game.input.buttons[Bindings.Left]!.isDown) {
 			this.position.x -= 5;
 		}
 
 		// Key Releaseds
-		if (this.game.keyboard.getKey('ArrowUp') == ButtonState.Released) {
+		if (this.game.input.buttons[Bindings.Flap]!.isReleased) {
 			if (!this.flappedOnce) {
 				this.ySpeed = (-this.holdTime / 0.3) * 6;
 			}
@@ -185,10 +185,10 @@ class Bird extends GameObject {
 			spriteName = 'up';
 		}
 
-		if (this.game.keyboard.isKeyDown('ArrowRight')) {
+		if (this.game.input.buttons[Bindings.Right]!.isDown) {
 			spriteName = 'right';
 		}
-		if (this.game.keyboard.isKeyDown('ArrowLeft')) {
+		if (this.game.input.buttons[Bindings.Left]!.isDown) {
 			spriteName = 'right';
 			flip = true;
 		}

@@ -1,5 +1,7 @@
-import { fromEvent, map, Subject, tap } from 'rxjs';
+import { filter, fromEvent, map, merge, Subject, tap } from 'rxjs';
 import type ButtonState from './ButtonState';
+import { GenericButton } from './GenericButton';
+import { InputButton } from './InputButton';
 
 export default class Keyboard {
 	private pressedKeys: Set<string> = new Set();
@@ -69,5 +71,26 @@ export default class Keyboard {
 
 	isKeyDown(key: string): boolean {
 		return this.pressedKeys.has(key);
+	}
+
+	#buttonCache = new Map<string, InputButton>();
+	getButton(key: string): InputButton {
+		if (!this.#buttonCache.has(key)) {
+			this.#buttonCache.set(key, this.createButton(key));
+		}
+
+		return this.#buttonCache.get(key)!;
+	}
+
+	private createButton(key: string): InputButton {
+		const initialState = this.getKey(key);
+
+		return new GenericButton(
+			initialState,
+			merge(this.#keyDown$, this.#keyUp$).pipe(
+				filter((k) => k === key),
+				map(() => this.getKey(key)),
+			),
+		);
 	}
 }
