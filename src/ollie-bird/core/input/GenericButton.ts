@@ -15,7 +15,6 @@ export class GenericButton extends InputButton implements Disposable {
 		this.#disposableStack.use(
 			changes$.subscribe((newState) => {
 				this.#state = newState;
-				console.log(newState.toString(2).padStart(2, '0'));
 			}),
 		);
 	}

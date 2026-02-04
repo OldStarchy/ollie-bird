@@ -14,9 +14,9 @@ export class PollingButton extends InputButton {
 	}
 
 	get isDown(): boolean {
-		// if (this.#isDown === null) {
-		this.#isDown = this.poll();
-		// }
+		if (this.#isDown === null) {
+			this.#isDown = this.poll();
+		}
 
 		return this.#isDown;
 	}

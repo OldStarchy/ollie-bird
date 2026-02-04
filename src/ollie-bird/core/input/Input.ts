@@ -4,13 +4,15 @@ import { InputButton } from './InputButton';
 import Keyboard from './Keyboard';
 import Mouse from './Mouse';
 
-export default class Input {
+export default class Input implements Disposable {
 	readonly keyboard = new Keyboard();
 	readonly mouse = new Mouse();
 	readonly gamepads = new GamepadInput();
 
+	#disposableStack = new DisposableStack();
+
 	constructor() {
-		this.gamepads.attachTo(window);
+		this.#disposableStack.use(this.gamepads.attachTo(window));
 	}
 
 	step(): void {
@@ -24,6 +26,10 @@ export default class Input {
 
 	anyButton(buttons: InputButton[]): InputButton {
 		return new MergedButton(buttons);
+	}
+
+	[Symbol.dispose](): void {
+		this.#disposableStack.dispose();
 	}
 }
 

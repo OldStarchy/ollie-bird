@@ -12,8 +12,7 @@ export default class GamepadInput {
 
 		ds.use(
 			fromEvent<GamepadEvent>(element, 'gamepadconnected').subscribe(
-				(event) => {
-					console.log('Gamepad connected:', event.gamepad);
+				(_e) => {
 					this.#gamepadsChanged$.next();
 				},
 			),
@@ -21,8 +20,7 @@ export default class GamepadInput {
 
 		ds.use(
 			fromEvent<GamepadEvent>(element, 'gamepaddisconnected').subscribe(
-				(event) => {
-					console.log('Gamepad disconnected:', event.gamepad);
+				(_e) => {
 					this.#gamepadsChanged$.next();
 				},
 			),

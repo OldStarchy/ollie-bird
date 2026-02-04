@@ -74,20 +74,26 @@ export default class Bomb extends GameObject implements ISerializable {
 		});
 	}
 
+	#wasFrame4 = false;
 	protected override beforeUpdate(): void {
 		const currentFrame = this.anim.currentFrame;
 
 		if (currentFrame === 4) {
 			this.collider.enabled = true;
 
-			navigator
-				.getGamepads()[0]
-				?.vibrationActuator?.playEffect('dual-rumble', {
-					duration: 100,
-					startDelay: 0,
-					strongMagnitude: 0.0,
-					weakMagnitude: 0.5,
-				});
+			if (!this.#wasFrame4) {
+				navigator
+					.getGamepads()[0]
+					?.vibrationActuator?.playEffect('dual-rumble', {
+						duration: 100,
+						startDelay: 0,
+						strongMagnitude: 0.0,
+						weakMagnitude: 0.5,
+					});
+			}
+			this.#wasFrame4 = true;
+		} else {
+			this.#wasFrame4 = false;
 		}
 	}
 

@@ -40,10 +40,15 @@ class BaseGame implements IGame, ReactInterop<BaseGameSettings> {
 	private readonly objects: GameObject[] = [];
 	private readonly canvases: Set<GameCanvas> = new Set();
 
-	constructor() {}
-
 	readonly event = new EventSource<GameEventMap>();
 	readonly input = new Input();
+
+	constructor() {
+		this.abortController.signal.addEventListener('abort', () => {
+			this.input[Symbol.dispose]();
+			this.objects.forEach((obj) => obj[Symbol.dispose]());
+		});
+	}
 
 	updatesPerSecond: number = 60;
 	physics = {
