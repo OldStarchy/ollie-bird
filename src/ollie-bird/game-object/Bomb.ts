@@ -82,14 +82,14 @@ export default class Bomb extends GameObject implements ISerializable {
 			this.collider.enabled = true;
 
 			if (!this.#wasFrame4) {
-				navigator
-					.getGamepads()[0]
-					?.vibrationActuator?.playEffect('dual-rumble', {
+				this.game.findObjectsByType(Bird).forEach((bird) =>
+					bird.controls.Vibrate?.playEffect('dual-rumble', {
 						duration: 100,
 						startDelay: 0,
 						strongMagnitude: 0.0,
 						weakMagnitude: 0.5,
-					});
+					}),
+				);
 			}
 			this.#wasFrame4 = true;
 		} else {

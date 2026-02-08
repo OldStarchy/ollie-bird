@@ -50,24 +50,28 @@ class Bird extends GameObject {
 
 	@onChange(
 		(self) =>
-			(self.#schema = self.game.input.getSchema<BirdControls>(
+			(self.controls = self.game.input.getSchema<BirdControls>(
 				`Player ${self.playerIndex + 1}`,
 			)),
 	)
 	accessor playerIndex = 0;
 
-	#schema: BirdControls = this.game.input.getSchema<BirdControls>(
+	controls: BirdControls = this.game.input.getSchema<BirdControls>(
 		`Player ${this.playerIndex + 1}`,
 	);
 
 	get #keyFlap() {
-		return this.#schema.Flap;
+		return this.controls.Flap;
 	}
 	get #keyLeft() {
-		return this.#schema.Left;
+		return this.controls.Left;
 	}
 	get #keyRight() {
-		return this.#schema.Right;
+		return this.controls.Right;
+	}
+
+	get #vibrationActuator() {
+		return this.controls.Vibrate;
 	}
 
 	togglePause() {
@@ -187,9 +191,7 @@ class Bird extends GameObject {
 
 	die() {
 		this.game.event.emit('gameOver', void 0);
-		//TODO(#44): move vibration to BirdControls
-		const gamepad = navigator.getGamepads()[this.playerIndex];
-		gamepad?.vibrationActuator?.playEffect('dual-rumble', {
+		this.#vibrationActuator?.playEffect('dual-rumble', {
 			duration: 600,
 			startDelay: 0,
 			strongMagnitude: 1.0,

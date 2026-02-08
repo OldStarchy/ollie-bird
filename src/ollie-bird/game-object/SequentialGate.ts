@@ -34,23 +34,22 @@ export default class SequentialGate extends RectangleTrigger {
 	protected override update(): void {
 		if (this.state !== 'ready') return;
 
-		const hitABird =
+		const bird =
 			this.game
 				.findObjectsByType(Bird)
-				.filter(Collider2d.collidingWith(this.collider.getCollider()))
-				.length > 0;
+				.filter(
+					Collider2d.collidingWith(this.collider.getCollider()),
+				)[0] ?? null;
 
-		if (hitABird) {
+		if (bird) {
 			this.state = 'passed';
 
-			navigator
-				.getGamepads()[0]
-				?.vibrationActuator?.playEffect('dual-rumble', {
-					duration: 50,
-					startDelay: 0,
-					strongMagnitude: 0.5,
-					weakMagnitude: 0.0,
-				});
+			bird.controls.Vibrate?.playEffect('dual-rumble', {
+				duration: 50,
+				startDelay: 0,
+				strongMagnitude: 0.5,
+				weakMagnitude: 0.0,
+			});
 
 			if (this.nextGate) {
 				this.nextGate.state = 'ready';

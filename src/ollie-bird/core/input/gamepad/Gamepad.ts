@@ -2,6 +2,7 @@ import { fromEvent, Subject } from 'rxjs';
 import { Axis } from '../Axis';
 import { Button } from '../Button';
 import { HalfAxis } from '../HalfAxis';
+import { VibrationActuator } from '../VibrationActuator';
 import { GamepadAxis } from './GamepadAxis';
 import { GamepadButton } from './GamepadButton';
 import { GamepadButtonAxis } from './GamepadButtonAxis';
@@ -104,5 +105,9 @@ export default class Gamepad {
 	step() {
 		this.previousState = this.currentState;
 		this.currentState = navigator.getGamepads();
+	}
+
+	getVibrationActuator(gamepadIndex: GamepadCode) {
+		return new VibrationActuator(gamepadIndex);
 	}
 }

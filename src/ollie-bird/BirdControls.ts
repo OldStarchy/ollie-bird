@@ -10,6 +10,8 @@ export interface BirdControls {
 	Right: Button;
 
 	Restart: Button;
+
+	Vibrate?: GamepadHapticActuator;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -43,15 +45,7 @@ export namespace BirdControls {
 			Left: dPadLeft.merge(xLeft),
 			Right: dPadRight.merge(xRight),
 			Restart: gamepadX,
-		};
-	}
-
-	export function merge(a: BirdControls, b: BirdControls): BirdControls {
-		return {
-			Flap: a.Flap.merge(b.Flap),
-			Left: a.Left.merge(b.Left),
-			Right: a.Right.merge(b.Right),
-			Restart: a.Restart.merge(b.Restart),
+			Vibrate: gamepad.getVibrationActuator(gamepadIndex),
 		};
 	}
 }
