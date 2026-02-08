@@ -2,7 +2,7 @@ import { CELL_SIZE, TAG_LEVEL_OBJECT, TAG_LEVEL_STRUCTURE } from '../const';
 import RectangleCollider from '../core/collider/RectangleCollider';
 import GameObject from '../core/GameObject';
 import type IGame from '../core/IGame';
-import Mouse from '../core/input/Mouse';
+import Mouse from '../core/input/mouse/Mouse';
 import Rect2 from '../core/math/Rect2';
 import Collider2d from '../core/modules/Collider2d';
 import LevelStore, {
