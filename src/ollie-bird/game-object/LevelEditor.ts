@@ -2,8 +2,7 @@ import { CELL_SIZE, TAG_LEVEL_OBJECT, TAG_LEVEL_STRUCTURE } from '../const';
 import RectangleCollider from '../core/collider/RectangleCollider';
 import GameObject from '../core/GameObject';
 import type IGame from '../core/IGame';
-import ButtonState from '../core/input/ButtonState';
-import Mouse from '../core/input/Mouse';
+import Mouse from '../core/input/mouse/Mouse';
 import Rect2 from '../core/math/Rect2';
 import Collider2d from '../core/modules/Collider2d';
 import LevelStore, {
@@ -13,6 +12,7 @@ import LevelStore, {
 import GameTimer from '../modules/GameTimer';
 import ObjectSelector from '../modules/ObjectSelector';
 import SequentialGateManager from '../modules/SequentialGateManager';
+import { Bindings } from '../OllieBirdGame';
 import BaddieSpawner from './BaddieSpawner';
 import Bird from './Bird';
 import Bomb from './Bomb';
@@ -79,6 +79,15 @@ export default class LevelEditor extends GameObject {
 		this.addModule(ObjectSelector);
 	}
 
+	#changeToolKey = this.game.input.keyboard.getButton('Tab');
+	#cancelKey = this.game.input.keyboard.getButton('Escape');
+	#pauseKey = this.game.input.keyboard.getButton('KeyP');
+	#ctrlKey = this.game.input.keyboard.getButton('ControlLeft');
+
+	#restartKey = this.game.input.getButton(Bindings.Restart);
+
+	#primaryMbutton = this.game.input.mouse.getButton(Mouse.BUTTON_LEFT);
+
 	alignToGrid(obj: { x: number; y: number }): { x: number; y: number } {
 		return {
 			x: Math.round(obj.x / this.gridSize) * this.gridSize,
@@ -101,15 +110,15 @@ export default class LevelEditor extends GameObject {
 	}
 
 	protected override update(): void {
-		if (this.game.keyboard.getKey('Tab') === ButtonState.Pressed) {
+		if (this.#changeToolKey.isPressed) {
 			this.mode = (this.mode + 1) % (EditorMode.LAST + 1);
 		}
 
-		if (this.game.keyboard.getKey('Escape') === ButtonState.Pressed) {
+		if (this.#cancelKey.isPressed) {
 			this.dragStart = null;
 		}
 
-		if (this.game.keyboard.getKey('KeyP') === ButtonState.Pressed) {
+		if (this.#pauseKey.isPressed) {
 			const bird = this.game.findObjectsByType(Bird)[0];
 
 			if (bird) {
@@ -117,14 +126,14 @@ export default class LevelEditor extends GameObject {
 			}
 		}
 
-		if (this.game.keyboard.getKey('KeyR') === ButtonState.Pressed) {
+		if (this.#restartKey.isPressed) {
 			this.game.restart();
 			this.dragStart = null;
 		}
 
 		const mPos = this.alignToGrid({
-			x: this.game.mouse.x,
-			y: this.game.mouse.y,
+			x: this.game.input.mouse.x,
+			y: this.game.input.mouse.y,
 		});
 
 		switch (this.mode) {
@@ -133,14 +142,11 @@ export default class LevelEditor extends GameObject {
 			case EditorMode.SetGoal:
 			case EditorMode.AddGate:
 				if (this.dragStart === null) {
-					if (
-						this.game.mouse.getButton(Mouse.BUTTON_LEFT) ===
-						ButtonState.Pressed
-					) {
+					if (this.#primaryMbutton.isPressed) {
 						this.dragStart = { ...mPos };
 					}
 				} else {
-					if (!this.game.mouse.getButtonDown(Mouse.BUTTON_LEFT)) {
+					if (!this.#primaryMbutton.isDown) {
 						const rect = Rect2.fromAABB(
 							this.dragStart.x,
 							this.dragStart.y,
@@ -213,29 +219,26 @@ export default class LevelEditor extends GameObject {
 				}
 				break;
 			case EditorMode.SetSpawnPoint:
-				if (
-					this.game.mouse.getButton(Mouse.BUTTON_LEFT) ===
-					ButtonState.Pressed
-				) {
+				if (this.#primaryMbutton.isPressed) {
+					const player = this.#ctrlKey.isDown ? 1 : 0;
+
 					this.game
 						.findObjectsByType(SpawnPoint)
+						.filter((sp) => sp.playerIndex === player)
 						.forEach((obj) => obj.destroy());
-					this.game.spawn(SpawnPoint).transform.position.copy(mPos);
+
+					const sp = this.game.spawn(SpawnPoint);
+					sp.transform.position.copy(mPos);
+					sp.playerIndex = player;
 				}
 				break;
 			case EditorMode.CreateBomb:
-				if (
-					this.game.mouse.getButton(Mouse.BUTTON_LEFT) ===
-					ButtonState.Pressed
-				) {
+				if (this.#primaryMbutton.isPressed) {
 					this.game.spawn(Bomb).transform.position.copy(mPos);
 				}
 				break;
 			case EditorMode.AddBaddie:
-				if (
-					this.game.mouse.getButton(Mouse.BUTTON_LEFT) ===
-					ButtonState.Pressed
-				) {
+				if (this.#primaryMbutton.isPressed) {
 					this.game
 						.spawn(BaddieSpawner)
 						.transform.position.copy(mPos);
@@ -243,7 +246,7 @@ export default class LevelEditor extends GameObject {
 				break;
 		}
 
-		if (!this.game.mouse.getButtonDown(Mouse.BUTTON_LEFT)) {
+		if (!this.#primaryMbutton.isDown) {
 			this.dragStart = null;
 		}
 	}
@@ -261,8 +264,8 @@ export default class LevelEditor extends GameObject {
 				this.mode === EditorMode.AddObstacle ? 'green' : 'red';
 			context.beginPath();
 			const m = this.alignToGrid({
-				x: this.game.mouse.x,
-				y: this.game.mouse.y,
+				x: this.game.input.mouse.x,
+				y: this.game.input.mouse.y,
 			});
 			context.strokeRect(
 				this.dragStart.x,

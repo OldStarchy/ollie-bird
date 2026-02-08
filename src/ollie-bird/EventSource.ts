@@ -1,5 +1,5 @@
 /**
- * @deprecated use rxjs
+ * @deprecated #45: use rxjs
  */
 export default class EventSource<T extends Record<string, any>> {
 	private listeners: {

@@ -2,8 +2,9 @@ import { Observable, Subject, Subscription } from 'rxjs';
 import contextCheckpoint from '../../contextCheckpoint';
 import CircleCollider from '../core/collider/CircleCollider';
 import type GameObject from '../core/GameObject';
-import ButtonState from '../core/input/ButtonState';
-import Mouse from '../core/input/Mouse';
+import type { Button } from '../core/input/Button';
+import Mouse from '../core/input/mouse/Mouse';
+import type { Pointer } from '../core/input/Pointer';
 import Module from '../core/Module';
 import Collider2d from '../core/modules/Collider2d';
 
@@ -41,11 +42,18 @@ export default class ObjectSelector extends Module {
 		this.notify();
 	}
 
-	protected override update(): void {
-		const mouse = this.owner.game.mouse;
+	#selectButton: Button = this.owner.game.input.mouse.getButton(
+		Mouse.BUTTON_LEFT,
+	);
+	#selectPointer: Pointer = this.owner.game.input.mouse;
 
-		if (mouse.getButton(Mouse.BUTTON_LEFT) === ButtonState.Pressed) {
-			const mousePoint = new CircleCollider(mouse.x, mouse.y, 5);
+	protected override update(): void {
+		if (this.#selectButton.isPressed) {
+			const mousePoint = new CircleCollider(
+				this.#selectPointer.x,
+				this.#selectPointer.y,
+				5,
+			);
 
 			const collidingObjects = this.owner.game
 				.getObjects()

@@ -1,15 +1,13 @@
 import type EventSource from '../EventSource';
 import type GameObject from './GameObject';
-import type Keyboard from './input/Keyboard';
-import type Mouse from './input/Mouse';
+import type Input from './input/Input';
 
 declare global {
 	interface GameEventMap {}
 }
 
 export default interface IGame {
-	readonly keyboard: Keyboard;
-	readonly mouse: Mouse;
+	readonly input: Input;
 	readonly physics: {
 		gravity: number;
 	};

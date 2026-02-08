@@ -68,16 +68,32 @@ export default class Bomb extends GameObject implements ISerializable {
 			this.anim.enabled = true;
 			this.anim.paused = true;
 			this.anim.currentFrame = 0;
+			this.anim.frameDuration = 0.4;
 			this.collider.enabled = false;
 			this.triggerCollider.enabled = false;
 		});
 	}
 
+	#wasFrame4 = false;
 	protected override beforeUpdate(): void {
 		const currentFrame = this.anim.currentFrame;
 
 		if (currentFrame === 4) {
 			this.collider.enabled = true;
+
+			if (!this.#wasFrame4) {
+				this.game.findObjectsByType(Bird).forEach((bird) =>
+					bird.controls.Vibrate?.playEffect('dual-rumble', {
+						duration: 100,
+						startDelay: 0,
+						strongMagnitude: 0.0,
+						weakMagnitude: 0.5,
+					}),
+				);
+			}
+			this.#wasFrame4 = true;
+		} else {
+			this.#wasFrame4 = false;
 		}
 	}
 

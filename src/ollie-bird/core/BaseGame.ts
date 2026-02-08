@@ -9,8 +9,7 @@ import { CELL_SIZE, TAG_LEVEL_OBJECT } from '../const';
 import EventSource from '../EventSource';
 import type GameObject from './GameObject';
 import type IGame from './IGame';
-import Keyboard from './input/Keyboard';
-import Mouse from './input/Mouse';
+import Input from './input/Input';
 import Rect2 from './math/Rect2';
 import { round } from './math/round';
 import type { Vec2Like } from './math/Vec2';
@@ -41,11 +40,15 @@ class BaseGame implements IGame, ReactInterop<BaseGameSettings> {
 	private readonly objects: GameObject[] = [];
 	private readonly canvases: Set<GameCanvas> = new Set();
 
-	constructor() {}
-
 	readonly event = new EventSource<GameEventMap>();
-	readonly keyboard = new Keyboard();
-	readonly mouse = new Mouse();
+	readonly input = new Input();
+
+	constructor() {
+		this.abortController.signal.addEventListener('abort', () => {
+			this.input[Symbol.dispose]();
+			this.objects.forEach((obj) => obj[Symbol.dispose]());
+		});
+	}
 
 	updatesPerSecond: number = 60;
 	physics = {
@@ -160,8 +163,7 @@ class BaseGame implements IGame, ReactInterop<BaseGameSettings> {
 		this.objects.forEach((go) => go['doUpdate']());
 		this.objects.forEach((go) => go['doAfterUpdate']());
 
-		this.keyboard.step();
-		this.mouse.step();
+		this.input.step();
 		this.queueRender();
 	}
 
@@ -294,8 +296,8 @@ export class GameCanvas implements Disposable {
 		this.context = context;
 		this.requestResize();
 
-		ds.use(game.keyboard.attachTo(canvas));
-		ds.use(game.mouse.attachTo(canvas, this.projectMouseCoordinates));
+		ds.use(game.input.keyboard.attachTo(canvas));
+		ds.use(game.input.mouse.attachTo(canvas, this.projectMouseCoordinates));
 
 		this.disposableStack = ds.move();
 	}
