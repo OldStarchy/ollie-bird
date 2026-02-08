@@ -39,6 +39,8 @@ export default defineConfig([
 						'constructor.name is unsafe, function names change during obfuscation.',
 				},
 			],
+			// Handled by prettier
+			'no-unexpected-multiline': 'off',
 		},
 	},
 ]);
