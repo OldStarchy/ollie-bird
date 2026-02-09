@@ -1,4 +1,4 @@
-import type EventSource from '../EventSource';
+import type { Subject } from 'rxjs';
 import type GameObject from './GameObject';
 import type Input from './input/Input';
 
@@ -11,7 +11,13 @@ export default interface IGame {
 	readonly physics: {
 		gravity: number;
 	};
-	readonly event: EventSource<GameEventMap>;
+	readonly event$: Subject<
+		{
+			[K in keyof GameEventMap]: GameEventMap[K] extends void
+				? { type: K }
+				: { type: K; data: GameEventMap[K] };
+		}[keyof GameEventMap]
+	>;
 
 	width: number;
 	height: number;

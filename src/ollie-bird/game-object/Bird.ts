@@ -139,7 +139,7 @@ class Bird extends GameObject {
 				.findObjectsByType(Goal)
 				.some(Collider2d.collidingWith(myCollider.getCollider()))
 		) {
-			this.game.event.emit('gameOver', void 0);
+			this.game.event$.next({ type: 'gameOver' });
 			this.togglePause();
 
 			//spawn explosions in a circle
@@ -190,7 +190,7 @@ class Bird extends GameObject {
 	}
 
 	die() {
-		this.game.event.emit('gameOver', void 0);
+		this.game.event$.next({ type: 'gameOver' });
 		this.#vibrationActuator?.playEffect('dual-rumble', {
 			duration: 600,
 			startDelay: 0,

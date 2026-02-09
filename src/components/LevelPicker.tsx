@@ -44,19 +44,22 @@ export default function LevelPicker({
 	const loadLevel = (levelName: string) => {
 		const data = localStorage.getItem(localStorageKeyPrefix + levelName);
 		if (data) {
-			game.event.emit('loadLevel', data);
+			game.event$.next({ type: 'loadLevel', data });
 			setLevelName(levelName);
 		}
 	};
 	const loadEmpty = () => {
-		game.event.emit('loadLevel', '{}');
+		game.event$.next({ type: 'loadLevel', data: '{}' });
 	};
 
 	const saveLevel = (levelName: string) => {
 		let data: string | null = null;
 
-		game.event.emit('getLevelData', (d: string) => {
-			data = d;
+		game.event$.next({
+			type: 'getLevelData',
+			data: (d: string) => {
+				data = d;
+			},
 		});
 
 		if (data === null) {

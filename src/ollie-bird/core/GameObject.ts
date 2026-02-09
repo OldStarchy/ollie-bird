@@ -1,4 +1,4 @@
-import { Subject } from 'rxjs';
+import { filter, map, Subject, Subscription } from 'rxjs';
 import z from 'zod';
 import onChange from '../../react-interop/onChange';
 import { ReactInterop } from '../../react-interop/ReactInterop';
@@ -144,10 +144,18 @@ export default class GameObject
 
 	onGameEvent<T extends keyof GameEventMap>(
 		event: T,
-		listener: (args: GameEventMap[T]) => void,
-	) {
-		const unsubscribe = this.game.event.on(event, listener);
-		this.disposableStack.defer(unsubscribe);
+		listener: GameEventMap[T] extends void
+			? () => void
+			: (data: GameEventMap[T]) => void,
+	): Subscription {
+		const unsubscribe = this.game.event$
+			.pipe(
+				filter((e) => e.type === event),
+				map((e) => (e as { data?: GameEventMap[T] }).data!),
+			)
+			.subscribe(listener);
+		this.disposableStack.use(unsubscribe);
+		return unsubscribe;
 	}
 
 	readonly #destroy$ = new Subject<void>();
