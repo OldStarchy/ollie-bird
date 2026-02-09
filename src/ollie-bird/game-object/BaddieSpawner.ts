@@ -1,18 +1,29 @@
 import { Subject } from 'rxjs';
 import { toss } from 'toss-expression';
 import { z } from 'zod';
+import baddie1 from '../../assets/baddie-1.png';
+import baddie2 from '../../assets/baddie-2.png';
 import onChange from '../../react-interop/onChange';
 import { ReactInterop } from '../../react-interop/ReactInterop';
-import { CELL_SIZE, Layer, TAG_LEVEL_STRUCTURE } from '../const';
+import {
+	CELL_SIZE,
+	Layer,
+	TAG_DEADLY,
+	TAG_LEVEL_OBJECT,
+	TAG_LEVEL_STRUCTURE,
+} from '../const';
 import GameObject, {
 	gameObjectViewSchema,
 	type GameObjectView,
 } from '../core/GameObject';
 import type IGame from '../core/IGame';
+import RectangleCollider2d from '../core/modules/colliders/RectangleCollider2d';
 import filterEvent from '../core/rxjs/filterEvent';
+import Sprite from '../core/Sprite';
 import type { ISerializable } from '../LevelStore';
 import LevelStore from '../LevelStore';
-import Baddie from './Baddie';
+import Animation from '../modules/Animation';
+import WalkBackAndForthBehavior from '../modules/WalkBackAndForthBehavior';
 import LevelEditor from './LevelEditor';
 
 export const baddieSchema = z.object({
@@ -34,6 +45,7 @@ export default class BaddieSpawner
 	implements ISerializable, ReactInterop<BaddieView>
 {
 	static readonly #serializationKey = 'BaddieSpawner';
+	static readonly defaultName: string = 'Baddie Spawner';
 
 	static {
 		LevelStore.instance.register(
@@ -42,6 +54,8 @@ export default class BaddieSpawner
 		);
 	}
 	layer = Layer.Foreground;
+
+	static frames = [baddie1, baddie2].map((src) => new Sprite(src));
 
 	@onChange((self) => self.notifyChange())
 	accessor startDirection: 'left' | 'right' = 'left';
@@ -81,11 +95,39 @@ export default class BaddieSpawner
 			levelController.levelEvent$
 				.pipe(filterEvent('levelStart'))
 				.subscribe(() => {
-					const baddie = this.game.spawn(Baddie);
-					baddie.transform.position.copy(this.transform.position);
-					baddie.dir = this.startDirection === 'left' ? -1 : 1;
+					this.createBaddie();
 				}),
 		);
+	}
+
+	private createBaddie() {
+		const baddie = this.game.spawn(GameObject);
+		baddie.name = `Baddie (${this.name})`;
+
+		baddie.layer = Layer.Enemys;
+		baddie.tags.add(TAG_LEVEL_OBJECT);
+		baddie.tags.add(TAG_DEADLY);
+
+		baddie.addModule(RectangleCollider2d, {
+			x: 0,
+			y: CELL_SIZE * 0.5,
+			width: CELL_SIZE,
+			height: CELL_SIZE * 0.5,
+		});
+
+		const anim = baddie.addModule(Animation, BaddieSpawner.frames, 0.3);
+		anim.rectangle.set(0, CELL_SIZE / 2, CELL_SIZE, CELL_SIZE / 2);
+
+		baddie.transform.position.copy(this.transform.position);
+
+		const walkBehavior = baddie.addModule(WalkBackAndForthBehavior);
+		walkBehavior.direction =
+			this.startDirection === 'left' ? { x: -1, y: 0 } : { x: 1, y: 0 };
+		walkBehavior.center = {
+			x: CELL_SIZE / 2,
+			y: CELL_SIZE * 0.75,
+		};
+		walkBehavior.radius = CELL_SIZE / 2;
 	}
 
 	protected override render(context: CanvasRenderingContext2D) {
