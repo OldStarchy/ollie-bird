@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import type GameObject from '../../ollie-bird/core/GameObject';
+import toCallable from '../../toCallable';
 import useGameContext from '../GameContext';
 import { useSelectedObject } from './useSelectedObject';
 
@@ -15,9 +16,7 @@ export default function ObjectList() {
 		});
 		setObjects(game.getObjects());
 
-		return () => {
-			sub.unsubscribe();
-		};
+		return toCallable(sub);
 	}, [game]);
 
 	return (
@@ -58,9 +57,7 @@ function GameObjectListEntry({
 		});
 		setName(obj.name);
 
-		return () => {
-			sub.unsubscribe();
-		};
+		return toCallable(sub);
 	}, [obj]);
 
 	return (

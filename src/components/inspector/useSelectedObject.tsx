@@ -2,6 +2,7 @@ import { type Dispatch, useCallback, useEffect, useState } from 'react';
 import type GameObject from '../../ollie-bird/core/GameObject';
 import LevelEditor from '../../ollie-bird/game-object/LevelEditor';
 import ObjectSelector from '../../ollie-bird/modules/ObjectSelector';
+import toCallable from '../../toCallable';
 import useGameContext from '../GameContext';
 
 export function useSelectedObject(): [
@@ -33,9 +34,7 @@ export function useSelectedObject(): [
 
 		setSelectedObjectState(objectSelector.selectedObject);
 
-		return () => {
-			subscription.unsubscribe();
-		};
+		return toCallable(subscription);
 	}, [objectSelector]);
 
 	const setSelectedObject = useCallback(
