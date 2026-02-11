@@ -1,4 +1,4 @@
-import { Subject, Subscription } from 'rxjs';
+import { Subject } from 'rxjs';
 import z from 'zod';
 import onChange from '../../react-interop/onChange';
 import { ReactInterop } from '../../react-interop/ReactInterop';
@@ -8,7 +8,6 @@ import { vec2Schema } from './math/Vec2';
 import Module from './Module';
 import ModuleCollection from './ModuleCollection';
 import Transform2d from './modules/Transform2d';
-import filterEvent from './rxjs/filterEvent';
 
 export const gameObjectViewSchema = z.object({
 	name: z.string().meta({ title: 'Name' }),
@@ -142,19 +141,6 @@ export default class GameObject
 		this.modules['afterRenderGizmos'](context);
 	}
 	protected afterRenderGizmos(_context: CanvasRenderingContext2D): void {}
-
-	onGameEvent<T extends keyof GameEventMap>(
-		event: T,
-		listener: GameEventMap[T] extends void
-			? () => void
-			: (data: GameEventMap[T]) => void,
-	): Subscription {
-		const unsubscribe = this.game.event$
-			.pipe(filterEvent(event))
-			.subscribe(listener);
-		this.disposableStack.use(unsubscribe);
-		return unsubscribe;
-	}
 
 	readonly #destroy$ = new Subject<void>();
 	readonly destroy$ = this.#destroy$.asObservable();
