@@ -1,7 +1,8 @@
-import { Fragment, useCallback, useEffect, useState } from 'react';
-import OllieBirdGame from '../ollie-bird/OllieBirdGame';
+import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
+import LevelEditor from '../ollie-bird/game-object/LevelEditor';
 import Button from './Button';
 import Card from './Card';
+import useGameContext from './GameContext';
 import Input from './Input';
 
 const localStorageKeyPrefix = 'ollie-bird-level-';
@@ -20,13 +21,8 @@ const localStorageKeyPrefix = 'ollie-bird-level-';
 	}
 })();
 
-export default function LevelPicker({
-	game,
-	onClose,
-}: {
-	game: OllieBirdGame;
-	onClose?: () => void;
-}) {
+export default function LevelPicker({ onClose }: { onClose?: () => void }) {
+	const game = useGameContext();
 	const [levels, setLevels] = useState<string[]>([]);
 	const [visible, setVisible] = useState<boolean>(false);
 	const [levelName, setLevelName] = useState<string>('');
@@ -41,23 +37,25 @@ export default function LevelPicker({
 
 	useEffect(() => refreshLevels(), [refreshLevels]);
 
+	const levelEditor = useMemo(() => {
+		if (!game) return;
+
+		return game.findObjectsByType(LevelEditor)[0];
+	}, [game]);
+
 	const loadLevel = (levelName: string) => {
 		const data = localStorage.getItem(localStorageKeyPrefix + levelName);
 		if (data) {
-			game.event.emit('loadLevel', data);
+			levelEditor?.loadLevelData(data);
 			setLevelName(levelName);
 		}
 	};
 	const loadEmpty = () => {
-		game.event.emit('loadLevel', '{}');
+		levelEditor?.loadLevelData('{}');
 	};
 
 	const saveLevel = (levelName: string) => {
-		let data: string | null = null;
-
-		game.event.emit('getLevelData', (d: string) => {
-			data = d;
-		});
+		const data = levelEditor?.getLevelData() ?? null;
 
 		if (data === null) {
 			alert('Failed to get level data for saving.');

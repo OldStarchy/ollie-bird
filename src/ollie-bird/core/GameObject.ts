@@ -142,14 +142,6 @@ export default class GameObject
 	}
 	protected afterRenderGizmos(_context: CanvasRenderingContext2D): void {}
 
-	onGameEvent<T extends keyof GameEventMap>(
-		event: T,
-		listener: (args: GameEventMap[T]) => void,
-	) {
-		const unsubscribe = this.game.event.on(event, listener);
-		this.disposableStack.defer(unsubscribe);
-	}
-
 	readonly #destroy$ = new Subject<void>();
 	readonly destroy$ = this.#destroy$.asObservable();
 	[Symbol.dispose]() {

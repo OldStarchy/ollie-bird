@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Observable } from 'rxjs';
 import type z from 'zod';
+import toCallable from '../toCallable';
 
 const set = Symbol('ReactInterop.set');
 const get = Symbol('ReactInterop.get');
@@ -53,9 +54,7 @@ export function useReactInterop<View>(
 			setState(obj[get]()),
 		);
 
-		return () => {
-			subscription.unsubscribe();
-		};
+		return toCallable(subscription);
 	}, [obj]);
 
 	return [state, obj[schema]];

@@ -1,11 +1,14 @@
+import { toss } from 'toss-expression';
 import { z } from 'zod';
 import { ReactInterop } from '../../react-interop/ReactInterop';
 import { Layer, TAG_LEVEL_STRUCTURE } from '../const';
 import GameObject, { gameObjectViewSchema } from '../core/GameObject';
 import type IGame from '../core/IGame';
+import filterEvent from '../core/rxjs/filterEvent';
 import type { ISerializable } from '../LevelStore';
 import LevelStore from '../LevelStore';
 import Bird from './Bird';
+import LevelEditor from './LevelEditor';
 
 export const spawnPointDtoSchema = z.object({
 	$type: z.string(),
@@ -56,11 +59,19 @@ export default class SpawnPoint
 	}
 
 	protected override initialize() {
-		this.onGameEvent('gameStart', () => {
-			const bird = this.game.spawn(Bird);
-			bird.playerIndex = this.playerIndex;
-			bird.transform.position.copy(this.transform.position);
-		});
+		const levelController =
+			this.game.findObjectsByType(LevelEditor)[0] ??
+			toss(new Error(`${SpawnPoint.name} requires ${LevelEditor.name}`));
+
+		this.disposableStack.use(
+			levelController.levelEvent$
+				.pipe(filterEvent('levelStart'))
+				.subscribe(() => {
+					const bird = this.game.spawn(Bird);
+					bird.playerIndex = this.playerIndex;
+					bird.transform.position.copy(this.transform.position);
+				}),
+		);
 		this.tags.add(TAG_LEVEL_STRUCTURE);
 	}
 

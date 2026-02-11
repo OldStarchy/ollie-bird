@@ -2825,6 +2825,11 @@ to-regex-range@^5.0.1:
   dependencies:
     is-number "^7.0.0"
 
+toss-expression@^0.1.2:
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/toss-expression/-/toss-expression-0.1.2.tgz#1ce603bd1207dd53abf595b26e48452f885c33f0"
+  integrity sha512-NYAtPRTJwhGkswslP2MSzbWA3QGTwETSvzO4C1V0wMMt7y3UcH7GSDTnJLMSZvWE2AI9plELrBt1NweQbB782A==
+
 tough-cookie@^6.0.0:
   version "6.0.0"
   resolved "https://registry.yarnpkg.com/tough-cookie/-/tough-cookie-6.0.0.tgz#11e418b7864a2c0d874702bc8ce0f011261940e5"

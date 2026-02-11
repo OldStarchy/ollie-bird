@@ -1,3 +1,4 @@
+import { toss } from 'toss-expression';
 import birdDown from '../../assets/bird-down.png';
 import birdRight from '../../assets/bird-right.png';
 import birdUp from '../../assets/bird-up.png';
@@ -13,12 +14,9 @@ import CircleCollider2d from '../core/modules/colliders/CircleCollider2d';
 import Sprite from '../core/Sprite';
 import Explosion from './Explosion';
 import Goal from './Goal';
+import LevelEditor from './LevelEditor';
 import SequentialGate from './SequentialGate';
-declare global {
-	interface GameEventMap {
-		gameOver: void;
-	}
-}
+
 class Bird extends GameObject {
 	static readonly defaultName: string = 'Bird';
 	layer = Layer.Player;
@@ -37,6 +35,7 @@ class Bird extends GameObject {
 		down: new Sprite(birdDown),
 	};
 
+	private levelController: LevelEditor;
 	constructor(game: IGame) {
 		super(game);
 		this.tags.add(TAG_LEVEL_OBJECT);
@@ -44,6 +43,10 @@ class Bird extends GameObject {
 
 		const collider = this.addModule(CircleCollider2d);
 		collider.radius = 20;
+
+		this.levelController =
+			game.findObjectsByType(LevelEditor)[0] ??
+			toss(new Error('Bird requires a LevelEditor in the scene'));
 	}
 
 	private paused: boolean = false;
@@ -139,7 +142,7 @@ class Bird extends GameObject {
 				.findObjectsByType(Goal)
 				.some(Collider2d.collidingWith(myCollider.getCollider()))
 		) {
-			this.game.event.emit('gameOver', void 0);
+			this.levelController.handleBirdReachedGoal(this);
 			this.togglePause();
 
 			//spawn explosions in a circle
@@ -190,7 +193,7 @@ class Bird extends GameObject {
 	}
 
 	die() {
-		this.game.event.emit('gameOver', void 0);
+		this.levelController.handleBirdDied(this);
 		this.#vibrationActuator?.playEffect('dual-rumble', {
 			duration: 600,
 			startDelay: 0,

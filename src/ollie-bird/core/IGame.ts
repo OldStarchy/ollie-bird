@@ -1,4 +1,5 @@
-import type EventSource from '../EventSource';
+import type { Observable } from 'rxjs';
+import type { EventMap } from './EventMap';
 import type GameObject from './GameObject';
 import type Input from './input/Input';
 
@@ -6,12 +7,14 @@ declare global {
 	interface GameEventMap {}
 }
 
+export type GameEvent = EventMap<GameEventMap>;
+
 export default interface IGame {
 	readonly input: Input;
 	readonly physics: {
 		gravity: number;
 	};
-	readonly event: EventSource<GameEventMap>;
+	readonly event$: Observable<GameEvent>;
 
 	width: number;
 	height: number;
@@ -32,6 +35,4 @@ export default interface IGame {
 		...types: T
 	): Array<InstanceType<T[number]>>;
 	getObjects(): Array<GameObject>;
-
-	restart(): void;
 }

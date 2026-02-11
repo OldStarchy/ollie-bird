@@ -1,15 +1,18 @@
 import { filter } from 'rxjs';
+import { toss } from 'toss-expression';
 import { z } from 'zod';
 import { CELL_SIZE, TAG_DEADLY, TAG_LEVEL_STRUCTURE } from '../const';
 import GameObject from '../core/GameObject';
 import type IGame from '../core/IGame';
 import Collider2d from '../core/modules/Collider2d';
 import CircleCollider2d from '../core/modules/colliders/CircleCollider2d';
+import filterEvent from '../core/rxjs/filterEvent';
 import type { ISerializable } from '../LevelStore';
 import LevelStore from '../LevelStore';
 import Animation from '../modules/Animation';
 import Resources from '../Resources';
 import Bird from './Bird';
+import LevelEditor from './LevelEditor';
 
 const BombSerializationKey = 'Bomb';
 export const bombDtoSchema = z.object({
@@ -64,14 +67,22 @@ export default class Bomb extends GameObject implements ISerializable {
 		this.triggerCollider.enabled = false; //disable to prevent it killing the player
 		this.triggerCollider.renderWidget = true;
 
-		this.onGameEvent('gameStart', () => {
-			this.anim.enabled = true;
-			this.anim.paused = true;
-			this.anim.currentFrame = 0;
-			this.anim.frameDuration = 0.4;
-			this.collider.enabled = false;
-			this.triggerCollider.enabled = false;
-		});
+		const levelController =
+			this.game.findObjectsByType(LevelEditor)[0] ??
+			toss(new Error(`${Bomb.name} requires ${LevelEditor.name}`));
+
+		this.disposableStack.use(
+			levelController.levelEvent$
+				.pipe(filterEvent('levelStart'))
+				.subscribe(() => {
+					this.anim.enabled = true;
+					this.anim.paused = true;
+					this.anim.currentFrame = 0;
+					this.anim.frameDuration = 0.4;
+					this.collider.enabled = false;
+					this.triggerCollider.enabled = false;
+				}),
+		);
 	}
 
 	#wasFrame4 = false;
