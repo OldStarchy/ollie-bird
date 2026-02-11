@@ -1,11 +1,22 @@
 import contextCheckpoint from '../../contextCheckpoint';
 import Module from '../core/Module';
+import filterEvent from '../core/rxjs/filterEvent';
+import LevelEditor from '../game-object/LevelEditor';
 
 export default class GameTimer extends Module {
 	static readonly displayName = 'GameTimer';
 
 	private elapsedTime: number = 0;
 	private running: boolean = false;
+
+	private get levelController(): LevelEditor {
+		if (this.owner instanceof LevelEditor) return this.owner;
+
+		// TODO(#47): move LevelEditor logic to module
+		throw new Error(
+			'GameTimer must be attached to a LevelEditor or its child',
+		);
+	}
 
 	start(): void {
 		this.running = true;
@@ -26,14 +37,22 @@ export default class GameTimer extends Module {
 	}
 
 	protected override initialize(): void {
-		this.owner.onGameEvent('gameStart', () => {
-			this.reset();
-			this.start();
-		});
+		this.disposableStack.use(
+			this.levelController.levelEvent$
+				.pipe(filterEvent('levelStart'))
+				.subscribe(() => {
+					this.reset();
+					this.start();
+				}),
+		);
 
-		this.owner.onGameEvent('gameOver', () => {
-			this.stop();
-		});
+		this.disposableStack.use(
+			this.levelController.levelEvent$
+				.pipe(filterEvent('levelComplete'))
+				.subscribe(() => {
+					this.stop();
+				}),
+		);
 	}
 
 	private formatTime(seconds: number): string {

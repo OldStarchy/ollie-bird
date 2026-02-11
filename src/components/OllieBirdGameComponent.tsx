@@ -5,13 +5,6 @@ import { GameContext } from './GameContext';
 import LevelPicker from './LevelPicker';
 import Layout from './layouts/Layout';
 
-declare global {
-	interface GameEventMap {
-		loadLevel: string;
-		getLevelData: (data: string) => void;
-	}
-}
-
 function OllieBirdGameComponent() {
 	const canvasRef = useRef<{ focus(): void }>(null);
 	const [game, setGame] = useState<OllieBirdGame>();
@@ -46,7 +39,6 @@ function OllieBirdGameComponent() {
 							}}
 						>
 							<LevelPicker
-								game={game}
 								onClose={() => canvasRef.current?.focus()}
 							/>
 						</div>

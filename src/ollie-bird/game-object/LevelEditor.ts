@@ -1,5 +1,7 @@
+import { Subject } from 'rxjs';
 import { CELL_SIZE, TAG_LEVEL_OBJECT, TAG_LEVEL_STRUCTURE } from '../const';
 import RectangleCollider from '../core/collider/RectangleCollider';
+import type { EventMap } from '../core/EventMap';
 import GameObject from '../core/GameObject';
 import type IGame from '../core/IGame';
 import Mouse from '../core/input/mouse/Mouse';
@@ -43,6 +45,11 @@ const editorModeLabels = {
 	[EditorMode.AddBaddie]: 'add baddie',
 } as const;
 
+export type LevelLoaderEvents = EventMap<{
+	levelStart: void;
+	levelComplete: void;
+}>;
+
 export default class LevelEditor extends GameObject {
 	static readonly defaultName: string = 'Level Editor';
 	layer = 200;
@@ -51,6 +58,9 @@ export default class LevelEditor extends GameObject {
 	gridSize: number = CELL_SIZE;
 
 	dragStart: { x: number; y: number } | null = null;
+
+	readonly #levelLoaderEvent$ = new Subject<LevelLoaderEvents>();
+	readonly levelEvent$ = this.#levelLoaderEvent$.asObservable();
 
 	protected override initialize(): void {
 		super.initialize();
@@ -68,11 +78,6 @@ export default class LevelEditor extends GameObject {
 				!LevelStore.instance.has(name) &&
 				LevelStore.instance.register(name, cls),
 		);
-
-		this.onGameEvent('getLevelData', (callback) =>
-			callback(this.getLevelData()),
-		);
-		this.onGameEvent('loadLevel', (data) => this.loadLevelData(data));
 
 		this.addModule(SequentialGateManager);
 		this.addModule(GameTimer);
@@ -127,7 +132,7 @@ export default class LevelEditor extends GameObject {
 		}
 
 		if (this.#restartKey.isPressed) {
-			this.game.restart();
+			this.restart();
 			this.dragStart = null;
 		}
 
@@ -248,6 +253,15 @@ export default class LevelEditor extends GameObject {
 
 		if (!this.#primaryMbutton.isDown) {
 			this.dragStart = null;
+		}
+	}
+
+	protected override afterUpdate(): void {
+		if (this.#birdDied) {
+			this.#birdDied = false;
+			if (this.game.findObjectsByType(Bird).length === 0) {
+				this.#levelLoaderEvent$.next({ type: 'levelComplete' });
+			}
 		}
 	}
 
@@ -447,5 +461,19 @@ export default class LevelEditor extends GameObject {
 		} catch (error) {
 			console.error('Error loading level data:', error);
 		}
+	}
+
+	restart() {
+		this.game.destroySome((obj) => obj.tags.has(TAG_LEVEL_OBJECT));
+		this.#levelLoaderEvent$.next({ type: 'levelStart' });
+	}
+
+	handleBirdReachedGoal(_bird: Bird) {
+		this.#levelLoaderEvent$.next({ type: 'levelComplete' });
+	}
+
+	#birdDied = false;
+	handleBirdDied(_bird: Bird) {
+		this.#birdDied = true;
 	}
 }

@@ -1,4 +1,4 @@
-import { Observable, Subject, Subscription } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 import contextCheckpoint from '../../contextCheckpoint';
 import CircleCollider from '../core/collider/CircleCollider';
 import type GameObject from '../core/GameObject';
@@ -25,19 +25,17 @@ export default class ObjectSelector extends Module {
 	get selectedObject(): GameObject | null {
 		return this.#selectedObject;
 	}
-	#selectedObjectSub = new Subscription();
+	#soDisposable: null | Disposable = null;
 	set selectedObject(value: GameObject | null) {
 		if (this.#selectedObject === value) return;
 
-		this.#selectedObjectSub.unsubscribe();
-		this.#selectedObjectSub = new Subscription();
+		this.#soDisposable?.[Symbol.dispose]();
 		this.#selectedObject = value;
+
 		if (value) {
-			this.#selectedObjectSub.add(
-				value.destroy$.subscribe(() => {
-					this.selectedObject = null;
-				}),
-			);
+			this.#soDisposable = value.destroy$.subscribe(() => {
+				this.selectedObject = null;
+			});
 		}
 		this.notify();
 	}

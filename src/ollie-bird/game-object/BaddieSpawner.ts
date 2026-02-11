@@ -1,4 +1,5 @@
 import { Subject } from 'rxjs';
+import { toss } from 'toss-expression';
 import { z } from 'zod';
 import onChange from '../../react-interop/onChange';
 import { ReactInterop } from '../../react-interop/ReactInterop';
@@ -8,9 +9,11 @@ import GameObject, {
 	type GameObjectView,
 } from '../core/GameObject';
 import type IGame from '../core/IGame';
+import filterEvent from '../core/rxjs/filterEvent';
 import type { ISerializable } from '../LevelStore';
 import LevelStore from '../LevelStore';
 import Baddie from './Baddie';
+import LevelEditor from './LevelEditor';
 
 export const baddieSchema = z.object({
 	startDirection: z.enum(['left', 'right']),
@@ -67,11 +70,22 @@ export default class BaddieSpawner
 
 	protected override initialize(): void {
 		this.tags.add(TAG_LEVEL_STRUCTURE);
-		this.onGameEvent('gameStart', () => {
-			const baddie = this.game.spawn(Baddie);
-			baddie.transform.position.copy(this.transform.position);
-			baddie.dir = this.startDirection === 'left' ? -1 : 1;
-		});
+
+		const levelController =
+			this.game.findObjectsByType(LevelEditor)[0] ??
+			toss(
+				new Error(`${BaddieSpawner.name} requires ${LevelEditor.name}`),
+			);
+
+		this.disposableStack.use(
+			levelController.levelEvent$
+				.pipe(filterEvent('levelStart'))
+				.subscribe(() => {
+					const baddie = this.game.spawn(Baddie);
+					baddie.transform.position.copy(this.transform.position);
+					baddie.dir = this.startDirection === 'left' ? -1 : 1;
+				}),
+		);
 	}
 
 	protected override render(context: CanvasRenderingContext2D) {

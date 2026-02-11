@@ -5,9 +5,10 @@ import htmlColors, { type HtmlColor } from '../../htmlColors';
 import onChange from '../../react-interop/onChange';
 import { ReactInterop } from '../../react-interop/ReactInterop';
 import seconds from '../../unit/time/seconds';
-import { CELL_SIZE, TAG_LEVEL_OBJECT } from '../const';
+import { CELL_SIZE } from '../const';
 import type GameObject from './GameObject';
 import type IGame from './IGame';
+import type { GameEvent } from './IGame';
 import Input from './input/Input';
 import Rect2 from './math/Rect2';
 import { round } from './math/round';
@@ -39,13 +40,8 @@ class BaseGame implements IGame, ReactInterop<BaseGameSettings> {
 	private readonly objects: GameObject[] = [];
 	private readonly canvases: Set<GameCanvas> = new Set();
 
-	readonly event$ = new Subject<
-		{
-			[K in keyof GameEventMap]: GameEventMap[K] extends void
-				? { type: K }
-				: { type: K; data: GameEventMap[K] };
-		}[keyof GameEventMap]
-	>();
+	readonly #event$ = new Subject<GameEvent>();
+	readonly event$ = this.#event$.asObservable();
 	readonly input = new Input();
 
 	constructor() {
@@ -136,19 +132,12 @@ class BaseGame implements IGame, ReactInterop<BaseGameSettings> {
 	}
 
 	start() {
-		this.tick();
-
 		this.preStart();
 
-		this.restart();
+		this.tick();
 	}
 
 	protected preStart(): void {}
-
-	restart() {
-		this.destroySome((obj) => obj.tags.has(TAG_LEVEL_OBJECT));
-		this.event$.next({ type: 'gameStart' });
-	}
 
 	stop() {
 		this.abortController.abort();

@@ -1,10 +1,20 @@
 import type GameObject from './GameObject';
+import type IGame from './IGame';
 import type IModular from './IModular';
+import type Transform2d from './modules/Transform2d';
 
 export default abstract class Module implements Disposable, IModular {
 	declare ['constructor']: Pick<typeof Module, keyof typeof Module>;
 
 	static readonly displayName: string = 'Module';
+
+	get transform(): Transform2d {
+		return this.owner.transform;
+	}
+
+	get game(): IGame {
+		return this.owner.game;
+	}
 
 	constructor(protected owner: GameObject) {}
 
@@ -16,7 +26,10 @@ export default abstract class Module implements Disposable, IModular {
 		this.#enabled = value;
 	}
 
-	public [Symbol.dispose](): void {}
+	protected disposableStack = new DisposableStack();
+	public [Symbol.dispose](): void {
+		this.disposableStack.dispose();
+	}
 
 	protected initialize(): void {}
 
