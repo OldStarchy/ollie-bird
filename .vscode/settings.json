@@ -1,5 +1,6 @@
 {
 	"githubIssues.issueBranchTitle": "feature/${issueNumber}/${sanitizedLowercaseIssueTitle}",
 	"githubIssues.workingIssueFormatScm": "fix: ${issueTitle} \n\nfixes: ${issueNumberLabel}",
-	"githubPullRequests.createDefaultBaseBranch": "repositoryDefault"
+	"githubPullRequests.createDefaultBaseBranch": "repositoryDefault",
+	"typescript.tsdk": "node_modules/typescript/lib"
 }
