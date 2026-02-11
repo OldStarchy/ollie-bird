@@ -14,7 +14,7 @@ export default class GameTimer extends Module {
 
 		// TODO(#47): move LevelEditor logic to module
 		throw new Error(
-			'GameTimer must be attached to a LevelEditor or its child',
+			`${GameTimer.displayName} must be attached to a ${LevelEditor.defaultName}`,
 		);
 	}
 

@@ -13,11 +13,11 @@
  * ```ts
  * type GameEvent =
  * 	| { type: 'eventName'; data: EventDataType }
- * 	| { type: 'eventName2'; data?: never };
+ * 	| { type: 'eventName2'; data?: void };
  * ```
  */
 export type EventMap<T> = {
 	[K in keyof T]: T[K] extends void
-		? { type: K; data?: never }
+		? { type: K; data?: void }
 		: { type: K; data: T[K] };
 }[keyof T];
