@@ -1,9 +1,6 @@
 import { z } from 'zod';
-import { ReactInterop } from '../../react-interop/ReactInterop';
 import GameObject from '../core/GameObject';
-import Rect2 from '../core/math/Rect2';
 import RectangleCollider2d from '../core/modules/colliders/RectangleCollider2d';
-import Size2d from '../core/modules/Size2d';
 
 export const rectangleTriggerDtoSchema = z.object({
 	$type: z.string(),
@@ -20,46 +17,18 @@ abstract class RectangleTrigger extends GameObject {
 
 	style: string | null = null;
 
-	abstract get serializationKey(): string;
-
-	readonly size: Size2d = this.addModule(Size2d, 0, 0);
-
-	get width(): number {
-		return this.size.width;
-	}
-	get height(): number {
-		return this.size.height;
-	}
-
-	set width(value: number) {
-		this.size.width = value;
-	}
-	set height(value: number) {
-		this.size.height = value;
-	}
-
-	protected collider = this.addModule(RectangleCollider2d, Rect2.one);
+	protected collider!: RectangleCollider2d;
 
 	protected override initialize(): void {
 		this.layer = 0;
-		this.size[ReactInterop.asObservable].subscribe(() =>
-			this.updateCollider(),
-		);
-		this.updateCollider();
-	}
-
-	private updateCollider(): void {
-		const collider = this.collider;
-		collider.x = 0;
-		collider.y = 0;
-		collider.width = this.width;
-		collider.height = this.height;
+		this.collider =
+			this.getModule(RectangleCollider2d) ??
+			this.addModule(RectangleCollider2d);
 	}
 
 	public setSize(width: number, height: number): void {
-		this.width = width;
-		this.height = height;
-		this.updateCollider();
+		this.collider.width = width;
+		this.collider.height = height;
 	}
 
 	protected override render(context: CanvasRenderingContext2D): void {
@@ -67,8 +36,8 @@ abstract class RectangleTrigger extends GameObject {
 			context.fillStyle = this.style;
 			context.fillRect(
 				...this.transform.position.xy,
-				this.width,
-				this.height,
+				this.collider.width,
+				this.collider.height,
 			);
 		}
 	}

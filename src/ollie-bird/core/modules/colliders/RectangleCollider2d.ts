@@ -1,4 +1,5 @@
 import z from 'zod';
+import { CELL_SIZE } from '../../../const';
 import RectangleCollider from '../../collider/RectangleCollider';
 import type GameObject from '../../GameObject';
 import type { Rect2Like } from '../../math/Rect2';
@@ -11,7 +12,9 @@ const rectangleCollider2dDtoSchema = z.object({
 	base: collider2dDtoSchema,
 	rect: z.tuple([z.number(), z.number(), z.number(), z.number()]),
 });
-type RectangleCollider2dDto = z.infer<typeof rectangleCollider2dDtoSchema>;
+export type RectangleCollider2dDto = z.infer<
+	typeof rectangleCollider2dDtoSchema
+>;
 
 export default class RectangleCollider2d
 	extends Collider2d
@@ -19,19 +22,10 @@ export default class RectangleCollider2d
 {
 	static readonly displayName = 'RectangleCollider2d';
 
-	accessor x: number;
-	accessor y: number;
-	accessor width: number;
-	accessor height: number;
-
-	constructor(owner: GameObject, rect: Rect2Like) {
-		super(owner);
-
-		this.x = rect.x;
-		this.y = rect.y;
-		this.width = rect.width;
-		this.height = rect.height;
-	}
+	accessor x: number = 0;
+	accessor y: number = 0;
+	accessor width: number = CELL_SIZE;
+	accessor height: number = CELL_SIZE;
 
 	override getCollider() {
 		const { x, y } = this.owner.transform.position;
@@ -41,6 +35,23 @@ export default class RectangleCollider2d
 			this.width,
 			this.height,
 		);
+	}
+
+	public setRect(rect: Rect2Like): void {
+		this.x = rect.x;
+		this.y = rect.y;
+		this.width = rect.width;
+		this.height = rect.height;
+	}
+
+	getWorldRect(): Rect2Like {
+		const { x, y } = this.owner.transform.position;
+		return {
+			x: x + this.x,
+			y: y + this.y,
+			width: this.width,
+			height: this.height,
+		};
 	}
 
 	override doGizmoPath(context: CanvasRenderingContext2D): void {
@@ -69,9 +80,10 @@ export default class RectangleCollider2d
 		}
 
 		const { base, rect } = parsed.data;
-		const [x, y, width, height] = rect;
 
-		const collider = context.gameObject.addModule(RectangleCollider2d, {
+		const [x, y, width, height] = rect;
+		const collider = context.gameObject.addModule(RectangleCollider2d);
+		collider.setRect({
 			x,
 			y,
 			width,

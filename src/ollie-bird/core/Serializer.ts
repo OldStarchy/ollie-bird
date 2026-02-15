@@ -6,7 +6,7 @@ export interface Serializable {
 }
 export const typedDtoSchema = z.object({
 	$type: z.string(),
-	data: z.unknown(),
+	data: z.unknown().optional(),
 });
 
 export type TypedDto = z.infer<typeof typedDtoSchema>;

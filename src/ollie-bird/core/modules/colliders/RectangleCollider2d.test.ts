@@ -4,7 +4,8 @@ import RectangleCollider2d from './RectangleCollider2d';
 
 describe('RectangleCollider2d', () => {
 	test('serialize', () => {
-		const collider = new RectangleCollider2d({} as GameObject, {
+		const collider = new RectangleCollider2d({} as GameObject);
+		collider.setRect({
 			x: 10,
 			y: 20,
 			width: 30,

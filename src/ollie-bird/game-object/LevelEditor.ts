@@ -13,11 +13,11 @@ import PlayerSpawner from '../modules/PlayerSpawner';
 import SequentialGateManager from '../modules/SequentialGateManager';
 import { Bindings } from '../OllieBirdGame';
 import { createPlayerSpawnerPrefab } from '../prefabs/createPlayerSpawnerPrefab';
+import createWallPrefab from '../prefabs/createWallPrefab';
 import BaddieSpawner from './BaddieSpawner';
 import Bird from './Bird';
 import Bomb from './Bomb';
 import Goal from './Goal';
-import Obstacle from './Obstacle';
 import type RectangleTrigger from './RectangleTrigger';
 import SequentialGate from './SequentialGate';
 
@@ -153,18 +153,15 @@ export default class LevelEditor extends GameObject {
 
 						switch (this.mode) {
 							case EditorMode.AddObstacle:
-								this.spawnCollider(
-									Obstacle,
-									rect.x,
-									rect.y,
-									rect.width,
-									rect.height,
-								);
+								GameObject.deserializePartial(
+									createWallPrefab(rect),
+									{ game: this.game },
+								).logErr('Failed to create wall');
 								break;
 							case EditorMode.DeleteThings: {
 								// Check collision with obstacles in the selection area
 								for (const obj of this.game
-									.findObjectsByType(Obstacle, SequentialGate)
+									.findObjectsByTag(TAG_LEVEL_STRUCTURE)
 									.filter(
 										Collider2d.collidingWith(
 											new RectangleCollider(
@@ -370,13 +367,9 @@ export default class LevelEditor extends GameObject {
 						typeof obs.width === 'number' &&
 						typeof obs.height === 'number'
 					) {
-						this.spawnCollider(
-							Obstacle,
-							obs.x,
-							obs.y,
-							obs.width,
-							obs.height,
-						);
+						GameObject.deserializePartial(createWallPrefab(obs), {
+							game: this.game,
+						}).logErr('Failed to create wall');
 					}
 				}
 			}

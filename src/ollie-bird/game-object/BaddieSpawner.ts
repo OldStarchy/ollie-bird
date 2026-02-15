@@ -103,7 +103,7 @@ export default class BaddieSpawner
 		baddie.tags.add(TAG_LEVEL_OBJECT);
 		baddie.tags.add(TAG_DEADLY);
 
-		baddie.addModule(RectangleCollider2d, {
+		baddie.addModule(RectangleCollider2d).setRect({
 			x: 0,
 			y: CELL_SIZE * 0.5,
 			width: CELL_SIZE,

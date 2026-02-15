@@ -24,6 +24,7 @@ export default class SequentialGate extends RectangleTrigger {
 	nextGate: SequentialGate | null = null;
 
 	protected override initialize(): void {
+		super.initialize();
 		this.layer = Layer.Items;
 
 		this.tags.add('sequential-gate');
@@ -57,6 +58,8 @@ export default class SequentialGate extends RectangleTrigger {
 	}
 
 	protected override render(context: CanvasRenderingContext2D): void {
+		const { x, y, width, height } = this.collider.getWorldRect();
+
 		const color = (() => {
 			switch (this.state) {
 				case 'unavailable':
@@ -69,14 +72,10 @@ export default class SequentialGate extends RectangleTrigger {
 		})();
 
 		context.fillStyle = color;
-		context.fillRect(
-			...this.transform.position.xy,
-			this.width,
-			this.height,
-		);
+		context.fillRect(x, y, width, height);
 
-		const cx = this.transform.position.x + this.width / 2;
-		const cy = this.transform.position.y + this.height / 2;
+		const cx = x + width / 2;
+		const cy = y + height / 2;
 
 		using _ = contextCheckpoint(context);
 		context.fillStyle = 'black';

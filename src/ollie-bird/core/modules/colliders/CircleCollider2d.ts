@@ -12,7 +12,7 @@ const circleCollider2dDtoSchema = z.object({
 	center: z.tuple([z.number(), z.number()]),
 	radius: z.number().min(0),
 });
-type CircleCollider2dDto = z.infer<typeof circleCollider2dDtoSchema>;
+export type CircleCollider2dDto = z.infer<typeof circleCollider2dDtoSchema>;
 
 export default class CircleCollider2d
 	extends Collider2d
