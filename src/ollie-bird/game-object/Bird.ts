@@ -2,7 +2,13 @@ import { toss } from 'toss-expression';
 import contextCheckpoint from '../../contextCheckpoint';
 import onChange from '../../react-interop/onChange';
 import type { BirdControls } from '../BirdControls';
-import { Layer, TAG_DEADLY, TAG_GOAL, TAG_LEVEL_OBJECT } from '../const';
+import {
+	Layer,
+	TAG_CHECKPOINT,
+	TAG_DEADLY,
+	TAG_GOAL,
+	TAG_LEVEL_OBJECT,
+} from '../const';
 import GameObject from '../core/GameObject';
 import type IGame from '../core/IGame';
 import Vec2 from '../core/math/Vec2';
@@ -11,11 +17,11 @@ import CircleCollider2d from '../core/modules/colliders/CircleCollider2d';
 import { Option } from '../core/monad/Option';
 import '../core/monad/OptionResultInterop';
 import Sprite from '../core/Sprite';
+import Checkpoint from '../modules/Checkpoint';
 import ExplosionBehavior from '../modules/ExplosionBehavior';
 import createExplosionPrefab from '../prefabs/createExplosionPrefab';
 import Resources from '../Resources';
 import LevelEditor from './LevelEditor';
-import SequentialGate from './SequentialGate';
 
 declare global {
 	interface GameEventMap {
@@ -171,7 +177,8 @@ class Bird extends GameObject {
 		}
 
 		const passedAllGates = !this.game
-			.findObjectsByType(SequentialGate)
+			.findObjectsByTag(TAG_CHECKPOINT)
+			.map((obj) => obj.getModule(Checkpoint)!)
 			.some((gate) => gate.state !== 'passed');
 		if (
 			passedAllGates &&

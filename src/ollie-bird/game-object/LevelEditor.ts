@@ -8,23 +8,21 @@ import {
 import RectangleCollider from '../core/collider/RectangleCollider';
 import type { EventMap } from '../core/EventMap';
 import GameObject from '../core/GameObject';
-import type IGame from '../core/IGame';
 import Mouse from '../core/input/mouse/Mouse';
 import Rect2 from '../core/math/Rect2';
 import Collider2d from '../core/modules/Collider2d';
+import CheckpointManager from '../modules/CheckpointManager';
 import GameTimer from '../modules/GameTimer';
 import ObjectSelector from '../modules/ObjectSelector';
 import PlayerSpawner from '../modules/PlayerSpawner';
-import SequentialGateManager from '../modules/SequentialGateManager';
 import { Bindings } from '../OllieBirdGame';
+import createCheckpointPrefab from '../prefabs/createCheckpointPrefab';
 import createGoalPrefab from '../prefabs/createGoalPrefab';
 import { createPlayerSpawnerPrefab } from '../prefabs/createPlayerSpawnerPrefab';
 import createWallPrefab from '../prefabs/createWallPrefab';
 import BaddieSpawner from './BaddieSpawner';
 import Bird from './Bird';
 import Bomb from './Bomb';
-import type RectangleTrigger from './RectangleTrigger';
-import SequentialGate from './SequentialGate';
 
 enum EditorMode {
 	SetSpawnPoint,
@@ -68,7 +66,7 @@ export default class LevelEditor extends GameObject {
 		super.initialize();
 		this.layer = 200;
 
-		this.addModule(SequentialGateManager);
+		this.addModule(CheckpointManager);
 		this.addModule(GameTimer);
 		this.addModule(ObjectSelector);
 	}
@@ -87,20 +85,6 @@ export default class LevelEditor extends GameObject {
 			x: Math.round(obj.x / this.gridSize) * this.gridSize,
 			y: Math.round(obj.y / this.gridSize) * this.gridSize,
 		};
-	}
-
-	private spawnCollider<T extends RectangleTrigger>(
-		type: new (game: IGame) => T,
-		x: number,
-		y: number,
-		width: number,
-		height: number,
-	): T {
-		const trigger = this.game.spawn(type);
-		trigger.transform.position.set(x, y);
-		trigger.setSize(width, height);
-
-		return trigger;
 	}
 
 	protected override update(): void {
@@ -183,13 +167,10 @@ export default class LevelEditor extends GameObject {
 							}
 
 							case EditorMode.AddGate:
-								this.spawnCollider(
-									SequentialGate,
-									rect.x,
-									rect.y,
-									rect.width,
-									rect.height,
-								);
+								GameObject.deserializePartial(
+									createCheckpointPrefab(rect),
+									{ game: this.game },
+								).logErr('Failed to create checkpoint');
 								break;
 
 							case EditorMode.SetGoal:
@@ -400,13 +381,10 @@ export default class LevelEditor extends GameObject {
 						typeof gate.width === 'number' &&
 						typeof gate.height === 'number'
 					) {
-						this.spawnCollider(
-							SequentialGate,
-							gate.x,
-							gate.y,
-							gate.width,
-							gate.height,
-						);
+						GameObject.deserializePartial(
+							createCheckpointPrefab(gate),
+							{ game: this.game },
+						).logErr('Failed to create checkpoint');
 					}
 				}
 			}

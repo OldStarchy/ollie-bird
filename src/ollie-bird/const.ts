@@ -20,6 +20,11 @@ export const TAG_DEADLY = 'deadly';
  */
 export const TAG_GOAL = 'goal';
 
+/**
+ * Objects with this tag are checkpoints that must be touched. Must have a Checkpoint module.
+ */
+export const TAG_CHECKPOINT = 'checkpoint';
+
 export enum Layer {
 	Background,
 	Default,

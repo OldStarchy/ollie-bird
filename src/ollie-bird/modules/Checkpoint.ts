@@ -1,34 +1,28 @@
 import { z } from 'zod';
 import contextCheckpoint from '../../contextCheckpoint';
-import { Layer, TAG_LEVEL_STRUCTURE } from '../const';
+import Module from '../core/Module';
 import Collider2d from '../core/modules/Collider2d';
-import Bird from './Bird';
-import RectangleTrigger, {
-	rectangleTriggerDtoSchema,
-} from './RectangleTrigger';
+import Bird from '../game-object/Bird';
 
-export const sequentialGateDtoSchema = rectangleTriggerDtoSchema.extend({
+export const checkpointDtoSchema = z.object({
 	sequenceNumber: z.number(),
 });
 
-export type SequentialGateDto = z.infer<typeof sequentialGateDtoSchema>;
+export type CheckpointDto = z.infer<typeof checkpointDtoSchema>;
 
-export default class SequentialGate extends RectangleTrigger {
-	static readonly defaultName: string = 'Sequential Gate';
+export default class Checkpoint extends Module {
+	static readonly defaultName: string = 'Checkpoint';
 
 	state: 'unavailable' | 'ready' | 'passed' = 'unavailable';
 
-	readonly serializationKey = 'SequentialGate';
+	accessor sequenceNumber: number = 0;
+	nextGate: Checkpoint | null = null;
 
-	sequenceNumber: number = 0;
-	nextGate: SequentialGate | null = null;
+	private collider!: Collider2d;
 
 	protected override initialize(): void {
 		super.initialize();
-		this.layer = Layer.Items;
-
-		this.tags.add('sequential-gate');
-		this.tags.add(TAG_LEVEL_STRUCTURE);
+		this.collider = this.getModule(Collider2d)!;
 	}
 
 	protected override update(): void {
@@ -58,24 +52,24 @@ export default class SequentialGate extends RectangleTrigger {
 	}
 
 	protected override render(context: CanvasRenderingContext2D): void {
-		const { x, y, width, height } = this.collider.getWorldRect();
-
-		const color = (() => {
+		const [bg, fg] = (() => {
 			switch (this.state) {
 				case 'unavailable':
-					return 'gray';
+					return [
+						'rgba(128, 128, 128, 0.3)',
+						'rgba(128, 128, 128, 1)',
+					];
 				case 'ready':
-					return 'green';
+					return ['rgba(0, 255, 0, 0.3)', 'rgba(0, 255, 0, 1)'];
 				case 'passed':
-					return 'yellow';
+					return ['rgba(255, 255, 0, 0.3)', 'rgba(255, 255, 0, 1)'];
 			}
 		})();
 
-		context.fillStyle = color;
-		context.fillRect(x, y, width, height);
-
-		const cx = x + width / 2;
-		const cy = y + height / 2;
+		const { x: cx, y: cy } = this.collider.getWorldCenter();
+		this.collider.widgetFillStyle = bg;
+		this.collider.widgetStrokeStyle = fg;
+		this.collider.doRenderGizmos(context);
 
 		using _ = contextCheckpoint(context);
 		context.fillStyle = 'black';
@@ -83,5 +77,9 @@ export default class SequentialGate extends RectangleTrigger {
 		context.textBaseline = 'middle';
 		context.font = '30px sans-serif';
 		context.fillText(this.sequenceNumber.toString(), cx, cy);
+	}
+
+	static {
+		Module.serializer.registerSerializationType('Checkpoint', this);
 	}
 }
