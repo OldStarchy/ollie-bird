@@ -9,11 +9,11 @@ import Vec2 from '../core/math/Vec2';
 import Collider2d from '../core/modules/Collider2d';
 import CircleCollider2d from '../core/modules/colliders/CircleCollider2d';
 import Sprite from '../core/Sprite';
+import Resources from '../Resources';
 import Explosion from './Explosion';
 import Goal from './Goal';
 import LevelEditor from './LevelEditor';
 import SequentialGate from './SequentialGate';
-import Resources from '../Resources';
 
 declare global {
 	interface GameEventMap {
@@ -22,25 +22,26 @@ declare global {
 }
 
 interface BirdSpriteSet {
-	idle: Sprite,
-	raise: Sprite,
-	spread: Sprite,
-	flap: Sprite,
-	dive: Sprite,
+	idle: Sprite;
+	raise: Sprite;
+	spread: Sprite;
+	flap: Sprite;
+	dive: Sprite;
 }
 
-function getBirdSpriteSet(sprites: [Sprite, Sprite, Sprite, Sprite, Sprite]): BirdSpriteSet {
+function getBirdSpriteSet(
+	sprites: [Sprite, Sprite, Sprite, Sprite, Sprite],
+): BirdSpriteSet {
 	return {
 		idle: sprites[0],
 		raise: sprites[1],
 		spread: sprites[2],
 		flap: sprites[3],
 		dive: sprites[4],
-	}
+	};
 }
 
 class Bird extends GameObject {
-
 	static readonly defaultName: string = 'Bird';
 	layer = Layer.Player;
 	public ySpeed: number = 0;
@@ -55,11 +56,11 @@ class Bird extends GameObject {
 
 	public getSpritesRight(): BirdSpriteSet {
 		return getBirdSpriteSet(Resources.birdRightSprites);
-	};
+	}
 
 	public getSpritesFront(): BirdSpriteSet {
 		return getBirdSpriteSet(Resources.birdFrontSprites);
-	};
+	}
 
 	private sprites: BirdSpriteSet;
 	private levelController: LevelEditor;
@@ -83,9 +84,9 @@ class Bird extends GameObject {
 
 	@onChange(
 		(self) =>
-		(self.controls = self.game.input.getSchema<BirdControls>(
-			`Player ${self.playerIndex + 1}`,
-		)),
+			(self.controls = self.game.input.getSchema<BirdControls>(
+				`Player ${self.playerIndex + 1}`,
+			)),
 	)
 	accessor playerIndex = 0;
 
@@ -127,7 +128,8 @@ class Bird extends GameObject {
 				this.ySpeed = Math.max(this.ySpeed, this.game.physics.gravity);
 			}
 
-			this.gravity = this.game.physics.gravity * (this.flapHoldTime / 0.3);
+			this.gravity =
+				this.game.physics.gravity * (this.flapHoldTime / 0.3);
 		}
 
 		if (this.#keyRight.isDown) {
@@ -243,32 +245,28 @@ class Bird extends GameObject {
 		// context.arc(...this.position.xy, 20, 0, Math.PI * 2);
 		// context.fill();
 
-		let spriteName = "idle"
+		let spriteName = 'idle';
 		let flip = false;
 
 		if (this.#keyRight.isDown) {
 			this.sprites = this.getSpritesRight();
-		}
-		else if (this.#keyLeft.isDown) {
+		} else if (this.#keyLeft.isDown) {
 			this.sprites = this.getSpritesRight();
 			flip = true;
-		}
-		else {
+		} else {
 			this.sprites = this.getSpritesFront();
 		}
 
 		if (this.flapFrameHold > 0) {
 			this.flapFrameHold -= this.game.secondsPerFrame;
-			spriteName = "flap";
-		}
-		else if (this.#keyFlap.isDown) {
-			spriteName = "raise";
+			spriteName = 'flap';
+		} else if (this.#keyFlap.isDown) {
+			spriteName = 'raise';
 			if (this.flapHoldTime > 0.15) {
-				spriteName = "spread";
+				spriteName = 'spread';
 			}
-		}
-		else if (this.ySpeed > 0) {
-			spriteName = "dive";
+		} else if (this.ySpeed > 0) {
+			spriteName = 'dive';
 		}
 
 		const sprite = this.sprites[spriteName as keyof typeof this.sprites];
