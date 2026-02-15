@@ -2,10 +2,17 @@ import type GameObject from './GameObject';
 import type IModular from './IModular';
 import Module from './Module';
 
-export default class ModuleCollection extends Module implements IModular {
+export default class ModuleCollection implements IModular {
 	private modules: Module[] = [];
+	//TODO(#49): modules => #modules, + internalAdd, + internalRemove
 
-	public *getModules<T extends Module>(
+	constructor(private owner: GameObject) {}
+
+	public getModules(): Module[] {
+		return this.modules.slice();
+	}
+
+	public *getModulesByType<T extends Module>(
 		type: abstract new (owner: GameObject) => T,
 	): Generator<T> {
 		for (const module of this.modules) {

@@ -1,14 +1,32 @@
+import z from 'zod';
 import contextCheckpoint from '../../../contextCheckpoint';
 import type ColliderShape from '../collider/ColliderShape';
 import type GameObject from '../GameObject';
 import Module from '../Module';
+import { Ok, Result } from '../monad/Result';
+import type { Serializable } from '../Serializer';
 
-export default abstract class Collider2d extends Module {
-	renderWidget: boolean = false;
-	widgetFillStyle: string = 'rgba(0, 255, 0, 0.3)';
-	widgetStrokeStyle: string = 'rgba(0, 255, 0, 1)';
-	widgetLineWidth: number = 1;
-	widgetLineDash: number[] = [];
+export const collider2dDtoSchema = z
+	.object({
+		renderWidget: z.boolean().optional(),
+		widgetFillStyle: z.string().optional(),
+		widgetStrokeStyle: z.string().optional(),
+		widgetLineWidth: z.number().min(0).optional(),
+		widgetLineDash: z.array(z.number().min(0)).optional(),
+	})
+	.optional();
+
+export type Collider2dDto = z.infer<typeof collider2dDtoSchema>;
+
+export default abstract class Collider2d
+	extends Module
+	implements Serializable
+{
+	accessor renderWidget: boolean = false;
+	accessor widgetFillStyle: string = 'rgba(0, 255, 0, 0.3)';
+	accessor widgetStrokeStyle: string = 'rgba(0, 255, 0, 1)';
+	accessor widgetLineWidth: number = 1;
+	accessor widgetLineDash: number[] = [];
 
 	abstract getCollider(): ColliderShape;
 
@@ -56,7 +74,7 @@ export default abstract class Collider2d extends Module {
 	): (obj: GameObject) => boolean {
 		return (obj: GameObject) => {
 			const colliderModule = obj
-				.getModules(Collider2d)
+				.getModulesByType(Collider2d)
 				.filter((m) => m.enabled);
 
 			for (const otherCollider of colliderModule) {
@@ -67,5 +85,45 @@ export default abstract class Collider2d extends Module {
 
 			return false;
 		};
+	}
+
+	static serializeBase(module: Collider2d): Collider2dDto {
+		return {
+			renderWidget: module.renderWidget,
+			widgetFillStyle: module.widgetFillStyle,
+			widgetStrokeStyle: module.widgetStrokeStyle,
+			widgetLineWidth: module.widgetLineWidth,
+			widgetLineDash: module.widgetLineDash,
+		};
+	}
+
+	static deserializeBase(
+		obj: unknown,
+		context: { collider: Collider2d },
+	): Result<void, string> {
+		const parsed = Result.zodParse(collider2dDtoSchema, obj);
+		if (parsed.isErr()) {
+			return parsed.mapErr(
+				(err) =>
+					`Invalid Collider2d base data: ${z.prettifyError(err)}`,
+			);
+		}
+
+		const data = parsed.unwrap();
+		const { collider } = context;
+
+		if (data) {
+			if (data.renderWidget) collider.renderWidget = data.renderWidget;
+			if (data.widgetFillStyle)
+				collider.widgetFillStyle = data.widgetFillStyle;
+			if (data.widgetStrokeStyle)
+				collider.widgetStrokeStyle = data.widgetStrokeStyle;
+			if (data.widgetLineWidth)
+				collider.widgetLineWidth = data.widgetLineWidth;
+			if (data.widgetLineDash)
+				collider.widgetLineDash = data.widgetLineDash;
+		}
+
+		return Ok(undefined);
 	}
 }

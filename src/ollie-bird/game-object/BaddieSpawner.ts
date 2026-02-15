@@ -13,15 +13,13 @@ import {
 	TAG_LEVEL_STRUCTURE,
 } from '../const';
 import GameObject, {
-	gameObjectViewSchema,
+	gameObjectSchema,
 	type GameObjectView,
 } from '../core/GameObject';
 import type IGame from '../core/IGame';
 import RectangleCollider2d from '../core/modules/colliders/RectangleCollider2d';
 import filterEvent from '../core/rxjs/filterEvent';
 import Sprite from '../core/Sprite';
-import type { ISerializable } from '../LevelStore';
-import LevelStore from '../LevelStore';
 import Animation from '../modules/Animation';
 import WalkBackAndForthBehavior from '../modules/WalkBackAndForthBehavior';
 import LevelEditor from './LevelEditor';
@@ -34,7 +32,7 @@ export type BaddieView = z.infer<typeof baddieSchema>;
 
 export const baddieSpawnerDtoSchema = z.object({
 	$type: z.string(),
-	...gameObjectViewSchema.shape,
+	...gameObjectSchema.shape,
 	...baddieSchema.shape,
 });
 
@@ -42,20 +40,17 @@ export type BaddieSpawnerDto = z.infer<typeof baddieSpawnerDtoSchema>;
 
 export default class BaddieSpawner
 	extends GameObject
-	implements ISerializable, ReactInterop<BaddieView>
+	implements ReactInterop<BaddieView>
 {
-	static readonly #serializationKey = 'BaddieSpawner';
 	static readonly defaultName: string = 'Baddie Spawner';
 
-	static {
-		LevelStore.instance.register(
-			BaddieSpawner.#serializationKey,
-			BaddieSpawner,
-		);
-	}
-	layer = Layer.Foreground;
-
 	static frames = [baddie1, baddie2].map((src) => new Sprite(src));
+
+	constructor(game: IGame) {
+		super(game);
+
+		this.layer = Layer.Foreground;
+	}
 
 	@onChange((self) => self.notifyChange())
 	accessor startDirection: 'left' | 'right' = 'left';
@@ -77,7 +72,7 @@ export default class BaddieSpawner
 		this.change.next();
 	}
 	[ReactInterop.schema] = z.object({
-		...gameObjectViewSchema.shape,
+		...gameObjectSchema.shape,
 		...baddieSchema.shape,
 	});
 	readonly [ReactInterop.asObservable] = this.change.asObservable();
@@ -142,23 +137,5 @@ export default class BaddieSpawner
 		context.setLineDash([5, 5]);
 		context.stroke();
 		context.setLineDash([]);
-	}
-
-	serialize(): BaddieSpawnerDto {
-		return {
-			$type: BaddieSpawner.#serializationKey,
-			...this[ReactInterop.get](),
-		};
-	}
-
-	static spawnDeserialize(game: IGame, data: unknown): BaddieSpawner {
-		const parseResult = baddieSpawnerDtoSchema.parse(data);
-
-		const { x, y } = parseResult.position;
-		const spawner = game.spawn(BaddieSpawner);
-		spawner.name = parseResult.name;
-		spawner.transform.position.set(x, y);
-		spawner.startDirection = parseResult.startDirection;
-		return spawner;
 	}
 }

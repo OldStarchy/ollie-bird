@@ -45,7 +45,6 @@ class Bird extends GameObject {
 	static readonly raiseToSpreadTime = 0.15;
 	static readonly defaultName: string = 'Bird';
 
-	layer = Layer.Player;
 	public ySpeed: number = 0;
 	private flapHoldTime = 0;
 	private gravity: number;
@@ -70,6 +69,7 @@ class Bird extends GameObject {
 		super(game);
 		this.tags.add(TAG_LEVEL_OBJECT);
 		this.gravity = game.physics.gravity;
+		this.layer = Layer.Player;
 
 		const collider = this.addModule(CircleCollider2d);
 		collider.radius = 20;

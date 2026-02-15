@@ -79,4 +79,8 @@ export default class GameTimer extends Module {
 		context.fillText(timeString, centerX, 30);
 		context.textAlign = 'left';
 	}
+
+	static {
+		Module.serializer.registerSerializationType('GameTimer', this);
+	}
 }

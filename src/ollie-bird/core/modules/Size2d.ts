@@ -3,6 +3,8 @@ import z from 'zod';
 import { ReactInterop } from '../../../react-interop/ReactInterop';
 import GameObject from '../GameObject';
 import Module from '../Module';
+import type { Serializable } from '../Serializer';
+import { Err, Ok, Result } from '../monad/Result';
 
 const size2dSchema = z.object({
 	width: z.coerce.number().min(0),
@@ -11,7 +13,13 @@ const size2dSchema = z.object({
 
 export type Size2dView = z.infer<typeof size2dSchema>;
 
-export default class Size2d extends Module implements ReactInterop<Size2dView> {
+const size2dDtoSchema = z.tuple([z.number().min(0), z.number().min(0)]);
+type Size2dDto = z.infer<typeof size2dDtoSchema>;
+
+export default class Size2d
+	extends Module
+	implements ReactInterop<Size2dView>, Serializable
+{
 	static readonly displayName = 'Size2d';
 
 	accessor width: number;
@@ -40,5 +48,28 @@ export default class Size2d extends Module implements ReactInterop<Size2dView> {
 	}
 	get [ReactInterop.asObservable](): Observable<void> {
 		return this.#change$.asObservable();
+	}
+
+	override serialize(): Size2dDto {
+		return [this.width, this.height];
+	}
+
+	static deserialize(
+		obj: unknown,
+		context: { gameObject: GameObject },
+	): Result<Size2d, string> {
+		const parsed = size2dDtoSchema.safeParse(obj);
+
+		if (!parsed.success) {
+			return Err(`Invalid Size2d data: ${parsed.error.message}`);
+		}
+
+		const [width, height] = parsed.data;
+
+		return Ok(context.gameObject.addModule(Size2d, width, height));
+	}
+
+	static {
+		Module.serializer.registerSerializationType('Size2d', this);
 	}
 }

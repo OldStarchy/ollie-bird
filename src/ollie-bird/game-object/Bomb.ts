@@ -3,18 +3,14 @@ import { toss } from 'toss-expression';
 import { z } from 'zod';
 import { CELL_SIZE, TAG_DEADLY, TAG_LEVEL_STRUCTURE } from '../const';
 import GameObject from '../core/GameObject';
-import type IGame from '../core/IGame';
 import Collider2d from '../core/modules/Collider2d';
 import CircleCollider2d from '../core/modules/colliders/CircleCollider2d';
 import filterEvent from '../core/rxjs/filterEvent';
-import type { ISerializable } from '../LevelStore';
-import LevelStore from '../LevelStore';
 import Animation from '../modules/Animation';
 import Resources from '../Resources';
 import Bird from './Bird';
 import LevelEditor from './LevelEditor';
 
-const BombSerializationKey = 'Bomb';
 export const bombDtoSchema = z.object({
 	$type: z.string(),
 	x: z.number(),
@@ -23,11 +19,8 @@ export const bombDtoSchema = z.object({
 
 export type BombDto = z.infer<typeof bombDtoSchema>;
 
-export default class Bomb extends GameObject implements ISerializable {
+export default class Bomb extends GameObject {
 	static readonly defaultName: string = 'Bomb';
-	static {
-		LevelStore.instance.register(BombSerializationKey, Bomb);
-	}
 
 	private anim!: Animation;
 	private collider!: CircleCollider2d;
@@ -124,22 +117,5 @@ export default class Bomb extends GameObject implements ISerializable {
 				this.anim.paused = false;
 			}
 		}
-	}
-
-	serialize(): BombDto {
-		return {
-			$type: BombSerializationKey,
-			x: this.transform.position.x,
-			y: this.transform.position.y,
-		};
-	}
-
-	static spawnDeserialize(game: IGame, data: unknown): Bomb {
-		const parseResult = bombDtoSchema.parse(data);
-
-		const { x, y } = parseResult;
-		const bomb = game.spawn(Bomb);
-		bomb.transform.position.set(x, y);
-		return bomb;
 	}
 }

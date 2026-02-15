@@ -3,10 +3,14 @@ import GameObject from '../core/GameObject';
 
 export default class Explosion extends GameObject {
 	static readonly defaultName: string = 'Explosion';
-	layer = Layer.Foreground;
+
 	public radius: number = 0;
 	public maxRadius: number = 100;
 	public expansionRate: number = 1;
+
+	protected override initialize(): void {
+		this.layer = Layer.Foreground;
+	}
 
 	protected override update(): void {
 		if (this.radius < this.maxRadius) {

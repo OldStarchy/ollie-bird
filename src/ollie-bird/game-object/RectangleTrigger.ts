@@ -4,7 +4,6 @@ import GameObject from '../core/GameObject';
 import Rect2 from '../core/math/Rect2';
 import RectangleCollider2d from '../core/modules/colliders/RectangleCollider2d';
 import Size2d from '../core/modules/Size2d';
-import type { ISerializable } from '../LevelStore';
 
 export const rectangleTriggerDtoSchema = z.object({
 	$type: z.string(),
@@ -16,9 +15,9 @@ export const rectangleTriggerDtoSchema = z.object({
 
 export type RectangleTriggerDto = z.infer<typeof rectangleTriggerDtoSchema>;
 
-abstract class RectangleTrigger extends GameObject implements ISerializable {
+abstract class RectangleTrigger extends GameObject {
 	static readonly defaultName: string = 'Rectangle Trigger';
-	layer = 0;
+
 	style: string | null = null;
 
 	abstract get serializationKey(): string;
@@ -42,6 +41,7 @@ abstract class RectangleTrigger extends GameObject implements ISerializable {
 	protected collider = this.addModule(RectangleCollider2d, Rect2.one);
 
 	protected override initialize(): void {
+		this.layer = 0;
 		this.size[ReactInterop.asObservable].subscribe(() =>
 			this.updateCollider(),
 		);
@@ -71,16 +71,6 @@ abstract class RectangleTrigger extends GameObject implements ISerializable {
 				this.height,
 			);
 		}
-	}
-
-	serialize(): RectangleTriggerDto {
-		return {
-			$type: this.serializationKey,
-			x: this.transform.position.x,
-			y: this.transform.position.y,
-			width: this.width,
-			height: this.height,
-		};
 	}
 }
 

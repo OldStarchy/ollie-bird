@@ -9,7 +9,7 @@ export default function SelectedObjectInspector() {
 
 	const modules = useMemo(() => {
 		if (!selectedObject) return [];
-		return selectedObject.getModules(Module).toArray();
+		return selectedObject.getModulesByType(Module).toArray();
 	}, [selectedObject]);
 
 	if (!selectedObject) {

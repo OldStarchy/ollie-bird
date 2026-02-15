@@ -7,10 +7,6 @@ import type IGame from '../core/IGame';
 import Mouse from '../core/input/mouse/Mouse';
 import Rect2 from '../core/math/Rect2';
 import Collider2d from '../core/modules/Collider2d';
-import LevelStore, {
-	type ISerializable,
-	type SerializableClass,
-} from '../LevelStore';
 import GameTimer from '../modules/GameTimer';
 import ObjectSelector from '../modules/ObjectSelector';
 import SequentialGateManager from '../modules/SequentialGateManager';
@@ -52,7 +48,7 @@ export type LevelLoaderEvents = EventMap<{
 
 export default class LevelEditor extends GameObject {
 	static readonly defaultName: string = 'Level Editor';
-	layer = 200;
+
 	mode: EditorMode = EditorMode.SetSpawnPoint;
 
 	gridSize: number = CELL_SIZE;
@@ -64,20 +60,7 @@ export default class LevelEditor extends GameObject {
 
 	protected override initialize(): void {
 		super.initialize();
-
-		// Register all serializable types (only if not already registered)
-		const types: Array<[string, SerializableClass]> = [
-			['SpawnPoint', SpawnPoint],
-			['Goal', Goal],
-			['Obstacle', Obstacle],
-			['SequentialGate', SequentialGate],
-			['BaddieSpawner', BaddieSpawner],
-		];
-		types.forEach(
-			([name, cls]) =>
-				!LevelStore.instance.has(name) &&
-				LevelStore.instance.register(name, cls),
-		);
+		this.layer = 200;
 
 		this.addModule(SequentialGateManager);
 		this.addModule(GameTimer);
@@ -313,13 +296,7 @@ export default class LevelEditor extends GameObject {
 	getLevelData(): string {
 		const objects = this.game
 			.findObjectsByTag(TAG_LEVEL_STRUCTURE)
-			.map((obj) => {
-				if ('serialize' in obj && typeof obj.serialize === 'function') {
-					return (obj as ISerializable).serialize();
-				}
-				console.warn('Object does not implement serialize:', obj);
-				return null;
-			})
+			.map((obj) => obj.serialize())
 			.filter((obj) => obj !== null);
 
 		return JSON.stringify(
@@ -368,22 +345,14 @@ export default class LevelEditor extends GameObject {
 			// Handle new format with $type field
 			if (Array.isArray(parsed.objects)) {
 				for (const obj of parsed.objects) {
-					if (
-						typeof obj === 'object' &&
-						obj !== null &&
-						'$type' in obj
-					) {
-						const Class = LevelStore.instance.get(
-							obj.$type as string,
-						);
-						if (Class && 'spawnDeserialize' in Class) {
-							Class.spawnDeserialize(this.game, obj);
-						} else {
-							console.warn(
-								`Unknown or unregistered type: ${obj.$type}`,
-							);
-						}
-					}
+					GameObject.deserializePartial(obj, {
+						game: this.game,
+					}).inspectErr((err) =>
+						console.error(
+							'Failed to deserialize object:',
+							err.error,
+						),
+					);
 				}
 				return;
 			}

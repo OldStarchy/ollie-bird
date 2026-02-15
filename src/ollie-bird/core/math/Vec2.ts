@@ -36,6 +36,10 @@ export default class Vec2 implements Vec2Like, ReactInterop<Vec2Like> {
 	get xy(): [number, number] {
 		return [this.#x, this.#y];
 	}
+	set xy(value: [number, number]) {
+		[this.#x, this.#y] = value;
+		this.notify();
+	}
 
 	constructor(x: number, y: number) {
 		this.#x = x;

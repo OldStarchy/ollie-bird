@@ -1,7 +1,6 @@
 import { z } from 'zod';
 import contextCheckpoint from '../../contextCheckpoint';
 import { Layer, TAG_LEVEL_STRUCTURE } from '../const';
-import type IGame from '../core/IGame';
 import Collider2d from '../core/modules/Collider2d';
 import Bird from './Bird';
 import RectangleTrigger, {
@@ -17,8 +16,6 @@ export type SequentialGateDto = z.infer<typeof sequentialGateDtoSchema>;
 export default class SequentialGate extends RectangleTrigger {
 	static readonly defaultName: string = 'Sequential Gate';
 
-	layer = Layer.Items;
-
 	state: 'unavailable' | 'ready' | 'passed' = 'unavailable';
 
 	readonly serializationKey = 'SequentialGate';
@@ -27,6 +24,8 @@ export default class SequentialGate extends RectangleTrigger {
 	nextGate: SequentialGate | null = null;
 
 	protected override initialize(): void {
+		this.layer = Layer.Items;
+
 		this.tags.add('sequential-gate');
 		this.tags.add(TAG_LEVEL_STRUCTURE);
 	}
@@ -85,23 +84,5 @@ export default class SequentialGate extends RectangleTrigger {
 		context.textBaseline = 'middle';
 		context.font = '30px sans-serif';
 		context.fillText(this.sequenceNumber.toString(), cx, cy);
-	}
-
-	override serialize(): SequentialGateDto {
-		return {
-			...super.serialize(),
-			sequenceNumber: this.sequenceNumber,
-		};
-	}
-
-	static spawnDeserialize(game: IGame, data: unknown): SequentialGate {
-		const parseResult = sequentialGateDtoSchema.parse(data);
-
-		const { x, y, width, height, sequenceNumber } = parseResult;
-		const gate = game.spawn(SequentialGate);
-		gate.transform.position.set(x, y);
-		gate.setSize(width, height);
-		gate.sequenceNumber = sequenceNumber;
-		return gate;
 	}
 }

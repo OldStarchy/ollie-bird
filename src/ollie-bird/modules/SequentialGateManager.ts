@@ -33,4 +33,11 @@ export default class SequentialGateManager extends Module {
 
 		this.disposableStack.use(subr);
 	}
+
+	static {
+		Module.serializer.registerSerializationType(
+			'SequentialGateManager',
+			this,
+		);
+	}
 }

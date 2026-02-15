@@ -2,11 +2,8 @@ import { toss } from 'toss-expression';
 import { z } from 'zod';
 import { ReactInterop } from '../../react-interop/ReactInterop';
 import { Layer, TAG_LEVEL_STRUCTURE } from '../const';
-import GameObject, { gameObjectViewSchema } from '../core/GameObject';
-import type IGame from '../core/IGame';
+import GameObject, { gameObjectSchema } from '../core/GameObject';
 import filterEvent from '../core/rxjs/filterEvent';
-import type { ISerializable } from '../LevelStore';
-import LevelStore from '../LevelStore';
 import Bird from './Bird';
 import LevelEditor from './LevelEditor';
 
@@ -20,7 +17,7 @@ export const spawnPointDtoSchema = z.object({
 export type SpawnPointDto = z.infer<typeof spawnPointDtoSchema>;
 
 const spawnPointViewSchema = z.object({
-	...gameObjectViewSchema.shape,
+	...gameObjectSchema.shape,
 	playerIndex: z.coerce.number().int().min(0).max(1),
 });
 
@@ -30,10 +27,9 @@ export const SpawnPointSerializationKey = 'SpawnPoint';
 
 export default class SpawnPoint
 	extends GameObject
-	implements ISerializable, ReactInterop<SpawnPointView>
+	implements ReactInterop<SpawnPointView>
 {
 	static readonly defaultName: string = 'Spawn Point';
-	layer = Layer.Foreground;
 
 	accessor playerIndex: 0 | 1 = 0;
 
@@ -54,11 +50,8 @@ export default class SpawnPoint
 
 	readonly [ReactInterop.schema] = spawnPointViewSchema;
 
-	static {
-		LevelStore.instance.register(SpawnPointSerializationKey, SpawnPoint);
-	}
-
 	protected override initialize() {
+		this.layer = Layer.Foreground;
 		const levelController =
 			this.game.findObjectsByType(LevelEditor)[0] ??
 			toss(new Error(`${SpawnPoint.name} requires ${LevelEditor.name}`));
@@ -87,24 +80,5 @@ export default class SpawnPoint
 		context.lineWidth = 2;
 		context.stroke();
 		context.setLineDash([]);
-	}
-
-	serialize(): SpawnPointDto {
-		return {
-			$type: SpawnPointSerializationKey,
-			x: this.transform.position.x,
-			y: this.transform.position.y,
-			playerIndex: this.playerIndex,
-		};
-	}
-
-	static spawnDeserialize(game: IGame, data: unknown): SpawnPoint {
-		const parseResult = spawnPointDtoSchema.parse(data);
-
-		const { x, y, playerIndex } = parseResult;
-		const spawnPoint = game.spawn(SpawnPoint);
-		spawnPoint.transform.position.set(x, y);
-		spawnPoint.playerIndex = playerIndex as 0 | 1;
-		return spawnPoint;
 	}
 }

@@ -10,6 +10,7 @@ import Button from '../Button';
 import useGameContext from '../GameContext';
 import ObjectList from '../inspector/ObjectList';
 import SelectedObjectInspector from '../inspector/SelectedObjectInspector';
+import { useSelectedObject } from '../inspector/useSelectedObject';
 import Rule from '../Rule';
 import Spoiler from '../Spoiler';
 import { LayoutContext } from './LayoutContext';
@@ -116,6 +117,8 @@ export default function Layout({
 						<Spoiler title="Resources">
 							<ResourcesPanel />
 						</Spoiler>
+
+						<SerializedView />
 					</aside>
 				)}
 				<div
@@ -159,5 +162,30 @@ export default function Layout({
 				)}
 			</div>
 		</LayoutContext.Provider>
+	);
+}
+
+function SerializedView() {
+	const [obj, _] = useSelectedObject();
+
+	if (!obj) {
+		return null;
+	}
+
+	const serialized = obj.serialize();
+	return (
+		<div style={{ marginTop: '1rem' }}>
+			<p>Serialized Data:</p>
+			<pre
+				style={{
+					padding: '0.5rem',
+					borderRadius: '4px',
+					maxHeight: '200px',
+					overflowY: 'auto',
+				}}
+			>
+				{JSON.stringify(serialized, null, 2)}
+			</pre>
+		</div>
 	);
 }

@@ -7,17 +7,43 @@ import type IModular from './IModular';
 import { vec2Schema } from './math/Vec2';
 import Module from './Module';
 import ModuleCollection from './ModuleCollection';
-import Transform2d from './modules/Transform2d';
+import Transform2d, { transform2dDtoSchema } from './modules/Transform2d';
+import { Err, Ok, Result } from './monad/Result';
+import {
+	typedDtoSchema,
+	type PartialDeserializer,
+	type Serializable,
+} from './Serializer';
 
-export const gameObjectViewSchema = z.object({
+export const gameObjectSchema = z.object({
 	name: z.string().meta({ title: 'Name' }),
 	position: vec2Schema.meta({ title: 'Position' }),
+	tags: z.string().array().meta({ title: 'Tags' }),
+	layer: z.number().meta({ title: 'Layer' }),
+	modules: z
+		.object({
+			$type: z.string(),
+			data: z.unknown(),
+		})
+		.array()
+		.meta({ title: 'Modules' }),
 });
 
-export type GameObjectView = z.infer<typeof gameObjectViewSchema>;
+export type GameObjectView = z.infer<typeof gameObjectSchema>;
+
+export const gameObjectDtoSchemaV1 = z.object({
+	version: z.literal(1),
+	name: z.string(),
+	tags: z.string().array(),
+	layer: z.number(),
+	transform: transform2dDtoSchema,
+	modules: typedDtoSchema.array(),
+});
+
+export type GameObjectDto = z.infer<typeof gameObjectDtoSchemaV1>;
 
 export default class GameObject
-	implements IModular, Disposable, ReactInterop<GameObjectView>
+	implements IModular, Disposable, ReactInterop<GameObjectView>, Serializable
 {
 	declare ['constructor']: Pick<typeof GameObject, keyof typeof GameObject>;
 
@@ -26,8 +52,12 @@ export default class GameObject
 	protected disposableStack = new DisposableStack();
 	private modules: ModuleCollection;
 
-	layer: number = 0;
-	tags: Set<string | symbol> = new Set();
+	@onChange((self) => self.notify())
+	accessor layer: number = 0;
+	@onChange((self) => self.notify())
+	accessor tags: Set<string> = new Set();
+	@onChange((self) => self.notify())
+	accessor name: string;
 
 	readonly transform: Transform2d;
 	readonly id: string = Math.random().toString(16).slice(2);
@@ -39,9 +69,6 @@ export default class GameObject
 		this.#change$.next();
 	}
 
-	@onChange((self) => self.notify())
-	accessor name: string;
-
 	constructor(readonly game: IGame) {
 		this.name = this.constructor.defaultName;
 		this.modules = new ModuleCollection(this);
@@ -50,10 +77,10 @@ export default class GameObject
 		this.transform = this.addModule(Transform2d);
 	}
 
-	getModules<T extends Module>(
+	getModulesByType<T extends Module>(
 		type: abstract new (owner: GameObject) => T,
 	): IteratorObject<T> {
-		return this.modules.getModules(type);
+		return this.modules.getModulesByType(type);
 	}
 	getModule<T extends Module>(
 		type: abstract new (owner: GameObject) => T,
@@ -157,6 +184,26 @@ export default class GameObject
 		return {
 			name: this.name,
 			position: this.transform.position[ReactInterop.get](),
+			tags: Array.from(this.tags),
+			layer: this.layer,
+			modules: [],
+			// this.modules
+			// 	.getModules()
+			// 	.map((module) => module[ReactInterop.get]()),
+		};
+	}
+
+	serialize(): GameObjectDto {
+		return {
+			version: 1,
+			name: this.name,
+			tags: this.tags.values().toArray(),
+			layer: this.layer,
+			transform: this.transform.serialize(),
+			modules: this.modules
+				.getModules()
+				.filter((module) => module !== this.transform)
+				.map((m) => Module.serializer.serialize(m)),
 		};
 	}
 
@@ -168,6 +215,66 @@ export default class GameObject
 		this.notify();
 	}
 
-	readonly [ReactInterop.schema] = gameObjectViewSchema;
+	static deserializePartial(
+		obj: unknown,
+		context: { game: IGame },
+	): Result<GameObject, { result?: GameObject; error: string }> {
+		const parseResult = gameObjectDtoSchemaV1.safeParse(obj);
+
+		if (!parseResult.success) {
+			return Err({
+				error: `Invalid GameObject data: ${z.prettifyError(parseResult.error)}`,
+			});
+		}
+
+		const parsed = parseResult.data;
+		if (parsed.version !== 1) {
+			return Err({
+				error: `Unsupported GameObject version: ${parsed.version}`,
+			});
+		}
+
+		const gameObject = context.game.spawn(GameObject);
+
+		gameObject.name = parsed.name;
+		gameObject.tags = new Set(parsed.tags);
+		gameObject.layer = parsed.layer;
+
+		const errors: string[] = [];
+
+		Transform2d.deserialize(parsed.transform, {
+			gameObject,
+		})
+			.context('Should not occur, transform already validated by zod')
+			.unwrap();
+
+		for (const moduleDto of parsed.modules) {
+			const moduleResult = Module.serializer.deserialize(moduleDto, {
+				gameObject,
+			});
+
+			moduleResult.inspectErr((err) => {
+				errors.push(err);
+			});
+		}
+
+		if (errors.length > 0) {
+			return Err({
+				error: `Error loading Modules:\n${errors.join('\n')}`,
+				result: gameObject,
+			});
+		}
+
+		return Ok(gameObject);
+	}
+
+	readonly [ReactInterop.schema] = gameObjectSchema;
 	readonly [ReactInterop.asObservable] = this.change$;
 }
+
+// @ts-expect-error
+type _typeCheck = AssertTrue<
+	typeof GameObject extends PartialDeserializer<GameObject, { game: IGame }>
+		? true
+		: false
+>;

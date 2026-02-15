@@ -1,7 +1,5 @@
 import { CELL_SIZE, TAG_DEADLY, TAG_LEVEL_STRUCTURE } from '../const';
-import RectangleTrigger, {
-	rectangleTriggerDtoSchema,
-} from './RectangleTrigger';
+import RectangleTrigger from './RectangleTrigger';
 
 import wallBottomLeft from '../../assets/wall-bottom-left.png';
 import wallBottomRight from '../../assets/wall-bottom-right.png';
@@ -12,7 +10,6 @@ import wallRight from '../../assets/wall-right.png';
 import wallTopLeft from '../../assets/wall-top-left.png';
 import wallTopRight from '../../assets/wall-top-right.png';
 import wallTop from '../../assets/wall-top.png';
-import type IGame from '../core/IGame';
 
 class Obstacle extends RectangleTrigger {
 	static readonly defaultName: string = 'Obstacle';
@@ -109,16 +106,6 @@ class Obstacle extends RectangleTrigger {
 				);
 			}
 		}
-	}
-
-	static spawnDeserialize(game: IGame, data: unknown): Obstacle {
-		const parseResult = rectangleTriggerDtoSchema.parse(data);
-
-		const { x, y, width, height } = parseResult;
-		const obstacle = game.spawn(Obstacle);
-		obstacle.transform.position.set(x, y);
-		obstacle.setSize(width, height);
-		return obstacle;
 	}
 }
 

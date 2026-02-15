@@ -55,3 +55,5 @@ type ClassAccessorDecorator<This, Value> = {
 		context: ClassAccessorDecoratorContext<This, Value>,
 	): void | ClassAccessorDecoratorResult<This, Value>;
 };
+
+type AssertTrue<T extends true> = T;
