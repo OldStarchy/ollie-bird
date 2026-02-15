@@ -1,7 +1,4 @@
 import { toss } from 'toss-expression';
-import birdDown from '../../assets/bird-down.png';
-import birdRight from '../../assets/bird-right.png';
-import birdUp from '../../assets/bird-up.png';
 import contextCheckpoint from '../../contextCheckpoint';
 import onChange from '../../react-interop/onChange';
 import type { BirdControls } from '../BirdControls';
