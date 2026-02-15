@@ -44,6 +44,10 @@ export default class ModuleCollection implements IModular {
 			...args,
 		) as InstanceType<Constructor>;
 		this.modules.push(module);
+
+		if (this.#initialized) {
+			module['initialize']();
+		}
 		return module;
 	}
 
@@ -67,7 +71,9 @@ export default class ModuleCollection implements IModular {
 		});
 	}
 
+	#initialized = false;
 	protected initialize(): void {
+		this.#initialized = true;
 		this.each((module) => {
 			module['initialize']();
 		});

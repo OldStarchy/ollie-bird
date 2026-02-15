@@ -9,8 +9,10 @@ import Rect2 from '../core/math/Rect2';
 import Collider2d from '../core/modules/Collider2d';
 import GameTimer from '../modules/GameTimer';
 import ObjectSelector from '../modules/ObjectSelector';
+import PlayerSpawner from '../modules/PlayerSpawner';
 import SequentialGateManager from '../modules/SequentialGateManager';
 import { Bindings } from '../OllieBirdGame';
+import { createPlayerSpawnerPrefab } from '../prefabs/createPlayerSpawnerPrefab';
 import BaddieSpawner from './BaddieSpawner';
 import Bird from './Bird';
 import Bomb from './Bomb';
@@ -18,7 +20,6 @@ import Goal from './Goal';
 import Obstacle from './Obstacle';
 import type RectangleTrigger from './RectangleTrigger';
 import SequentialGate from './SequentialGate';
-import SpawnPoint from './SpawnPoint';
 
 enum EditorMode {
 	SetSpawnPoint,
@@ -211,13 +212,15 @@ export default class LevelEditor extends GameObject {
 					const player = this.#ctrlKey.isDown ? 1 : 0;
 
 					this.game
-						.findObjectsByType(SpawnPoint)
-						.filter((sp) => sp.playerIndex === player)
-						.forEach((obj) => obj.destroy());
+						.findObjectsByTag('player-spawner')
+						.map((obj) => obj.getModule(PlayerSpawner))
+						.filter((sp) => sp?.playerIndex === player)
+						.forEach((sp) => sp?.owner.destroy());
 
-					const sp = this.game.spawn(SpawnPoint);
-					sp.transform.position.copy(mPos);
-					sp.playerIndex = player;
+					GameObject.deserializePartial(
+						createPlayerSpawnerPrefab(mPos, player),
+						{ game: this.game },
+					).logErr('Failed to create player spawner');
 				}
 				break;
 			case EditorMode.CreateBomb:
@@ -422,9 +425,10 @@ export default class LevelEditor extends GameObject {
 					typeof parsed.spawn.x === 'number' &&
 					typeof parsed.spawn.y === 'number'
 				) {
-					this.game
-						.spawn(SpawnPoint)
-						.transform.position.set(parsed.spawn.x, parsed.spawn.y);
+					GameObject.deserializePartial(
+						createPlayerSpawnerPrefab(parsed.spawn, 0),
+						{ game: this.game },
+					).logErr('Failed to create player spawner');
 				}
 			}
 		} catch (error) {

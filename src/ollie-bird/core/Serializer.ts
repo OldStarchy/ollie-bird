@@ -35,6 +35,16 @@ export default class Serializer<
 		this.#keyToTypeMap.set(key, type);
 	}
 
+	keyFor(type: Type): string {
+		const key = this.#typeToKeyMap.get(type);
+		if (!key) {
+			throw new Error(
+				`Type ${type.name} is not registered in the serializer.`,
+			);
+		}
+		return key;
+	}
+
 	serialize(serializable: Serializable): TypedDto {
 		const type = serializable.constructor as Type;
 		const key = this.#typeToKeyMap.get(type);

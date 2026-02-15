@@ -21,7 +21,7 @@ export default abstract class Module
 		return this.owner.game;
 	}
 
-	constructor(protected owner: GameObject) {}
+	constructor(readonly owner: GameObject) {}
 
 	#enabled = true;
 	public get enabled() {
