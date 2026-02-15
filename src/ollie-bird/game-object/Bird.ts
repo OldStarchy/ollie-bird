@@ -8,9 +8,12 @@ import type IGame from '../core/IGame';
 import Vec2 from '../core/math/Vec2';
 import Collider2d from '../core/modules/Collider2d';
 import CircleCollider2d from '../core/modules/colliders/CircleCollider2d';
+import { Option } from '../core/monad/Option';
+import '../core/monad/OptionResultInterop';
 import Sprite from '../core/Sprite';
+import ExplosionBehavior from '../modules/ExplosionBehavior';
+import createExplosionPrefab from '../prefabs/createExplosionPrefab';
 import Resources from '../Resources';
-import Explosion from './Explosion';
 import LevelEditor from './LevelEditor';
 import SequentialGate from './SequentialGate';
 
@@ -225,11 +228,17 @@ class Bird extends GameObject {
 		maxRadius: number,
 		expansionRate: number,
 	) {
-		const explosion = this.game.spawn(Explosion);
-		explosion.transform.position.set(x, y);
-		explosion.radius = radius;
-		explosion.maxRadius = maxRadius;
-		explosion.expansionRate = expansionRate;
+		GameObject.deserializePartial(createExplosionPrefab({ x, y }), {
+			game: this.game,
+		})
+			.logErr('Failed to create explosion')
+			.ok()
+			.andThen((obj) => Option.of(obj.getModule(ExplosionBehavior)))
+			.inspect((obj) => {
+				obj.radius = radius;
+				obj.maxRadius = maxRadius;
+				obj.expansionRate = expansionRate;
+			});
 	}
 
 	die() {
