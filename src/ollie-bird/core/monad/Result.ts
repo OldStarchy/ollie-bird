@@ -114,6 +114,13 @@ export class Result<T, E> {
 		return this;
 	}
 
+	logErr(message: string): this {
+		if (this.#type === ERR) {
+			console.error(message, this.#error);
+		}
+		return this;
+	}
+
 	unwrapOrNull(): T | null {
 		if (this.#type === OK) {
 			return this.#value!;
