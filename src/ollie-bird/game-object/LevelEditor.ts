@@ -1,5 +1,10 @@
 import { Subject } from 'rxjs';
-import { CELL_SIZE, TAG_LEVEL_OBJECT, TAG_LEVEL_STRUCTURE } from '../const';
+import {
+	CELL_SIZE,
+	TAG_GOAL,
+	TAG_LEVEL_OBJECT,
+	TAG_LEVEL_STRUCTURE,
+} from '../const';
 import RectangleCollider from '../core/collider/RectangleCollider';
 import type { EventMap } from '../core/EventMap';
 import GameObject from '../core/GameObject';
@@ -12,12 +17,12 @@ import ObjectSelector from '../modules/ObjectSelector';
 import PlayerSpawner from '../modules/PlayerSpawner';
 import SequentialGateManager from '../modules/SequentialGateManager';
 import { Bindings } from '../OllieBirdGame';
+import createGoalPrefab from '../prefabs/createGoalPrefab';
 import { createPlayerSpawnerPrefab } from '../prefabs/createPlayerSpawnerPrefab';
 import createWallPrefab from '../prefabs/createWallPrefab';
 import BaddieSpawner from './BaddieSpawner';
 import Bird from './Bird';
 import Bomb from './Bomb';
-import Goal from './Goal';
 import type RectangleTrigger from './RectangleTrigger';
 import SequentialGate from './SequentialGate';
 
@@ -189,16 +194,13 @@ export default class LevelEditor extends GameObject {
 
 							case EditorMode.SetGoal:
 								this.game
-									.findObjectsByType(Goal)
+									.findObjectsByTag(TAG_GOAL)
 									.forEach((obj) => obj.destroy());
 
-								this.spawnCollider(
-									Goal,
-									rect.x,
-									rect.y,
-									rect.width,
-									rect.height,
-								);
+								GameObject.deserializePartial(
+									createGoalPrefab(rect),
+									{ game: this.game },
+								).logErr('Failed to create goal');
 								break;
 						}
 					}
@@ -382,13 +384,9 @@ export default class LevelEditor extends GameObject {
 						typeof goal.width === 'number' &&
 						typeof goal.height === 'number'
 					) {
-						this.spawnCollider(
-							Goal,
-							goal.x,
-							goal.y,
-							goal.width,
-							goal.height,
-						);
+						GameObject.deserializePartial(createGoalPrefab(goal), {
+							game: this.game,
+						}).logErr('Failed to create goal');
 					}
 				}
 			}

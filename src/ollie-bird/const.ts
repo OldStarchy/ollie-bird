@@ -15,6 +15,11 @@ export const TAG_LEVEL_STRUCTURE = 'level-structure';
  */
 export const TAG_DEADLY = 'deadly';
 
+/**
+ * Objects with this tag are considered goals. Reaching them will complete the level
+ */
+export const TAG_GOAL = 'goal';
+
 export enum Layer {
 	Background,
 	Default,

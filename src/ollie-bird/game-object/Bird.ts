@@ -2,7 +2,7 @@ import { toss } from 'toss-expression';
 import contextCheckpoint from '../../contextCheckpoint';
 import onChange from '../../react-interop/onChange';
 import type { BirdControls } from '../BirdControls';
-import { Layer, TAG_DEADLY, TAG_LEVEL_OBJECT } from '../const';
+import { Layer, TAG_DEADLY, TAG_GOAL, TAG_LEVEL_OBJECT } from '../const';
 import GameObject from '../core/GameObject';
 import type IGame from '../core/IGame';
 import Vec2 from '../core/math/Vec2';
@@ -11,7 +11,6 @@ import CircleCollider2d from '../core/modules/colliders/CircleCollider2d';
 import Sprite from '../core/Sprite';
 import Resources from '../Resources';
 import Explosion from './Explosion';
-import Goal from './Goal';
 import LevelEditor from './LevelEditor';
 import SequentialGate from './SequentialGate';
 
@@ -174,7 +173,7 @@ class Bird extends GameObject {
 		if (
 			passedAllGates &&
 			this.game
-				.findObjectsByType(Goal)
+				.findObjectsByTag(TAG_GOAL)
 				.some(Collider2d.collidingWith(myCollider.getCollider()))
 		) {
 			this.levelController.handleBirdReachedGoal(this);
