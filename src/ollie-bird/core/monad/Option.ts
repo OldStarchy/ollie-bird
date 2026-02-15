@@ -13,6 +13,7 @@ namespace OptionImpl {
 		abstract isSome(): this is Some<T>;
 		abstract isNone(): this is None;
 		abstract map<U>(fn: (value: T) => U): Option<U>;
+		abstract andThen<U>(fn: (value: T) => Option<U>): Option<U>;
 		abstract inspect(fn: (value: T) => void): this;
 		abstract unwrapOrNull(): T | null;
 		abstract unwrapOrElse(fn: () => T): T;
@@ -35,6 +36,10 @@ namespace OptionImpl {
 		}
 
 		map<U>(_fn: (value: never) => U): Option<U> {
+			return this;
+		}
+
+		andThen<U>(_fn: (value: never) => Option<U>): Option<U> {
 			return this;
 		}
 
@@ -79,6 +84,10 @@ namespace OptionImpl {
 
 		map<U>(fn: (value: T) => U): Option<U> {
 			return new Some(fn(this.#value));
+		}
+
+		andThen<U>(fn: (value: T) => Option<U>): Option<U> {
+			return fn(this.#value);
 		}
 
 		inspect(fn: (value: T) => void): this {
