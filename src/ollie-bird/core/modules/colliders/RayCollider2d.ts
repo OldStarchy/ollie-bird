@@ -6,10 +6,10 @@ import Vec2 from '../../math/Vec2';
 import Module from '../../Module';
 import { Err, Ok, type Result } from '../../monad/Result';
 import type { Serializable } from '../../Serializer';
-import Collider2d from '../Collider2d';
+import Collider2d, { collider2dDtoSchema } from '../Collider2d';
 
 const rayCollider2dDtoSchema = z.object({
-	base: z.unknown(),
+	base: collider2dDtoSchema,
 	origin: z.tuple([z.number(), z.number()]),
 	direction: z.tuple([z.number(), z.number()]),
 	distance: z.number().min(0),
@@ -30,6 +30,14 @@ export default class RayCollider2d extends Collider2d implements Serializable {
 			this.direction,
 			this.distance,
 		);
+	}
+
+	override getWorldCenter(): Vec2Like {
+		const { x, y } = this.owner.transform.position;
+		return {
+			x: x + this.origin.x + (this.direction.x * this.distance) / 2,
+			y: y + this.origin.y + (this.direction.y * this.distance) / 2,
+		};
 	}
 
 	override doGizmoPath(context: CanvasRenderingContext2D): void {

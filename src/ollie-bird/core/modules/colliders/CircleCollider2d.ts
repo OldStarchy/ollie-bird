@@ -5,10 +5,10 @@ import type { Vec2Like } from '../../math/Vec2';
 import Module from '../../Module';
 import { Err, Ok, type Result } from '../../monad/Result';
 import type { Serializable } from '../../Serializer';
-import Collider2d from '../Collider2d';
+import Collider2d, { collider2dDtoSchema } from '../Collider2d';
 
 const circleCollider2dDtoSchema = z.object({
-	base: z.unknown(),
+	base: collider2dDtoSchema,
 	center: z.tuple([z.number(), z.number()]),
 	radius: z.number().min(0),
 });
@@ -30,6 +30,14 @@ export default class CircleCollider2d
 			y + this.center.y,
 			this.radius,
 		);
+	}
+
+	override getWorldCenter(): Vec2Like {
+		const { x, y } = this.owner.transform.position;
+		return {
+			x: x + this.center.x,
+			y: y + this.center.y,
+		};
 	}
 
 	override doGizmoPath(context: CanvasRenderingContext2D): void {

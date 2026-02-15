@@ -2,6 +2,7 @@ import z from 'zod';
 import contextCheckpoint from '../../../contextCheckpoint';
 import type ColliderShape from '../collider/ColliderShape';
 import type GameObject from '../GameObject';
+import type { Vec2Like } from '../math/Vec2';
 import Module from '../Module';
 import { Ok, Result } from '../monad/Result';
 import type { Serializable } from '../Serializer';
@@ -41,6 +42,8 @@ export default abstract class Collider2d
 
 		return objects.filter(Collider2d.collidingWith(collider));
 	}
+
+	abstract getWorldCenter(): Vec2Like;
 
 	protected override renderGizmos(context: CanvasRenderingContext2D): void {
 		if (!this.renderWidget) {

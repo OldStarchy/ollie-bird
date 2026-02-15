@@ -3,6 +3,7 @@ import { CELL_SIZE } from '../../../const';
 import RectangleCollider from '../../collider/RectangleCollider';
 import type GameObject from '../../GameObject';
 import type { Rect2Like } from '../../math/Rect2';
+import type { Vec2Like } from '../../math/Vec2';
 import Module from '../../Module';
 import { Err, Ok, type Result } from '../../monad/Result';
 import type { Serializable } from '../../Serializer';
@@ -51,6 +52,14 @@ export default class RectangleCollider2d
 			y: y + this.y,
 			width: this.width,
 			height: this.height,
+		};
+	}
+
+	override getWorldCenter(): Vec2Like {
+		const { x, y } = this.owner.transform.position;
+		return {
+			x: x + this.x + this.width / 2,
+			y: y + this.y + this.height / 2,
 		};
 	}
 
