@@ -32,7 +32,7 @@ interface BirdSpriteSet {
 	dive: Sprite,
 }
 
-function getBirdSpriteSet(sprites: [Sprite, Sprite, Sprite, Sprite, Sprite]) : BirdSpriteSet {
+function getBirdSpriteSet(sprites: [Sprite, Sprite, Sprite, Sprite, Sprite]): BirdSpriteSet {
 	return {
 		idle: sprites[0],
 		raise: sprites[1],
@@ -48,7 +48,6 @@ class Bird extends GameObject {
 	layer = Layer.Player;
 	public ySpeed: number = 0;
 	private flapHoldTime = 0;
-	private animationTime = 0;
 	private gravity: number;
 	private flappedOnce = false;
 	private flapFrameHold: number = 0;
@@ -57,23 +56,17 @@ class Bird extends GameObject {
 		return this.transform.position;
 	}
 
-	static sprites_old = {
-		right: new Sprite(birdRight),
-		up: new Sprite(birdUp),
-		down: new Sprite(birdDown),
-	};
-
-	public getSpritesRight() : BirdSpriteSet {
+	public getSpritesRight(): BirdSpriteSet {
 		return getBirdSpriteSet(Resources.birdRightSprites);
 	};
 
-	public getSpritesFront() : BirdSpriteSet {
+	public getSpritesFront(): BirdSpriteSet {
 		return getBirdSpriteSet(Resources.birdFrontSprites);
 	};
 
-	private sprites : BirdSpriteSet;
+	private sprites: BirdSpriteSet;
 	private levelController: LevelEditor;
-	
+
 	constructor(game: IGame) {
 		super(game);
 		this.tags.add(TAG_LEVEL_OBJECT);
@@ -93,9 +86,9 @@ class Bird extends GameObject {
 
 	@onChange(
 		(self) =>
-			(self.controls = self.game.input.getSchema<BirdControls>(
-				`Player ${self.playerIndex + 1}`,
-			)),
+		(self.controls = self.game.input.getSchema<BirdControls>(
+			`Player ${self.playerIndex + 1}`,
+		)),
 	)
 	accessor playerIndex = 0;
 
@@ -263,27 +256,23 @@ class Bird extends GameObject {
 			this.sprites = this.getSpritesRight();
 			flip = true;
 		}
-		else{
+		else {
 			this.sprites = this.getSpritesFront();
 		}
 
-		if(this.flapFrameHold > 0){
+		if (this.flapFrameHold > 0) {
 			this.flapFrameHold -= this.game.secondsPerFrame;
 			spriteName = "flap";
 		}
-		else if(this.#keyFlap.isDown){
+		else if (this.#keyFlap.isDown) {
 			spriteName = "raise";
-			if(this.flapHoldTime > 0.15){
+			if (this.flapHoldTime > 0.15) {
 				spriteName = "spread";
 			}
 		}
-		else if(this.ySpeed > 1){
+		else if (this.ySpeed > 0) {
 			spriteName = "dive";
 		}
-		
-		
-
-		//const sprite = Bird.sprites_old[spriteName as keyof typeof Bird.sprites_old];
 
 		const sprite = this.sprites[spriteName as keyof typeof this.sprites];
 
