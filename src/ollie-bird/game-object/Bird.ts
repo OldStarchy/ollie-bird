@@ -267,6 +267,8 @@ class Bird extends GameObject {
 			}
 		} else if (this.ySpeed > 0) {
 			spriteName = 'dive';
+		} else {
+			spriteName = 'spread';
 		}
 
 		const sprite = this.sprites[spriteName as keyof typeof this.sprites];
