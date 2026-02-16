@@ -90,5 +90,5 @@ export interface PartialDeserializer<Output, Context> {
 	deserializePartial(
 		obj: unknown,
 		context: Context,
-	): Result<Output, { result?: Output; error: string }>;
+	): Result<Output, { result?: Output; errors: string[] }>;
 }

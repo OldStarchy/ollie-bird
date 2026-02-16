@@ -218,19 +218,21 @@ export default class GameObject
 	static deserializePartial(
 		obj: unknown,
 		context: { game: IGame },
-	): Result<GameObject, { result?: GameObject; error: string }> {
+	): Result<GameObject, { result?: GameObject; errors: string[] }> {
 		const parseResult = gameObjectDtoSchemaV1.safeParse(obj);
 
 		if (!parseResult.success) {
 			return Err({
-				error: `Invalid GameObject data: ${z.prettifyError(parseResult.error)}`,
+				errors: [
+					`Invalid GameObject data: ${z.prettifyError(parseResult.error)}`,
+				],
 			});
 		}
 
 		const parsed = parseResult.data;
 		if (parsed.version !== 1) {
 			return Err({
-				error: `Unsupported GameObject version: ${parsed.version}`,
+				errors: [`Unsupported GameObject version: ${parsed.version}`],
 			});
 		}
 
@@ -260,7 +262,7 @@ export default class GameObject
 
 		if (errors.length > 0) {
 			return Err({
-				error: `Error loading Modules:\n${errors.join('\n')}`,
+				errors,
 				result: gameObject,
 			});
 		}

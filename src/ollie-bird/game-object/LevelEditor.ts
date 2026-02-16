@@ -11,6 +11,7 @@ import GameObject from '../core/GameObject';
 import Mouse from '../core/input/mouse/Mouse';
 import Rect2 from '../core/math/Rect2';
 import Collider2d from '../core/modules/Collider2d';
+import { Err, Ok, Result } from '../core/monad/Result';
 import CheckpointManager from '../modules/CheckpointManager';
 import GameTimer from '../modules/GameTimer';
 import ObjectSelector from '../modules/ObjectSelector';
@@ -303,9 +304,12 @@ export default class LevelEditor extends GameObject {
 			.forEach((obj) => obj.destroy());
 	}
 
-	loadLevelData(data: string): void {
+	loadLevelData(
+		data: string,
+	): Result<void, { message: string; cause: string[] }[]> {
 		this.removeAll();
 
+		const loadErrors: { message: string; cause: string[] }[] = [];
 		try {
 			const parsed = JSON.parse(data);
 
@@ -330,14 +334,16 @@ export default class LevelEditor extends GameObject {
 				for (const obj of parsed.objects) {
 					GameObject.deserializePartial(obj, {
 						game: this.game,
-					}).inspectErr((err) =>
-						console.error(
-							'Failed to deserialize object:',
-							err.error,
-						),
-					);
+					})
+						.logErr('Failed to deserialize object:')
+						.inspectErr(({ errors }) => {
+							loadErrors.push({
+								message: 'Failed to deserialized Object',
+								cause: errors,
+							});
+						});
 				}
-				return;
+				return loadErrors.length === 0 ? Ok() : Err(loadErrors);
 			}
 
 			// Legacy format support - handle old save format
@@ -352,7 +358,14 @@ export default class LevelEditor extends GameObject {
 					) {
 						GameObject.deserializePartial(createWallPrefab(obs), {
 							game: this.game,
-						}).logErr('Failed to create wall');
+						})
+							.logErr('Failed to create wall')
+							.inspectErr(({ errors }) => {
+								loadErrors.push({
+									message: 'Failed to deserialized Object',
+									cause: errors,
+								});
+							});
 					}
 				}
 			}
@@ -367,7 +380,14 @@ export default class LevelEditor extends GameObject {
 					) {
 						GameObject.deserializePartial(createGoalPrefab(goal), {
 							game: this.game,
-						}).logErr('Failed to create goal');
+						})
+							.logErr('Failed to create goal')
+							.inspectErr(({ errors }) => {
+								loadErrors.push({
+									message: 'Failed to deserialized Object',
+									cause: errors,
+								});
+							});
 					}
 				}
 			}
@@ -384,7 +404,14 @@ export default class LevelEditor extends GameObject {
 						GameObject.deserializePartial(
 							createCheckpointPrefab(gate),
 							{ game: this.game },
-						).logErr('Failed to create checkpoint');
+						)
+							.logErr('Failed to create checkpoint')
+							.inspectErr(({ errors }) => {
+								loadErrors.push({
+									message: 'Failed to deserialized Object',
+									cause: errors,
+								});
+							});
 					}
 				}
 			}
@@ -397,12 +424,25 @@ export default class LevelEditor extends GameObject {
 					GameObject.deserializePartial(
 						createPlayerSpawnerPrefab(parsed.spawn, 0),
 						{ game: this.game },
-					).logErr('Failed to create player spawner');
+					)
+						.logErr('Failed to create player spawner')
+						.inspectErr(({ errors }) => {
+							loadErrors.push({
+								message: 'Failed to deserialized Object',
+								cause: errors,
+							});
+						});
 				}
 			}
 		} catch (error) {
 			console.error('Error loading level data:', error);
+			loadErrors.push({
+				message: 'Invalid level data format.',
+				cause: [],
+			});
 		}
+
+		return loadErrors.length === 0 ? Ok() : Err(loadErrors);
 	}
 
 	restart() {
