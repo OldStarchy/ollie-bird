@@ -207,9 +207,9 @@ export class Result<T, E> implements Iterable<T> {
 
 	[Symbol.toStringTag](): string {
 		if (this.#type === OK) {
-			return `Ok(${this.#value})`;
+			return `Ok(${Object.prototype.toString.call(this.#value)})`;
 		} else {
-			return `Err(${this.#error})`;
+			return `Err(${Object.prototype.toString.call(this.#error)})`;
 		}
 	}
 

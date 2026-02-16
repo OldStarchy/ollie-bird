@@ -18,6 +18,7 @@ namespace OptionImpl {
 		abstract unwrapOrNull(): T | null;
 		abstract unwrapOrElse(fn: () => T): T;
 		abstract unwrap(message?: string): T;
+		abstract [Symbol.toStringTag](): string;
 		abstract [Symbol.iterator](): Iterator<T>;
 	}
 
@@ -66,6 +67,11 @@ namespace OptionImpl {
 
 			throw err;
 		}
+
+		[Symbol.toStringTag](): string {
+			return 'None';
+		}
+
 		*[Symbol.iterator](): Iterator<never> {}
 	}
 
@@ -107,6 +113,10 @@ namespace OptionImpl {
 
 		unwrap(_message?: string): T {
 			return this.#value;
+		}
+
+		[Symbol.toStringTag](): string {
+			return `Some(${Object.prototype.toString.call(this.#value)})`;
 		}
 
 		*[Symbol.iterator](): Iterator<T> {
