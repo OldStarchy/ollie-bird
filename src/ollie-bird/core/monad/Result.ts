@@ -17,7 +17,7 @@ export class UnknownError extends Error {
 
 export type IntoResultFn<In, Out, Err> = (value: In) => Result<Out, Err>;
 
-export class Result<T, E> {
+export class Result<T, E> implements Iterable<T> {
 	declare ok: <T>(this: Result<T, unknown>) => Option<T>;
 
 	static {
@@ -210,6 +210,12 @@ export class Result<T, E> {
 			return `Ok(${this.#value})`;
 		} else {
 			return `Err(${this.#error})`;
+		}
+	}
+
+	*[Symbol.iterator](): Iterator<T> {
+		if (this.#type === OK) {
+			yield this.#value!;
 		}
 	}
 

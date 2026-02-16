@@ -3,7 +3,7 @@ import type { Result } from './Result';
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 namespace OptionImpl {
-	export abstract class OptionApi<T> {
+	export abstract class OptionApi<T> implements Iterable<T> {
 		declare okOr: <T, E>(this: Option<T>, err: E) => Result<T, E>;
 
 		static {
@@ -18,6 +18,7 @@ namespace OptionImpl {
 		abstract unwrapOrNull(): T | null;
 		abstract unwrapOrElse(fn: () => T): T;
 		abstract unwrap(message?: string): T;
+		abstract [Symbol.iterator](): Iterator<T>;
 	}
 
 	export class None extends OptionApi<never> {
@@ -65,6 +66,7 @@ namespace OptionImpl {
 
 			throw err;
 		}
+		*[Symbol.iterator](): Iterator<never> {}
 	}
 
 	export class Some<T> extends OptionApi<T> {
@@ -105,6 +107,10 @@ namespace OptionImpl {
 
 		unwrap(_message?: string): T {
 			return this.#value;
+		}
+
+		*[Symbol.iterator](): Iterator<T> {
+			yield this.#value;
 		}
 	}
 }
