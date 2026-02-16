@@ -1,7 +1,8 @@
 export const CELL_SIZE = 50;
 
 /**
- * Objects with this tag will be destroyed when reloading the level
+ * Objects with this tag will be destroyed when resetting the current level or
+ * loading a new / different level
  */
 export const TAG_LEVEL_OBJECT = 'level-object';
 

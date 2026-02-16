@@ -1,5 +1,4 @@
 import { Subject, type Observable } from 'rxjs';
-import type GameObject from '../core/GameObject';
 import Module from '../core/Module';
 import type Sprite from '../core/Sprite';
 import Rect2 from '../core/math/Rect2';
@@ -33,19 +32,12 @@ export default class Animation extends Module {
 	readonly #events$ = new Subject<AnimationEvents>();
 	readonly events$: Observable<AnimationEvents> = this.#events$;
 
-	constructor(
-		owner: GameObject,
-		public images: Sprite[],
-		public frameDuration: number,
-		public loop: boolean = true,
-	) {
-		if (images.length <= 1) {
-			throw new Error('Animation must have at least two frames.');
-		}
-		super(owner);
-	}
+	public images: Sprite[] = [];
+	public frameDuration: number = 0.1;
+	public loop: boolean = true;
 
 	protected override update(): void {
+		if (this.images.length === 0) return;
 		if (this.paused) return;
 
 		this.advanceFrameTime(this.owner.game.secondsPerFrame);
@@ -84,6 +76,8 @@ export default class Animation extends Module {
 	}
 
 	protected override render(context: CanvasRenderingContext2D): void {
+		if (this.images.length === 0) return;
+
 		let frameIndex = this.#currentFrame;
 
 		if (frameIndex >= this.images.length) {

@@ -32,7 +32,10 @@ export default class Bomb extends GameObject {
 		this.tags.add(TAG_DEADLY);
 		this.tags.add(TAG_LEVEL_STRUCTURE);
 
-		this.anim = this.addModule(Animation, Resources.bomb, 0.4, false);
+		this.anim = this.addModule(Animation);
+		this.anim.images = Resources.bomb;
+		this.anim.frameDuration = 0.4;
+		this.anim.loop = false;
 		this.anim.paused = true;
 		this.disposableStack.use(
 			this.anim.events$
