@@ -83,9 +83,10 @@ class Transform2d
 			return Err(`Invalid Transform2d data: ${parsed.error.message}`);
 		}
 
-		const [x, y] = parsed.data;
 		const transform = context.gameObject.transform;
-		transform.position.xy = [x, y];
+
+		const [x, y] = parsed.data;
+		transform.position.set(x, y);
 
 		return Ok(transform);
 	}

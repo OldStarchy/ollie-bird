@@ -48,7 +48,7 @@ export class Result<T, E> {
 
 	map<U>(fn: (value: T) => U): Result<U, E> {
 		if (this.#type === OK) {
-			return new Result<U, E>(OK, fn(this.#value as T), undefined);
+			return new Result<U, E>(OK, fn(this.#value!), undefined);
 		}
 
 		return this as Result<unknown, E> as Result<U, E>;
@@ -59,7 +59,7 @@ export class Result<T, E> {
 			return this as Result<T, unknown> as Result<T, F>;
 		}
 
-		return new Result<T, F>(ERR, undefined, fn(this.#error as E));
+		return new Result<T, F>(ERR, undefined, fn(this.#error!));
 	}
 
 	and<U>(res: Result<U, E>): Result<U, E> {
@@ -102,7 +102,7 @@ export class Result<T, E> {
 
 	inspect(fn: (value: T) => void): this {
 		if (this.#type === OK) {
-			fn(this.#value as T);
+			fn(this.#value!);
 		}
 		return this;
 	}
