@@ -8,7 +8,7 @@ export const checkpointDtoSchema = z.object({
 	sequenceNumber: z.number(),
 });
 
-export type CheckpointDto = z.infer<typeof checkpointDtoSchema>;
+export type CheckpointDto = z.input<typeof checkpointDtoSchema>;
 
 export default class Checkpoint extends Module {
 	static readonly defaultName: string = 'Checkpoint';

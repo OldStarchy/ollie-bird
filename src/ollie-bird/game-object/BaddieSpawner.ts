@@ -29,7 +29,7 @@ export const baddieSpawnerDtoSchema = z.object({
 	...baddieSchema.shape,
 });
 
-export type BaddieSpawnerDto = z.infer<typeof baddieSpawnerDtoSchema>;
+export type BaddieSpawnerDto = z.input<typeof baddieSpawnerDtoSchema>;
 
 export default class BaddieSpawner
 	extends GameObject

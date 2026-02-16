@@ -17,7 +17,7 @@ export const collider2dDtoSchema = z
 	})
 	.optional();
 
-export type Collider2dDto = z.infer<typeof collider2dDtoSchema>;
+export type Collider2dDto = z.input<typeof collider2dDtoSchema>;
 
 export default abstract class Collider2d
 	extends Module

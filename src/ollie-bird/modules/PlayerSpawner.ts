@@ -13,7 +13,7 @@ import LevelEditor from '../game-object/LevelEditor';
 export const playerSpawnerDtoSchema = z.object({
 	playerIndex: z.union([z.literal(0), z.literal(1)]),
 });
-export type PlayerSpawnerDto = z.infer<typeof playerSpawnerDtoSchema>;
+export type PlayerSpawnerDto = z.input<typeof playerSpawnerDtoSchema>;
 
 export default class PlayerSpawner
 	extends Module

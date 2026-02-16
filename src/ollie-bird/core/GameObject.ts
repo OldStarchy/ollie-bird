@@ -32,14 +32,14 @@ export type GameObjectView = z.infer<typeof gameObjectSchema>;
 
 export const gameObjectDtoSchemaV1 = z.object({
 	version: z.literal(1),
-	name: z.string(),
-	tags: z.string().array(),
-	layer: z.number(),
-	transform: transform2dDtoSchema,
-	modules: typedDtoSchema.array(),
+	name: z.string().optional(),
+	tags: z.string().array().optional(),
+	layer: z.number().optional(),
+	transform: transform2dDtoSchema.optional(),
+	modules: typedDtoSchema.array().optional(),
 });
 
-export type GameObjectDto = z.infer<typeof gameObjectDtoSchemaV1>;
+export type GameObjectDto = z.input<typeof gameObjectDtoSchemaV1>;
 
 export default class GameObject
 	implements IModular, Disposable, ReactInterop<GameObjectView>, Serializable
@@ -248,27 +248,29 @@ export default class GameObject
 
 		const gameObject = context.game.spawn(GameObject);
 
-		gameObject.name = parsed.name;
-		gameObject.tags = new Set(parsed.tags);
-		gameObject.layer = parsed.layer;
+		if (parsed.name !== undefined) gameObject.name = parsed.name;
+		if (parsed.tags !== undefined) gameObject.tags = new Set(parsed.tags);
+		if (parsed.layer !== undefined) gameObject.layer = parsed.layer;
 
 		const errors: string[] = [];
 
-		Transform2d.deserialize(parsed.transform, {
-			gameObject,
-		})
-			.context('Should not occur, transform already validated by zod')
-			.unwrap();
-
-		for (const moduleDto of parsed.modules) {
-			const moduleResult = Module.serializer.deserialize(moduleDto, {
+		if (parsed.transform !== undefined)
+			Transform2d.deserialize(parsed.transform, {
 				gameObject,
-			});
+			})
+				.context('Should not occur, transform already validated by zod')
+				.unwrap();
 
-			moduleResult.inspectErr((err) => {
-				errors.push(err);
-			});
-		}
+		if (parsed.modules !== undefined)
+			for (const moduleDto of parsed.modules) {
+				const moduleResult = Module.serializer.deserialize(moduleDto, {
+					gameObject,
+				});
+
+				moduleResult.inspectErr((err) => {
+					errors.push(err);
+				});
+			}
 
 		if (errors.length > 0) {
 			return Err({

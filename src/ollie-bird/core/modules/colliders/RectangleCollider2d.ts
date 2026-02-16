@@ -13,7 +13,7 @@ const rectangleCollider2dDtoSchema = z.object({
 	base: collider2dDtoSchema,
 	rect: z.tuple([z.number(), z.number(), z.number(), z.number()]),
 });
-export type RectangleCollider2dDto = z.infer<
+export type RectangleCollider2dDto = z.input<
 	typeof rectangleCollider2dDtoSchema
 >;
 

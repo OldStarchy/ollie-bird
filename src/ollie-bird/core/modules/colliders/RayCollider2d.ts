@@ -14,7 +14,7 @@ const rayCollider2dDtoSchema = z.object({
 	direction: z.tuple([z.number(), z.number()]),
 	distance: z.number().min(0),
 });
-export type RayCollider2dDto = z.infer<typeof rayCollider2dDtoSchema>;
+export type RayCollider2dDto = z.input<typeof rayCollider2dDtoSchema>;
 
 export default class RayCollider2d extends Collider2d implements Serializable {
 	static readonly displayName = 'RayCollider2d';

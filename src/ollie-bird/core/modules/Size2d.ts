@@ -14,7 +14,7 @@ const size2dSchema = z.object({
 export type Size2dView = z.infer<typeof size2dSchema>;
 
 const size2dDtoSchema = z.tuple([z.number().min(0), z.number().min(0)]);
-type Size2dDto = z.infer<typeof size2dDtoSchema>;
+type Size2dDto = z.input<typeof size2dDtoSchema>;
 
 export default class Size2d
 	extends Module

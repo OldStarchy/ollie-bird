@@ -17,7 +17,7 @@ export const bombDtoSchema = z.object({
 	y: z.number(),
 });
 
-export type BombDto = z.infer<typeof bombDtoSchema>;
+export type BombDto = z.input<typeof bombDtoSchema>;
 
 export default class Bomb extends GameObject {
 	static readonly defaultName: string = 'Bomb';

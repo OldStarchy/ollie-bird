@@ -9,7 +9,7 @@ export const typedDtoSchema = z.object({
 	data: z.unknown().optional(),
 });
 
-export type TypedDto = z.infer<typeof typedDtoSchema>;
+export type TypedDto = z.input<typeof typedDtoSchema>;
 
 export default class Serializer<
 	Type extends abstract new (...args: any[]) => unknown,

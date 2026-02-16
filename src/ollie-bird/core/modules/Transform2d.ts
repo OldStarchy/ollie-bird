@@ -16,7 +16,7 @@ export const transform2dSchema = z.object({
 type Transform2dView = z.infer<typeof transform2dSchema>;
 
 export const transform2dDtoSchema = z.tuple([z.number(), z.number()]);
-type Transform2dDto = z.infer<typeof transform2dDtoSchema>;
+type Transform2dDto = z.input<typeof transform2dDtoSchema>;
 
 class Transform2d
 	extends Module
