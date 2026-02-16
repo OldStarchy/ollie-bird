@@ -2,9 +2,9 @@ import { Subject } from 'rxjs';
 import z from 'zod';
 import onChange from '../../react-interop/onChange';
 import { ReactInterop } from '../../react-interop/ReactInterop';
+import { TAG_LEVEL_STRUCTURE } from '../const';
 import type IGame from './IGame';
 import type IModular from './IModular';
-import { vec2Schema } from './math/Vec2';
 import Module from './Module';
 import ModuleCollection from './ModuleCollection';
 import Transform2d, { transform2dDtoSchema } from './modules/Transform2d';
@@ -17,9 +17,8 @@ import {
 
 export const gameObjectSchema = z.object({
 	name: z.string().meta({ title: 'Name' }),
-	position: vec2Schema.meta({ title: 'Position' }),
-	tags: z.string().array().meta({ title: 'Tags' }),
-	layer: z.number().meta({ title: 'Layer' }),
+	tags: z.string().default('tag').array().meta({ title: 'Tags' }),
+	layer: z.coerce.number().meta({ title: 'Layer' }),
 	modules: z
 		.object({
 			$type: z.string(),
@@ -183,7 +182,6 @@ export default class GameObject
 	[ReactInterop.get](): GameObjectView {
 		return {
 			name: this.name,
-			position: this.transform.position[ReactInterop.get](),
 			tags: Array.from(this.tags),
 			layer: this.layer,
 			modules: [],
@@ -209,8 +207,20 @@ export default class GameObject
 
 	[ReactInterop.set](view: GameObjectView): void {
 		if (Object.hasOwn(view, 'name')) this.name = view.name;
-		if (Object.hasOwn(view, 'position'))
-			this.transform.position[ReactInterop.set](view.position);
+
+		if (Object.hasOwn(view, 'tags')) {
+			// TODO: this makes sure objects that need to be removed when clearing the level
+			// are actually removed.
+			const wasLevelStructure = this.tags.has(TAG_LEVEL_STRUCTURE);
+			const newTags = new Set(view.tags);
+
+			if (wasLevelStructure) newTags.add(TAG_LEVEL_STRUCTURE);
+			else newTags.delete(TAG_LEVEL_STRUCTURE);
+
+			this.tags = newTags;
+		}
+
+		if (Object.hasOwn(view, 'layer')) this.layer = view.layer;
 
 		this.notify();
 	}

@@ -1,6 +1,9 @@
 import { useMemo } from 'react';
 import Module from '../../ollie-bird/core/Module';
-import { ReactInterop } from '../../react-interop/ReactInterop';
+import {
+	ReactInterop,
+	useReactInterop,
+} from '../../react-interop/ReactInterop';
 import { ReactInteropInspector } from '../../react-interop/ReactInteropInspector';
 import { useSelectedObject } from './useSelectedObject';
 
@@ -12,7 +15,9 @@ export default function SelectedObjectInspector() {
 		return selectedObject.getModulesByType(Module).toArray();
 	}, [selectedObject]);
 
-	if (!selectedObject) {
+	const [data] = useReactInterop(selectedObject);
+
+	if (!selectedObject || !data) {
 		return <div>No object selected</div>;
 	}
 
@@ -22,9 +27,7 @@ export default function SelectedObjectInspector() {
 			<p>Type: {selectedObject.constructor.defaultName}</p>
 			<p>
 				Tags:{' '}
-				{Array.from(selectedObject.tags, (tag) => tag.toString()).join(
-					', ',
-				)}
+				{Array.from(data.tags, (tag) => tag.toString()).join(', ')}
 			</p>
 			<hr />
 
