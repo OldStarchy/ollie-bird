@@ -335,6 +335,7 @@ export default class LevelEditor extends GameObject {
 					GameObject.deserializePartial(obj, {
 						game: this.game,
 					})
+						.inspect((obj) => obj.tags.add(TAG_LEVEL_STRUCTURE))
 						.logErr('Failed to deserialize object:')
 						.inspectErr(({ errors }) => {
 							loadErrors.push({
