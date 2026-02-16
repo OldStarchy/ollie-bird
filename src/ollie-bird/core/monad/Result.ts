@@ -114,6 +114,15 @@ export class Result<T, E> {
 		return this;
 	}
 
+	match(okFn: (value: T) => void, errFn: (error: E) => void): this {
+		if (this.#type === OK) {
+			okFn(this.#value!);
+		} else {
+			errFn(this.#error!);
+		}
+		return this;
+	}
+
 	logErr(message: string): this {
 		if (this.#type === ERR) {
 			console.error(message, this.#error);
