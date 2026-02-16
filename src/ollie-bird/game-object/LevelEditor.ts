@@ -11,6 +11,7 @@ import GameObject from '../core/GameObject';
 import Mouse from '../core/input/mouse/Mouse';
 import Rect2 from '../core/math/Rect2';
 import Collider2d from '../core/modules/Collider2d';
+import { Option } from '../core/monad/Option';
 import { Err, Ok, Result } from '../core/monad/Result';
 import CheckpointManager from '../modules/CheckpointManager';
 import GameTimer from '../modules/GameTimer';
@@ -194,8 +195,10 @@ export default class LevelEditor extends GameObject {
 
 					this.game
 						.findObjectsByTag('player-spawner')
-						.map((obj) => obj.getModule(PlayerSpawner))
-						.filter((sp) => sp?.playerIndex === player)
+						.flatMap((obj) => [
+							...Option.of(obj.getModule(PlayerSpawner)),
+						])
+						.filter((sp) => sp.playerIndex === player)
 						.forEach((sp) => sp?.owner.destroy());
 
 					GameObject.deserializePartial(
