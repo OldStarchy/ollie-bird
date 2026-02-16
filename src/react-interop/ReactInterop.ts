@@ -46,16 +46,26 @@ export const ReactInterop = {
 
 export function useReactInterop<View>(
 	obj: ReactInterop<View>,
-): [View, z.ZodSchema<View>] {
-	const [state, setState] = useState<View>(obj[get]());
+): [View, z.ZodSchema<View>];
+export function useReactInterop<View>(
+	obj: ReactInterop<View> | null,
+): [View | null, z.ZodSchema<View> | null];
+
+export function useReactInterop<View>(
+	obj: ReactInterop<View> | null,
+): [View | null, z.ZodSchema<View> | null] {
+	const [state, setState] = useState<View | null>(obj?.[get]() ?? null);
 
 	useEffect(() => {
-		const subscription = obj[asObservable].subscribe(() =>
-			setState(obj[get]()),
-		);
+		if (obj) {
+			const subscription = obj[asObservable].subscribe(() =>
+				setState(obj[get]()),
+			);
+			setState(obj[get]());
 
-		return toCallable(subscription);
+			return toCallable(subscription);
+		}
 	}, [obj]);
 
-	return [state, obj[schema]];
+	return [state, obj?.[schema] ?? null];
 }
