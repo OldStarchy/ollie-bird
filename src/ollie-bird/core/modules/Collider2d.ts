@@ -127,6 +127,6 @@ export default abstract class Collider2d
 				collider.widgetLineDash = data.widgetLineDash;
 		}
 
-		return Ok(undefined);
+		return Ok();
 	}
 }

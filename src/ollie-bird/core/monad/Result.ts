@@ -241,12 +241,16 @@ export class Result<T, E> {
 	}
 }
 
-export function Ok<T, E = never>(value: T): Result<T, E> {
-	return Result.Ok<T, E>(value);
+export function Ok<E = never>(): Result<void, E>;
+export function Ok<T, E = never>(value: T): Result<T, E>;
+export function Ok<T, E = never>(value?: T): Result<T, E> {
+	return Result.Ok<T, E>(value as T);
 }
 
-export function Err<T = never, E = unknown>(err: E): Result<T, E> {
-	return Result.Err<T, E>(err);
+export function Err<T = never>(): Result<T, void>;
+export function Err<T = never, E = unknown>(err: E): Result<T, E>;
+export function Err<T = never, E = unknown>(err?: E): Result<T, E> {
+	return Result.Err<T, E>(err as E);
 }
 
 // eslint-disable-next-line @typescript-eslint/no-namespace

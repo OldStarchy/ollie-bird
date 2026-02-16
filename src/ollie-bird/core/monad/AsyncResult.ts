@@ -134,7 +134,12 @@ export class AsyncResult<T, E> implements PromiseLike<Result<T, E>> {
 	 * Usage of this is discouraged in favor of the strongly typed {@link wrap}.
 	 */
 	static of<T>(value: PromiseLike<T>): AsyncResult<T, UnknownError> {
-		return new AsyncResult(value.then(Ok, (e) => Err(new UnknownError(e))));
+		return new AsyncResult(
+			value.then(
+				(v) => Ok(v),
+				(e) => Err(new UnknownError(e)),
+			),
+		);
 	}
 
 	static wrap<T, E>(fn: () => PromiseLike<Result<T, E>>): AsyncResult<T, E> {
