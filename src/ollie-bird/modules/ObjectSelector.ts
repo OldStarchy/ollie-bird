@@ -96,6 +96,7 @@ export default class ObjectSelector extends Module {
 	): Result<Module, string> {
 		return Ok(context.gameObject.addModule(ObjectSelector));
 	}
+
 	static {
 		Module.serializer.registerSerializationType('ObjectSelector', this);
 	}

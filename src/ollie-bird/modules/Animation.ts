@@ -101,4 +101,8 @@ export default class Animation extends Module {
 			this.rectangle.height,
 		);
 	}
+
+	static {
+		Module.serializer.registerSerializationType('Animation', this);
+	}
 }

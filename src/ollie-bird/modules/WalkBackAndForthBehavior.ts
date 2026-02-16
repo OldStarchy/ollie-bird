@@ -57,4 +57,11 @@ export default class WalkBackAndForthBehavior extends Module {
 		const game = this.owner.game;
 		return x < 0 || x > game.width || y < 0 || y > game.height;
 	}
+
+	static {
+		Module.serializer.registerSerializationType(
+			'WalkBackAndForthBehavior',
+			this,
+		);
+	}
 }
