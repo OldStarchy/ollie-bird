@@ -5,7 +5,7 @@ import Module from '../core/Module';
 import RectangleCollider2d, {
 	type RectangleCollider2dDto,
 } from '../core/modules/colliders/RectangleCollider2d';
-import Animation from '../modules/Animation';
+import Animation, { type AnimationDto } from '../modules/Animation';
 import WalkBackAndForthBehavior, {
 	type WalkBackAndForthBehaviorDto,
 } from '../modules/WalkBackAndForthBehavior';
@@ -44,6 +44,13 @@ export function createWalkerPrefab(
 			},
 			{
 				$type: Module.serializer.keyFor(Animation),
+				data: {
+					spriteSet: 'spriteset:walker',
+					rectangle: [0, CELL_SIZE * 0.5, CELL_SIZE, CELL_SIZE * 0.5],
+					frameDuration: 0.3,
+					loop: true,
+					paused: false,
+				} satisfies AnimationDto,
 			},
 		],
 	} satisfies GameObjectDto;

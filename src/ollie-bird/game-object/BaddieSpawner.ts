@@ -13,7 +13,6 @@ import GameObject, {
 import type IGame from '../core/IGame';
 import filterEvent from '../core/rxjs/filterEvent';
 import Sprite from '../core/Sprite';
-import Animation from '../modules/Animation';
 import { createWalkerPrefab } from '../prefabs/createWalkerPrefab';
 import LevelEditor from './LevelEditor';
 
@@ -89,7 +88,7 @@ export default class BaddieSpawner
 	}
 
 	private createBaddie() {
-		const baddie = GameObject.deserializePartial(
+		GameObject.deserializePartial(
 			createWalkerPrefab(
 				this.transform.position,
 				this.startDirection,
@@ -97,13 +96,6 @@ export default class BaddieSpawner
 			),
 			{ game: this.game },
 		).unwrap();
-
-		// TODO: Animation can't deserialize properly because it doesn't
-		// serialize resources yet.
-		const anim = baddie.getModule(Animation)!;
-		anim.images = BaddieSpawner.frames;
-		anim.frameDuration = 0.3;
-		anim.rectangle.set(0, CELL_SIZE / 2, CELL_SIZE, CELL_SIZE / 2);
 	}
 
 	protected override render(context: CanvasRenderingContext2D) {

@@ -7,7 +7,6 @@ import Collider2d from '../core/modules/Collider2d';
 import CircleCollider2d from '../core/modules/colliders/CircleCollider2d';
 import filterEvent from '../core/rxjs/filterEvent';
 import Animation from '../modules/Animation';
-import Resources from '../Resources';
 import Bird from './Bird';
 import LevelEditor from './LevelEditor';
 
@@ -33,7 +32,7 @@ export default class Bomb extends GameObject {
 		this.tags.add(TAG_LEVEL_STRUCTURE);
 
 		this.anim = this.addModule(Animation);
-		this.anim.images = Resources.instance.spriteSet.get('bomb');
+		this.anim.spriteSet = { type: 'spriteset', name: 'bomb' };
 		this.anim.frameDuration = 0.4;
 		this.anim.loop = false;
 		this.anim.paused = true;

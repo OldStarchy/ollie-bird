@@ -1,3 +1,5 @@
+import baddie1 from '../assets/baddie-1.png';
+import baddie2 from '../assets/baddie-2.png';
 import bird_f1 from '../assets/bird_f1.png';
 import bird_f2 from '../assets/bird_f2.png';
 import bird_f3 from '../assets/bird_f3.png';
@@ -96,6 +98,11 @@ export default class Resources {
 		this.instance.spriteSet.register('cloudStrike', sheet1.slice(10, 12));
 		this.instance.spriteSet.register('lightingIdle', sheet1.slice(12, 15));
 		this.instance.sprite.register('lightningStrike', sheet1[15]);
+
+		this.instance.spriteSet.register('walker', [
+			new Sprite(baddie1),
+			new Sprite(baddie2),
+		]);
 
 		this.instance.birdSpriteSet.register(
 			'birdFrontSprites',

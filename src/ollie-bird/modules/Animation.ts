@@ -1,9 +1,28 @@
 import { Subject, type Observable } from 'rxjs';
+import z from 'zod';
+import Resources from '../Resources';
+import type GameObject from '../core/GameObject';
 import Module from '../core/Module';
 import type Sprite from '../core/Sprite';
 import Rect2 from '../core/math/Rect2';
+import { Err, Ok, type Result } from '../core/monad/Result';
 
 export type AnimationEvents = 'ended' | 'looped';
+
+const animationDtoSchema = z.object({
+	spriteSet: z.string().startsWith('spriteset:').optional(),
+	rectangle: z.tuple([z.number(), z.number(), z.number(), z.number()]),
+	frameDuration: z.number().optional(),
+	loop: z.boolean().optional(),
+	paused: z.boolean().optional(),
+});
+
+export type AnimationDto = z.input<typeof animationDtoSchema>;
+
+interface SpriteSetResourceLocator {
+	type: 'spriteset';
+	name: string;
+}
 
 export default class Animation extends Module {
 	static readonly displayName = 'Animation';
@@ -32,7 +51,21 @@ export default class Animation extends Module {
 	readonly #events$ = new Subject<AnimationEvents>();
 	readonly events$: Observable<AnimationEvents> = this.#events$;
 
-	public images: Sprite[] = [];
+	#spriteSet: SpriteSetResourceLocator | null = null;
+	get spriteSet(): SpriteSetResourceLocator | null {
+		return this.#spriteSet;
+	}
+	set spriteSet(value: SpriteSetResourceLocator | null) {
+		this.#spriteSet = value;
+		if (value) {
+			const sprites = Resources.instance.spriteSet.get(value.name);
+			this.images = sprites.map((s) => s);
+		} else {
+			this.images = [];
+		}
+	}
+
+	private images: Sprite[] = [];
 	public frameDuration: number = 0.1;
 	public loop: boolean = true;
 
@@ -94,6 +127,45 @@ export default class Animation extends Module {
 			this.rectangle.width,
 			this.rectangle.height,
 		);
+	}
+
+	serialize(): AnimationDto {
+		return {
+			spriteSet: this.#spriteSet
+				? `spriteset:${this.#spriteSet.name}`
+				: undefined,
+			rectangle: this.rectangle.xywh,
+			frameDuration: this.frameDuration,
+			loop: this.loop,
+			paused: this.paused,
+		};
+	}
+
+	static deserialize(
+		obj: unknown,
+		context: { gameObject: GameObject },
+	): Result<Module, string> {
+		const parsed = animationDtoSchema.safeParse(obj);
+
+		if (!parsed.success) {
+			return Err(`Invalid data: ${parsed.error.message}`);
+		}
+
+		const { spriteSet, rectangle, frameDuration, loop, paused } =
+			parsed.data;
+
+		const anim = context.gameObject.addModule(Animation);
+		if (spriteSet) {
+			const [, name] = spriteSet.split(':') as [string, string];
+			anim.spriteSet = { type: 'spriteset', name };
+			// TODO: await resource load
+		}
+		anim.rectangle.set(...rectangle);
+		if (frameDuration !== undefined) anim.frameDuration = frameDuration;
+		if (loop !== undefined) anim.loop = loop;
+		if (paused !== undefined) anim.paused = paused;
+
+		return Ok(anim);
 	}
 
 	static {
