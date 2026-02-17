@@ -221,7 +221,7 @@ export default class GameObject
 		if (Object.hasOwn(view, 'name')) this.name = view.name;
 
 		if (Object.hasOwn(view, 'tags')) {
-			// TODO: this makes sure objects that need to be removed when clearing the level
+			// TODO(#58): this makes sure objects that need to be removed when clearing the level
 			// are actually removed.
 			const wasLevelStructure = this.tags.has(TAG_LEVEL_STRUCTURE);
 			const newTags = new Set(view.tags);

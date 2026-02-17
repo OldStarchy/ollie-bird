@@ -1,7 +1,6 @@
 import optionResultInteropMissing from './optionResultInteropMissing';
 import type { Result } from './Result';
 
-// eslint-disable-next-line @typescript-eslint/no-namespace
 namespace OptionImpl {
 	export abstract class OptionApi<T> implements Iterable<T> {
 		declare okOr: <T, E>(this: Option<T>, err: E) => Result<T, E>;
@@ -127,7 +126,6 @@ namespace OptionImpl {
 
 export type Option<T> = OptionImpl.Some<T> | OptionImpl.None;
 
-// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Option {
 	export const prototype = OptionImpl.OptionApi.prototype;
 

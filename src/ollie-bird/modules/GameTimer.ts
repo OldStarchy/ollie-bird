@@ -12,7 +12,6 @@ export default class GameTimer extends Module {
 	private get levelController(): LevelEditor {
 		if (this.owner instanceof LevelEditor) return this.owner;
 
-		// TODO(#47): move LevelEditor logic to module
 		throw new Error(
 			`${GameTimer.displayName} must be attached to a ${LevelEditor.defaultName}`,
 		);

@@ -268,7 +268,6 @@ export function Err<T = never, E = unknown>(err?: E): Result<T, E> {
 	return Result.Err<T, E>(err as E);
 }
 
-// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Result {
 	export type InferOk<R> =
 		R extends Result<infer T, unknown>

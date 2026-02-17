@@ -158,7 +158,7 @@ export default class Animation extends Module {
 		if (spriteSet) {
 			const [, name] = spriteSet.split(':') as [string, string];
 			anim.spriteSet = { type: 'spriteset', name };
-			// TODO: await resource load
+			// TODO(#59): await resource load
 		}
 		anim.rectangle.set(...rectangle);
 		if (frameDuration !== undefined) anim.frameDuration = frameDuration;

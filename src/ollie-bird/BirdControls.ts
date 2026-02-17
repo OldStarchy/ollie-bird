@@ -14,7 +14,6 @@ export interface BirdControls {
 	Vibrate?: GamepadHapticActuator;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace BirdControls {
 	export function fromGamepad(
 		gamepad: Gamepad,
