@@ -189,7 +189,7 @@ class Bird extends GameObject {
 		}
 	}
 
-	protected override update() {
+	override update() {
 		if (this.paused) {
 			return;
 		}
@@ -203,6 +203,8 @@ class Bird extends GameObject {
 		} else {
 			this.flapFrameHold = 0;
 		}
+
+		super.update();
 	}
 
 	private createExplosion(
@@ -238,7 +240,7 @@ class Bird extends GameObject {
 		this.destroy();
 	}
 
-	protected override render(context: CanvasRenderingContext2D) {
+	override render(context: CanvasRenderingContext2D) {
 		// context.fillStyle = 'yellow';
 		// context.beginPath();
 		// context.arc(...this.position.xy, 20, 0, Math.PI * 2);
@@ -277,6 +279,8 @@ class Bird extends GameObject {
 			context.scale(-1, 1);
 		}
 		sprite.blit(context, -30, -30, 60, 60);
+
+		super.render(context);
 	}
 }
 

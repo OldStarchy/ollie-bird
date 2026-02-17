@@ -153,9 +153,9 @@ class BaseGame implements IGame, ReactInterop<BaseGameSettings> {
 	}
 
 	step() {
-		this.objects.forEach((go) => go['doBeforeUpdate']());
-		this.objects.forEach((go) => go['doUpdate']());
-		this.objects.forEach((go) => go['doAfterUpdate']());
+		this.objects.forEach((go) => go.beforeUpdate());
+		this.objects.forEach((go) => go.update());
+		this.objects.forEach((go) => go.afterUpdate());
 
 		this.input.step();
 		this.queueRender();
@@ -188,18 +188,14 @@ class BaseGame implements IGame, ReactInterop<BaseGameSettings> {
 				.sort((a, b) => a - b)
 				.flatMap((layer) => layers.get(layer) ?? []);
 
-			sortedObjects.forEach((go) => go['doBeforeRender'](context));
-			sortedObjects.forEach((go) => go['doRender'](context));
-			sortedObjects.forEach((go) => go['doAfterRender'](context));
+			sortedObjects.forEach((go) => go.beforeRender(context));
+			sortedObjects.forEach((go) => go.render(context));
+			sortedObjects.forEach((go) => go.afterRender(context));
 
 			if (this.renderGizmos) {
-				sortedObjects.forEach((go) =>
-					go['doBeforeRenderGizmos'](context),
-				);
-				sortedObjects.forEach((go) => go['doRenderGizmos'](context));
-				sortedObjects.forEach((go) =>
-					go['doAfterRenderGizmos'](context),
-				);
+				sortedObjects.forEach((go) => go.beforeRenderGizmos(context));
+				sortedObjects.forEach((go) => go.renderGizmos(context));
+				sortedObjects.forEach((go) => go.afterRenderGizmos(context));
 			}
 
 			context.strokeStyle = 'red';
@@ -214,7 +210,7 @@ class BaseGame implements IGame, ReactInterop<BaseGameSettings> {
 		const obj = new type(this, ...args) as InstanceType<Constructor>;
 		this.objects.push(obj);
 
-		obj['doInitialize']();
+		obj.initialize();
 		this.#gameObjects$.next();
 		return obj;
 	}

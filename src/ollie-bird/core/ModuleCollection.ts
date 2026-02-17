@@ -72,27 +72,27 @@ export default class ModuleCollection implements IModular {
 		});
 	}
 
-	protected initialize(): void {
+	initialize(): void {
 		this.each((module) => {
 			module['initialize']();
 		});
 	}
 
-	protected beforeUpdate(): void {
+	beforeUpdate(): void {
 		this.each((module) => {
 			if (module.enabled) {
 				module['beforeUpdate']();
 			}
 		});
 	}
-	protected update(): void {
+	update(): void {
 		this.each((module) => {
 			if (module.enabled) {
 				module['update']();
 			}
 		});
 	}
-	protected afterUpdate(): void {
+	afterUpdate(): void {
 		this.each((module) => {
 			if (module.enabled) {
 				module['afterUpdate']();
@@ -100,21 +100,21 @@ export default class ModuleCollection implements IModular {
 		});
 	}
 
-	protected beforeRender(context: CanvasRenderingContext2D): void {
+	beforeRender(context: CanvasRenderingContext2D): void {
 		this.each((module) => {
 			if (module.enabled) {
 				module['beforeRender'](context);
 			}
 		});
 	}
-	protected render(context: CanvasRenderingContext2D): void {
+	render(context: CanvasRenderingContext2D): void {
 		this.each((module) => {
 			if (module.enabled) {
 				module['render'](context);
 			}
 		});
 	}
-	protected afterRender(context: CanvasRenderingContext2D): void {
+	afterRender(context: CanvasRenderingContext2D): void {
 		this.each((module) => {
 			if (module.enabled) {
 				module['afterRender'](context);
@@ -122,21 +122,21 @@ export default class ModuleCollection implements IModular {
 		});
 	}
 
-	protected beforeRenderGizmos(context: CanvasRenderingContext2D): void {
+	beforeRenderGizmos(context: CanvasRenderingContext2D): void {
 		this.each((module) => {
 			if (module.enabled) {
 				module['beforeRenderGizmos'](context);
 			}
 		});
 	}
-	protected renderGizmos(context: CanvasRenderingContext2D): void {
+	renderGizmos(context: CanvasRenderingContext2D): void {
 		this.each((module) => {
 			if (module.enabled) {
 				module['renderGizmos'](context);
 			}
 		});
 	}
-	protected afterRenderGizmos(context: CanvasRenderingContext2D): void {
+	afterRenderGizmos(context: CanvasRenderingContext2D): void {
 		this.each((module) => {
 			if (module.enabled) {
 				module['afterRenderGizmos'](context);

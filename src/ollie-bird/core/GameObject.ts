@@ -103,78 +103,48 @@ export default class GameObject
 		return this.modules.removeModule(module);
 	}
 
-	// @ts-expect-error
-	private doInitialize() {
+	initialize() {
 		if (this.#initialized) return;
 
-		this.initialize();
-		this.modules['initialize']();
+		this.modules.initialize();
 		this.#initialized = true;
 	}
-	protected initialize(): void {}
 
-	// @ts-expect-error
-	private doBeforeUpdate(): void {
-		this.beforeUpdate();
-		this.modules['beforeUpdate']();
+	beforeUpdate(): void {
+		this.modules.beforeUpdate();
 	}
-	protected beforeUpdate(): void {}
 
-	// @ts-expect-error
-	private doUpdate(): void {
-		this.update();
-		this.modules['update']();
+	update(): void {
+		this.modules.update();
 	}
-	protected update(): void {}
 
-	// @ts-expect-error
-	private doAfterUpdate(): void {
-		this.afterUpdate();
-		this.modules['afterUpdate']();
+	afterUpdate(): void {
+		this.modules.afterUpdate();
 	}
-	protected afterUpdate(): void {}
 
-	// @ts-expect-error
-	private doBeforeRender(context: CanvasRenderingContext2D): void {
-		this.beforeRender(context);
-		this.modules['beforeRender'](context);
+	beforeRender(context: CanvasRenderingContext2D): void {
+		this.modules.beforeRender(context);
 	}
-	protected beforeRender(_context: CanvasRenderingContext2D): void {}
 
-	// @ts-expect-error
-	private doRender(context: CanvasRenderingContext2D): void {
-		this.render(context);
-		this.modules['render'](context);
+	render(context: CanvasRenderingContext2D): void {
+		this.modules.render(context);
 	}
-	protected render(_context: CanvasRenderingContext2D): void {}
 
-	// @ts-expect-error
-	private doAfterRender(context: CanvasRenderingContext2D): void {
-		this.afterRender(context);
-		this.modules['afterRender'](context);
+	afterRender(context: CanvasRenderingContext2D): void {
+		this.modules.afterRender(context);
 	}
-	protected afterRender(_context: CanvasRenderingContext2D): void {}
 
-	// @ts-expect-error
-	private doBeforeRenderGizmos(context: CanvasRenderingContext2D): void {
-		this.beforeRenderGizmos(context);
-		this.modules['beforeRenderGizmos'](context);
+	beforeRenderGizmos(context: CanvasRenderingContext2D): void {
+		this.modules.beforeRenderGizmos(context);
 	}
-	protected beforeRenderGizmos(_context: CanvasRenderingContext2D): void {}
 
-	// @ts-expect-error
-	private doRenderGizmos(context: CanvasRenderingContext2D): void {
-		this.renderGizmos(context);
-		this.modules['renderGizmos'](context);
+	renderGizmos(context: CanvasRenderingContext2D): void {
+		this.modules.renderGizmos(context);
 	}
-	protected renderGizmos(_context: CanvasRenderingContext2D): void {}
 
-	// @ts-expect-error
-	private doAfterRenderGizmos(context: CanvasRenderingContext2D): void {
-		this.afterRenderGizmos(context);
-		this.modules['afterRenderGizmos'](context);
+	afterRenderGizmos(context: CanvasRenderingContext2D): void {
+		this.modules.afterRenderGizmos(context);
 	}
-	protected afterRenderGizmos(_context: CanvasRenderingContext2D): void {}
 
 	readonly #destroy$ = new Subject<void>();
 	readonly destroy$ = this.#destroy$.asObservable();
@@ -193,9 +163,6 @@ export default class GameObject
 			tags: Array.from(this.tags),
 			layer: this.layer,
 			modules: [],
-			// this.modules
-			// 	.getModules()
-			// 	.map((module) => module[ReactInterop.get]()),
 		};
 	}
 

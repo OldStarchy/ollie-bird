@@ -95,7 +95,7 @@ export default class LevelEditor extends GameObject {
 		this.deleteThingsTool.transient = true;
 	}
 
-	protected override initialize(): void {
+	override initialize(): void {
 		super.initialize();
 		this.layer = 200;
 
@@ -116,7 +116,7 @@ export default class LevelEditor extends GameObject {
 		};
 	}
 
-	protected override update(): void {
+	override update(): void {
 		if (this.#changeToolKey.isPressed) {
 			this.mode = (this.mode + 1) % (EditorMode.LAST + 1);
 
@@ -182,18 +182,21 @@ export default class LevelEditor extends GameObject {
 				}
 				break;
 		}
+
+		super.update();
 	}
 
-	protected override afterUpdate(): void {
+	override afterUpdate(): void {
 		if (this.#birdDied) {
 			this.#birdDied = false;
 			if (this.game.findObjectsByType(Bird).length === 0) {
 				this.#levelLoaderEvent$.next({ type: 'levelComplete' });
 			}
 		}
+		super.afterUpdate();
 	}
 
-	protected override render(context: CanvasRenderingContext2D): void {
+	override render(context: CanvasRenderingContext2D): void {
 		context.fillStyle = 'black';
 		context.beginPath();
 		context.fillText(
@@ -203,6 +206,8 @@ export default class LevelEditor extends GameObject {
 		);
 
 		this.renderGrid(context);
+
+		super.render(context);
 	}
 
 	renderGrid(context: CanvasRenderingContext2D): void {
