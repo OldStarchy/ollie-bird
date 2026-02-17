@@ -2,6 +2,7 @@ import { Subject } from 'rxjs';
 import { CELL_SIZE, TAG_LEVEL_OBJECT, TAG_LEVEL_STRUCTURE } from '../const';
 import type { EventMap } from '../core/EventMap';
 import GameObject from '../core/GameObject';
+import type IGame from '../core/IGame';
 import Mouse from '../core/input/mouse/Mouse';
 import { Option } from '../core/monad/Option';
 import { Err, Ok, Result } from '../core/monad/Result';
@@ -57,11 +58,7 @@ export default class LevelEditor extends GameObject {
 	}
 	set mode(value: EditorMode) {
 		this.#mode = value;
-
-		this.setGoalTool.active = value === EditorMode.SetGoal;
-		this.createWallTool.active = value === EditorMode.AddObstacle;
-		this.createCheckpointTool.active = value === EditorMode.AddGate;
-		this.deleteThingsTool.active = value === EditorMode.DeleteThings;
+		this.updateActiveTool();
 	}
 
 	gridSize: number = CELL_SIZE;
@@ -69,37 +66,10 @@ export default class LevelEditor extends GameObject {
 	readonly #levelLoaderEvent$ = new Subject<LevelLoaderEvents>();
 	readonly levelEvent$ = this.#levelLoaderEvent$.asObservable();
 
-	private createWallTool!: CreateWallTool;
-	private createCheckpointTool!: CreateCheckpointTool;
-	private setGoalTool!: SetGoalTool;
-	private deleteThingsTool!: DeleteThingsTool;
-
-	protected override setup(): void {
-		this.addModule(CheckpointManager);
-		this.addModule(GameTimer);
-		this.addModule(ObjectSelector);
-		this.createWallTool = this.addModule(CreateWallTool);
-		this.createCheckpointTool = this.addModule(CreateCheckpointTool);
-		this.setGoalTool = this.addModule(SetGoalTool);
-		this.deleteThingsTool = this.addModule(DeleteThingsTool);
-	}
-
-	protected override initialize(): void {
-		super.initialize();
-		this.layer = 200;
-
-		this.createWallTool.transient = true;
-		this.createWallTool.active = true;
-
-		this.createCheckpointTool.transient = true;
-		this.createCheckpointTool.active = false;
-
-		this.setGoalTool.transient = true;
-		this.setGoalTool.active = false;
-
-		this.deleteThingsTool.transient = true;
-		this.deleteThingsTool.active = false;
-	}
+	private createWallTool: CreateWallTool;
+	private createCheckpointTool: CreateCheckpointTool;
+	private setGoalTool: SetGoalTool;
+	private deleteThingsTool: DeleteThingsTool;
 
 	#changeToolKey = this.game.input.keyboard.getButton('Tab');
 	#pauseKey = this.game.input.keyboard.getButton('KeyP');
@@ -108,6 +78,36 @@ export default class LevelEditor extends GameObject {
 	#restartKey = this.game.input.getButton(Bindings.Restart);
 
 	#primaryMbutton = this.game.input.mouse.getButton(Mouse.BUTTON_LEFT);
+
+	constructor(game: IGame) {
+		super(game);
+
+		this.addModule(CheckpointManager);
+		this.addModule(GameTimer);
+		this.addModule(ObjectSelector);
+		this.createWallTool = this.addModule(CreateWallTool);
+		this.createWallTool.transient = true;
+		this.createCheckpointTool = this.addModule(CreateCheckpointTool);
+		this.createCheckpointTool.transient = true;
+		this.setGoalTool = this.addModule(SetGoalTool);
+		this.setGoalTool.transient = true;
+		this.deleteThingsTool = this.addModule(DeleteThingsTool);
+		this.deleteThingsTool.transient = true;
+	}
+
+	protected override initialize(): void {
+		super.initialize();
+		this.layer = 200;
+
+		this.updateActiveTool();
+	}
+
+	private updateActiveTool() {
+		this.setGoalTool.active = this.#mode === EditorMode.SetGoal;
+		this.createWallTool.active = this.#mode === EditorMode.AddObstacle;
+		this.createCheckpointTool.active = this.#mode === EditorMode.AddGate;
+		this.deleteThingsTool.active = this.#mode === EditorMode.DeleteThings;
+	}
 
 	alignToGrid(obj: { x: number; y: number }): { x: number; y: number } {
 		return {

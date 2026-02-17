@@ -45,11 +45,10 @@ export default class ModuleCollection implements IModular {
 		) as InstanceType<Constructor>;
 		this.modules.push(module);
 
-		module['setup']();
-
 		if (this.owner.initialized) {
 			module['initialize']();
 		}
+
 		return module;
 	}
 
@@ -70,12 +69,6 @@ export default class ModuleCollection implements IModular {
 	public [Symbol.dispose](): void {
 		this.each((module) => {
 			module[Symbol.dispose]();
-		});
-	}
-
-	protected setup(): void {
-		this.each((module) => {
-			module['setup']();
 		});
 	}
 

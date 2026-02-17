@@ -17,10 +17,11 @@ export default class CreateCheckpointTool extends Module {
 		this.boxInputTool.active = value;
 	}
 
-	private boxInputTool!: BoxInputTool;
+	private boxInputTool: BoxInputTool;
 
-	protected override setup(): void {
-		super.setup();
+	constructor(owner: GameObject) {
+		super(owner);
+
 		this.boxInputTool = this.addTransientModule(BoxInputTool);
 	}
 

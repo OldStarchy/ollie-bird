@@ -8,7 +8,7 @@ import createGoalPrefab from '../../prefabs/createGoalPrefab';
 import BoxInputTool from '../BoxInputTool';
 
 export default class SetGoalTool extends Module {
-	static readonly displayName = 'CreateCheckpointTool';
+	static readonly displayName = 'SetGoalTool';
 
 	get active() {
 		return this.boxInputTool.active;
@@ -17,10 +17,11 @@ export default class SetGoalTool extends Module {
 		this.boxInputTool.active = value;
 	}
 
-	private boxInputTool!: BoxInputTool;
+	private boxInputTool: BoxInputTool;
 
-	protected override setup(): void {
-		super.setup();
+	constructor(owner: GameObject) {
+		super(owner);
+
 		this.boxInputTool = this.addTransientModule(BoxInputTool);
 	}
 

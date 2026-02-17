@@ -104,13 +104,6 @@ export default class GameObject
 	}
 
 	// @ts-expect-error
-	private doSetup() {
-		this.setup();
-		this.modules['setup']();
-	}
-	protected setup(): void {}
-
-	// @ts-expect-error
 	private doInitialize() {
 		if (this.#initialized) return;
 

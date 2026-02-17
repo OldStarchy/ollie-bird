@@ -41,7 +41,6 @@ export default abstract class Module
 		this.disposableStack.dispose();
 	}
 
-	protected setup(): void {}
 	protected initialize(): void {}
 
 	protected beforeUpdate(): void {}
