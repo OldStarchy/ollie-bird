@@ -1,7 +1,4 @@
 import { toss } from 'toss-expression';
-import birdDown from '../../assets/bird-down.png';
-import birdRight from '../../assets/bird-right.png';
-import birdUp from '../../assets/bird-up.png';
 import contextCheckpoint from '../../contextCheckpoint';
 import onChange from '../../react-interop/onChange';
 import type { BirdControls } from '../BirdControls';
@@ -12,30 +9,63 @@ import Vec2 from '../core/math/Vec2';
 import Collider2d from '../core/modules/Collider2d';
 import CircleCollider2d from '../core/modules/colliders/CircleCollider2d';
 import Sprite from '../core/Sprite';
+import Resources from '../Resources';
 import Explosion from './Explosion';
 import Goal from './Goal';
 import LevelEditor from './LevelEditor';
 import SequentialGate from './SequentialGate';
 
+declare global {
+	interface GameEventMap {
+		gameOver: void;
+	}
+}
+
+interface BirdSpriteSet {
+	idle: Sprite;
+	raise: Sprite;
+	spread: Sprite;
+	flap: Sprite;
+	dive: Sprite;
+}
+
+function getBirdSpriteSet(
+	sprites: [Sprite, Sprite, Sprite, Sprite, Sprite],
+): BirdSpriteSet {
+	return {
+		idle: sprites[0],
+		raise: sprites[1],
+		spread: sprites[2],
+		flap: sprites[3],
+		dive: sprites[4],
+	};
+}
+
 class Bird extends GameObject {
+	static readonly raiseToSpreadTime = 0.15;
 	static readonly defaultName: string = 'Bird';
+
 	layer = Layer.Player;
 	public ySpeed: number = 0;
-	private holdTime = 0;
+	private flapHoldTime = 0;
 	private gravity: number;
 	private flappedOnce = false;
+	private flapFrameHold: number = 0;
 
 	private get position(): Vec2 {
 		return this.transform.position;
 	}
 
-	static sprites = {
-		right: new Sprite(birdRight),
-		up: new Sprite(birdUp),
-		down: new Sprite(birdDown),
-	};
+	static readonly spritesRight: BirdSpriteSet = getBirdSpriteSet(
+		Resources.birdRightSprites,
+	);
+	static readonly spritesFront: BirdSpriteSet = getBirdSpriteSet(
+		Resources.birdFrontSprites,
+	);
 
+	private sprites: BirdSpriteSet;
 	private levelController: LevelEditor;
+
 	constructor(game: IGame) {
 		super(game);
 		this.tags.add(TAG_LEVEL_OBJECT);
@@ -43,6 +73,8 @@ class Bird extends GameObject {
 
 		const collider = this.addModule(CircleCollider2d);
 		collider.radius = 20;
+
+		this.sprites = Bird.spritesFront;
 
 		this.levelController =
 			game.findObjectsByType(LevelEditor)[0] ??
@@ -84,11 +116,12 @@ class Bird extends GameObject {
 	protected handleInput() {
 		// Key Downs
 		if (this.#keyFlap.isDown) {
-			this.holdTime += this.game.secondsPerFrame;
-			if (this.holdTime > 0.3 && !this.flappedOnce) {
+			this.flapHoldTime += this.game.secondsPerFrame;
+			if (this.flapHoldTime > 0.3 && !this.flappedOnce) {
 				this.ySpeed = -6;
-				this.holdTime %= 0.3;
+				this.flapHoldTime %= 0.3;
 				this.flappedOnce = true;
+				this.flapFrameHold = 0.3;
 			}
 
 			if (this.ySpeed > this.game.physics.gravity) {
@@ -96,7 +129,8 @@ class Bird extends GameObject {
 				this.ySpeed = Math.max(this.ySpeed, this.game.physics.gravity);
 			}
 
-			this.gravity = this.game.physics.gravity * (this.holdTime / 0.3);
+			this.gravity =
+				this.game.physics.gravity * (this.flapHoldTime / 0.3);
 		}
 
 		if (this.#keyRight.isDown) {
@@ -110,9 +144,10 @@ class Bird extends GameObject {
 		// Key Releaseds
 		if (this.#keyFlap.isReleased) {
 			if (!this.flappedOnce) {
-				this.ySpeed = (-this.holdTime / 0.3) * 6;
+				this.ySpeed = (-this.flapHoldTime / 0.3) * 6;
+				this.flapFrameHold = 0.3;
 			}
-			this.holdTime = 0;
+			this.flapHoldTime = 0;
 			this.gravity = this.game.physics.gravity;
 			this.flappedOnce = false;
 		}
@@ -176,6 +211,12 @@ class Bird extends GameObject {
 		this.handleInput();
 		this.checkOutOfBounds();
 		this.checkObjCollisions();
+
+		if (this.flapFrameHold > 0) {
+			this.flapFrameHold -= this.game.secondsPerFrame;
+		} else {
+			this.flapFrameHold = 0;
+		}
 	}
 
 	private createExplosion(
@@ -211,21 +252,32 @@ class Bird extends GameObject {
 		// context.arc(...this.position.xy, 20, 0, Math.PI * 2);
 		// context.fill();
 
-		let spriteName = 'down';
+		let spriteName: keyof BirdSpriteSet = 'idle';
 		let flip = false;
-		if (this.ySpeed < -1) {
-			spriteName = 'up';
-		}
 
 		if (this.#keyRight.isDown) {
-			spriteName = 'right';
-		}
-		if (this.#keyLeft.isDown) {
-			spriteName = 'right';
+			this.sprites = Bird.spritesRight;
+		} else if (this.#keyLeft.isDown) {
+			this.sprites = Bird.spritesRight;
 			flip = true;
+		} else {
+			this.sprites = Bird.spritesFront;
 		}
 
-		const sprite = Bird.sprites[spriteName as keyof typeof Bird.sprites];
+		if (this.flapFrameHold > 0) {
+			spriteName = 'flap';
+		} else if (this.#keyFlap.isDown) {
+			spriteName = 'raise';
+			if (this.flapHoldTime > Bird.raiseToSpreadTime) {
+				spriteName = 'spread';
+			}
+		} else if (this.ySpeed > 0) {
+			spriteName = 'dive';
+		} else {
+			spriteName = 'spread';
+		}
+
+		const sprite = this.sprites[spriteName as keyof typeof this.sprites];
 
 		using _ = contextCheckpoint(context);
 		context.translate(...this.position.xy);
