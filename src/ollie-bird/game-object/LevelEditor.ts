@@ -9,10 +9,11 @@ import RectangleCollider from '../core/collider/RectangleCollider';
 import type { EventMap } from '../core/EventMap';
 import GameObject from '../core/GameObject';
 import Mouse from '../core/input/mouse/Mouse';
-import Rect2 from '../core/math/Rect2';
+import { type Rect2Like } from '../core/math/Rect2';
 import Collider2d from '../core/modules/Collider2d';
 import { Option } from '../core/monad/Option';
 import { Err, Ok, Result } from '../core/monad/Result';
+import BoxInputTool from '../modules/BoxInputTool';
 import CheckpointManager from '../modules/CheckpointManager';
 import GameTimer from '../modules/GameTimer';
 import ObjectSelector from '../modules/ObjectSelector';
@@ -59,10 +60,10 @@ export default class LevelEditor extends GameObject {
 
 	gridSize: number = CELL_SIZE;
 
-	dragStart: { x: number; y: number } | null = null;
-
 	readonly #levelLoaderEvent$ = new Subject<LevelLoaderEvents>();
 	readonly levelEvent$ = this.#levelLoaderEvent$.asObservable();
+
+	private boxInput!: BoxInputTool;
 
 	protected override initialize(): void {
 		super.initialize();
@@ -71,10 +72,20 @@ export default class LevelEditor extends GameObject {
 		this.addModule(CheckpointManager);
 		this.addModule(GameTimer);
 		this.addModule(ObjectSelector);
+
+		const boxInput = this.addModule(BoxInputTool);
+		boxInput.enabled = true;
+		boxInput.pointer = this.game.input.mouse;
+		boxInput.clicker = this.game.input.mouse.getButton(Mouse.BUTTON_LEFT);
+		boxInput.cancelBtn = this.game.input.keyboard.getButton('Escape');
+		this.boxInput = boxInput;
+
+		this.disposableStack.use(
+			boxInput.box$.subscribe((rect) => this.handleBoxDrawn(rect)),
+		);
 	}
 
 	#changeToolKey = this.game.input.keyboard.getButton('Tab');
-	#cancelKey = this.game.input.keyboard.getButton('Escape');
 	#pauseKey = this.game.input.keyboard.getButton('KeyP');
 	#ctrlKey = this.game.input.keyboard.getButton('ControlLeft');
 
@@ -92,10 +103,18 @@ export default class LevelEditor extends GameObject {
 	protected override update(): void {
 		if (this.#changeToolKey.isPressed) {
 			this.mode = (this.mode + 1) % (EditorMode.LAST + 1);
-		}
 
-		if (this.#cancelKey.isPressed) {
-			this.dragStart = null;
+			switch (this.mode) {
+				case EditorMode.AddObstacle:
+				case EditorMode.DeleteThings:
+				case EditorMode.AddGate:
+				case EditorMode.SetGoal:
+					// this.game.cursor = 'crosshair';
+					this.boxInput.enabled = true;
+					break;
+				default:
+					this.boxInput.enabled = false;
+			}
 		}
 
 		if (this.#pauseKey.isPressed) {
@@ -108,7 +127,6 @@ export default class LevelEditor extends GameObject {
 
 		if (this.#restartKey.isPressed) {
 			this.restart();
-			this.dragStart = null;
 		}
 
 		const mPos = this.alignToGrid({
@@ -117,78 +135,6 @@ export default class LevelEditor extends GameObject {
 		});
 
 		switch (this.mode) {
-			case EditorMode.AddObstacle:
-			case EditorMode.DeleteThings:
-			case EditorMode.SetGoal:
-			case EditorMode.AddGate:
-				if (this.dragStart === null) {
-					if (this.#primaryMbutton.isPressed) {
-						this.dragStart = { ...mPos };
-					}
-				} else {
-					if (!this.#primaryMbutton.isDown) {
-						const rect = Rect2.fromAABB(
-							this.dragStart.x,
-							this.dragStart.y,
-							mPos.x,
-							mPos.y,
-						);
-
-						this.dragStart = null;
-
-						if (rect.width === 0 || rect.height === 0) {
-							return;
-						}
-
-						rect.normalize();
-
-						switch (this.mode) {
-							case EditorMode.AddObstacle:
-								GameObject.deserializePartial(
-									createWallPrefab(rect),
-									{ game: this.game },
-								).logErr('Failed to create wall');
-								break;
-							case EditorMode.DeleteThings: {
-								// Check collision with obstacles in the selection area
-								for (const obj of this.game
-									.findObjectsByTag(TAG_LEVEL_STRUCTURE)
-									.filter(
-										Collider2d.collidingWith(
-											new RectangleCollider(
-												rect.x,
-												rect.y,
-												rect.width,
-												rect.height,
-											),
-										),
-									)) {
-									obj.destroy();
-								}
-								break;
-							}
-
-							case EditorMode.AddGate:
-								GameObject.deserializePartial(
-									createCheckpointPrefab(rect),
-									{ game: this.game },
-								).logErr('Failed to create checkpoint');
-								break;
-
-							case EditorMode.SetGoal:
-								this.game
-									.findObjectsByTag(TAG_GOAL)
-									.forEach((obj) => obj.destroy());
-
-								GameObject.deserializePartial(
-									createGoalPrefab(rect),
-									{ game: this.game },
-								).logErr('Failed to create goal');
-								break;
-						}
-					}
-				}
-				break;
 			case EditorMode.SetSpawnPoint:
 				if (this.#primaryMbutton.isPressed) {
 					const player = this.#ctrlKey.isDown ? 1 : 0;
@@ -220,9 +166,54 @@ export default class LevelEditor extends GameObject {
 				}
 				break;
 		}
+	}
 
-		if (!this.#primaryMbutton.isDown) {
-			this.dragStart = null;
+	private handleBoxDrawn(rect: Rect2Like) {
+		if (rect.width === 0 || rect.height === 0) {
+			return;
+		}
+
+		switch (this.mode) {
+			case EditorMode.AddObstacle:
+				GameObject.deserializePartial(createWallPrefab(rect), {
+					game: this.game,
+				}).logErr('Failed to create wall');
+				break;
+
+			case EditorMode.DeleteThings: {
+				// Check collision with obstacles in the selection area
+				for (const obj of this.game
+					.findObjectsByTag(TAG_LEVEL_STRUCTURE)
+					.filter(
+						Collider2d.collidingWith(
+							new RectangleCollider(
+								rect.x,
+								rect.y,
+								rect.width,
+								rect.height,
+							),
+						),
+					)) {
+					obj.destroy();
+				}
+				break;
+			}
+
+			case EditorMode.AddGate:
+				GameObject.deserializePartial(createCheckpointPrefab(rect), {
+					game: this.game,
+				}).logErr('Failed to create checkpoint');
+				break;
+
+			case EditorMode.SetGoal:
+				this.game
+					.findObjectsByTag(TAG_GOAL)
+					.forEach((obj) => obj.destroy());
+
+				GameObject.deserializePartial(createGoalPrefab(rect), {
+					game: this.game,
+				}).logErr('Failed to create goal');
+				break;
 		}
 	}
 
@@ -243,25 +234,10 @@ export default class LevelEditor extends GameObject {
 			10,
 			20,
 		);
-		if (this.dragStart !== null) {
-			context.strokeStyle =
-				this.mode === EditorMode.AddObstacle ? 'green' : 'red';
-			context.beginPath();
-			const m = this.alignToGrid({
-				x: this.game.input.mouse.x,
-				y: this.game.input.mouse.y,
-			});
-			context.strokeRect(
-				this.dragStart.x,
-				this.dragStart.y,
-				m.x - this.dragStart.x,
-				m.y - this.dragStart.y,
-			);
-			context.stroke();
-		}
 
 		this.renderGrid(context);
 	}
+
 	renderGrid(context: CanvasRenderingContext2D): void {
 		const gridSize = this.gridSize;
 		context.strokeStyle = '#e0e0e0';
