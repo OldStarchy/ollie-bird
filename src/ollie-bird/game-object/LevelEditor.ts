@@ -15,13 +15,13 @@ import GameTimer from '../modules/GameTimer';
 import ObjectSelector from '../modules/ObjectSelector';
 import PlayerSpawner from '../modules/PlayerSpawner';
 import { Bindings } from '../OllieBirdGame';
+import { createBombPrefab } from '../prefabs/createBombPrefab';
 import createCheckpointPrefab from '../prefabs/createCheckpointPrefab';
 import createGoalPrefab from '../prefabs/createGoalPrefab';
 import { createPlayerSpawnerPrefab } from '../prefabs/createPlayerSpawnerPrefab';
 import { createWalkerSpawnerPrefab } from '../prefabs/createWalkerSpawnerPrefab';
 import createWallPrefab from '../prefabs/createWallPrefab';
 import Bird from './Bird';
-import Bomb from './Bomb';
 
 enum EditorMode {
 	SetSpawnPoint,
@@ -168,7 +168,9 @@ export default class LevelEditor extends GameObject {
 				break;
 			case EditorMode.CreateBomb:
 				if (this.#primaryMbutton.isPressed) {
-					this.game.spawn(Bomb).transform.position.copy(mPos);
+					GameObject.deserializePartial(createBombPrefab(mPos), {
+						game: this.game,
+					}).logErr('Failed to create bomb');
 				}
 				break;
 			case EditorMode.AddBaddie:

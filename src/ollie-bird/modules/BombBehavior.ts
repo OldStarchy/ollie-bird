@@ -1,41 +1,39 @@
 import { filter } from 'rxjs';
 import { toss } from 'toss-expression';
-import { z } from 'zod';
-import { CELL_SIZE, TAG_DEADLY, TAG_LEVEL_STRUCTURE } from '../const';
+import { CELL_SIZE } from '../const';
 import GameObject from '../core/GameObject';
+import Module from '../core/Module';
 import Collider2d from '../core/modules/Collider2d';
 import CircleCollider2d from '../core/modules/colliders/CircleCollider2d';
 import filterEvent from '../core/rxjs/filterEvent';
-import Animation from '../modules/Animation';
-import Bird from './Bird';
-import LevelEditor from './LevelEditor';
+import Bird from '../game-object/Bird';
+import LevelEditor from '../game-object/LevelEditor';
+import Animation from './Animation';
 
-export const bombDtoSchema = z.object({
-	$type: z.string(),
-	x: z.number(),
-	y: z.number(),
-});
+export default class BombBehavior extends Module {
+	private anim: Animation;
+	private collider: CircleCollider2d;
+	private triggerCollider: CircleCollider2d;
 
-export type BombDto = z.input<typeof bombDtoSchema>;
+	constructor(owner: GameObject) {
+		super(owner);
 
-export default class Bomb extends GameObject {
-	static readonly defaultName: string = 'Bomb';
+		this.anim = this.getModule(Animation)!;
 
-	private anim!: Animation;
-	private collider!: CircleCollider2d;
-	private triggerCollider!: CircleCollider2d;
+		this.collider = this.addTransientModule(CircleCollider2d);
+		this.collider.radius = CELL_SIZE * 4;
+		this.collider.enabled = false;
+		this.collider.renderWidget = true;
+
+		this.triggerCollider = this.addTransientModule(CircleCollider2d);
+		this.triggerCollider.radius = CELL_SIZE * 2;
+		this.triggerCollider.enabled = false; //disable to prevent it killing the player
+		this.triggerCollider.renderWidget = true;
+	}
 
 	protected override initialize(): void {
 		super.initialize();
-		this.layer = 150;
-		this.tags.add(TAG_DEADLY);
-		this.tags.add(TAG_LEVEL_STRUCTURE);
 
-		this.anim = this.addModule(Animation);
-		this.anim.spriteSet = { type: 'spriteset', name: 'bomb' };
-		this.anim.frameDuration = 0.4;
-		this.anim.loop = false;
-		this.anim.paused = true;
 		this.disposableStack.use(
 			this.anim.events$
 				.pipe(filter((e) => e === 'ended'))
@@ -45,26 +43,11 @@ export default class Bomb extends GameObject {
 				}),
 		);
 
-		this.anim.rectangle.set(
-			-CELL_SIZE,
-			-CELL_SIZE,
-			CELL_SIZE * 2,
-			CELL_SIZE * 2,
-		);
-
-		this.collider = this.addModule(CircleCollider2d);
-		this.collider.radius = CELL_SIZE * 4;
-		this.collider.enabled = false;
-		this.collider.renderWidget = true;
-
-		this.triggerCollider = this.addModule(CircleCollider2d);
-		this.triggerCollider.radius = CELL_SIZE * 2;
-		this.triggerCollider.enabled = false; //disable to prevent it killing the player
-		this.triggerCollider.renderWidget = true;
-
 		const levelController =
 			this.game.findObjectsByType(LevelEditor)[0] ??
-			toss(new Error(`${Bomb.name} requires ${LevelEditor.name}`));
+			toss(
+				new Error(`${BombBehavior.name} requires ${LevelEditor.name}`),
+			);
 
 		this.disposableStack.use(
 			levelController.levelEvent$
@@ -119,5 +102,12 @@ export default class Bomb extends GameObject {
 				this.anim.paused = false;
 			}
 		}
+	}
+
+	static {
+		Module.serializer.registerSerializationType(
+			'BombBehavior',
+			BombBehavior,
+		);
 	}
 }
