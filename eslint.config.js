@@ -41,6 +41,7 @@ export default defineConfig([
 			],
 			// Handled by prettier
 			'no-unexpected-multiline': 'off',
+			'@typescript-eslint/no-namespace': 'off',
 		},
 	},
 ]);
