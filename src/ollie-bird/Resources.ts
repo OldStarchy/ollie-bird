@@ -12,38 +12,111 @@ import sheet1Url from '../assets/sheet1.png';
 
 import Sprite from './core/Sprite';
 
-export default class Resources {
-	static sprites: Sprite[] = [];
+class ResourceMap<T> {
+	#map = new Map<string, T>();
 
-	static add<T extends Sprite[]>(...sprites: T): T {
-		Resources.sprites.push(...sprites);
-		return sprites;
+	constructor(public readonly name: string) {}
+
+	getAll(): [string, T][] {
+		return Array.from(this.#map.entries());
 	}
 
-	static readonly sheet1 = Resources.add(
-		...Sprite.fromGrid(sheet1Url, 4, 4, 910, 911),
-	);
+	register(name: string, resource: T): void {
+		if (this.#map.has(name)) {
+			throw new Error(
+				`${this.name} Resource with name ${name} is already registered`,
+			);
+		}
+		this.#map.set(name, resource);
+	}
 
-	static readonly grindingWheel = Resources.sheet1[0];
-	static readonly bomb = Resources.sheet1.slice(1, 8);
-	static readonly cloudIdle = Resources.sheet1.slice(8, 10);
-	static readonly cloudStrike = Resources.sheet1.slice(10, 12);
-	static readonly lightingIdle = Resources.sheet1.slice(12, 15);
-	static readonly lightningStrike = Resources.sheet1[15];
+	get(name: string): T {
+		const resource = this.#map.get(name);
+		if (!resource) {
+			throw new Error(
+				`${this.name} Resource with name ${name} not found`,
+			);
+		}
+		return resource;
+	}
+}
 
-	static readonly birdFrontSprites = Resources.add(
-		new Sprite(bird_f1),
-		new Sprite(bird_f2),
-		new Sprite(bird_f3),
-		new Sprite(bird_f4),
-		new Sprite(bird_f5),
-	);
+export interface BirdSpriteSet {
+	idle: Sprite;
+	raise: Sprite;
+	spread: Sprite;
+	flap: Sprite;
+	dive: Sprite;
+}
 
-	static readonly birdRightSprites = Resources.add(
-		new Sprite(bird_r1),
-		new Sprite(bird_r2),
-		new Sprite(bird_r3),
-		new Sprite(bird_r4),
-		new Sprite(bird_r5),
-	);
+export namespace BirdSpriteSet {
+	export function create(
+		idle: Sprite,
+		raise: Sprite,
+		spread: Sprite,
+		flap: Sprite,
+		dive: Sprite,
+	): BirdSpriteSet {
+		return {
+			idle,
+			raise,
+			spread,
+			flap,
+			dive,
+		};
+	}
+}
+
+export default class Resources {
+	static instance = new Resources();
+
+	readonly sprite = new ResourceMap<Sprite>('Sprite');
+	readonly spriteSet = new ResourceMap<Sprite[]>('Sprite Sequence');
+	readonly birdSpriteSet = new ResourceMap<BirdSpriteSet>('5 Sprites');
+
+	getAllSprites(): Sprite[] {
+		return [
+			...this.sprite.getAll().map(([_, sprite]) => sprite),
+			...this.spriteSet.getAll().flatMap(([_, sprites]) => sprites),
+			...this.birdSpriteSet
+				.getAll()
+				.flatMap(
+					([_, birdSprites]) =>
+						Object.values(birdSprites) as Sprite[],
+				),
+		];
+	}
+
+	static {
+		const sheet1 = Sprite.fromGrid(sheet1Url, 4, 4, 910, 911);
+
+		this.instance.sprite.register('grindingWheel', sheet1[0]);
+		this.instance.spriteSet.register('bomb', sheet1.slice(1, 8));
+		this.instance.spriteSet.register('cloudIdle', sheet1.slice(8, 10));
+		this.instance.spriteSet.register('cloudStrike', sheet1.slice(10, 12));
+		this.instance.spriteSet.register('lightingIdle', sheet1.slice(12, 15));
+		this.instance.sprite.register('lightningStrike', sheet1[15]);
+
+		this.instance.birdSpriteSet.register(
+			'birdFrontSprites',
+			BirdSpriteSet.create(
+				new Sprite(bird_f1),
+				new Sprite(bird_f2),
+				new Sprite(bird_f3),
+				new Sprite(bird_f4),
+				new Sprite(bird_f5),
+			),
+		);
+
+		this.instance.birdSpriteSet.register(
+			'birdRightSprites',
+			BirdSpriteSet.create(
+				new Sprite(bird_r1),
+				new Sprite(bird_r2),
+				new Sprite(bird_r3),
+				new Sprite(bird_r4),
+				new Sprite(bird_r5),
+			),
+		);
+	}
 }

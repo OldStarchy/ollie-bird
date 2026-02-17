@@ -16,37 +16,16 @@ import Collider2d from '../core/modules/Collider2d';
 import CircleCollider2d from '../core/modules/colliders/CircleCollider2d';
 import { Option } from '../core/monad/Option';
 import '../core/monad/OptionResultInterop';
-import Sprite from '../core/Sprite';
 import Checkpoint from '../modules/Checkpoint';
 import ExplosionBehavior from '../modules/ExplosionBehavior';
 import createExplosionPrefab from '../prefabs/createExplosionPrefab';
-import Resources from '../Resources';
+import Resources, { BirdSpriteSet } from '../Resources';
 import LevelEditor from './LevelEditor';
 
 declare global {
 	interface GameEventMap {
 		gameOver: void;
 	}
-}
-
-interface BirdSpriteSet {
-	idle: Sprite;
-	raise: Sprite;
-	spread: Sprite;
-	flap: Sprite;
-	dive: Sprite;
-}
-
-function getBirdSpriteSet(
-	sprites: [Sprite, Sprite, Sprite, Sprite, Sprite],
-): BirdSpriteSet {
-	return {
-		idle: sprites[0],
-		raise: sprites[1],
-		spread: sprites[2],
-		flap: sprites[3],
-		dive: sprites[4],
-	};
 }
 
 class Bird extends GameObject {
@@ -63,12 +42,10 @@ class Bird extends GameObject {
 		return this.transform.position;
 	}
 
-	static readonly spritesRight: BirdSpriteSet = getBirdSpriteSet(
-		Resources.birdRightSprites,
-	);
-	static readonly spritesFront: BirdSpriteSet = getBirdSpriteSet(
-		Resources.birdFrontSprites,
-	);
+	static readonly spritesRight: BirdSpriteSet =
+		Resources.instance.birdSpriteSet.get('birdRightSprites');
+	static readonly spritesFront: BirdSpriteSet =
+		Resources.instance.birdSpriteSet.get('birdFrontSprites');
 
 	private sprites: BirdSpriteSet;
 	private levelController: LevelEditor;
