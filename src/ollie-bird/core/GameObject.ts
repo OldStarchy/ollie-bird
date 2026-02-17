@@ -20,10 +20,7 @@ export const gameObjectSchema = z.object({
 	tags: z.string().default('tag').array().meta({ title: 'Tags' }),
 	layer: z.coerce.number().meta({ title: 'Layer' }),
 	modules: z
-		.object({
-			$type: z.string(),
-			data: z.unknown(),
-		})
+		.object({ ...typedDtoSchema.shape, enabled: z.boolean() })
 		.array()
 		.meta({ title: 'Modules' }),
 });
@@ -36,7 +33,10 @@ export const gameObjectDtoSchemaV1 = z.object({
 	tags: z.string().array().optional(),
 	layer: z.number().optional(),
 	transform: transform2dDtoSchema.optional(),
-	modules: typedDtoSchema.array().optional(),
+	modules: z
+		.object({ ...typedDtoSchema.shape, enabled: z.boolean().default(true) })
+		.array()
+		.optional(),
 });
 
 export type GameObjectDto = z.input<typeof gameObjectDtoSchemaV1>;
@@ -210,7 +210,10 @@ export default class GameObject
 				.getModules()
 				.filter((module) => module !== this.transform)
 				.filter((module) => !module.transient)
-				.map((m) => Module.serializer.serialize(m)),
+				.map((m) => ({
+					...Module.serializer.serialize(m),
+					enabled: m.enabled,
+				})),
 		};
 	}
 
@@ -276,9 +279,13 @@ export default class GameObject
 					gameObject,
 				});
 
-				moduleResult.inspectErr((err) => {
-					errors.push(err);
-				});
+				moduleResult
+					.inspect((module) => {
+						module.enabled = moduleDto.enabled;
+					})
+					.inspectErr((err) => {
+						errors.push(err);
+					});
 			}
 
 		if (errors.length > 0) {
