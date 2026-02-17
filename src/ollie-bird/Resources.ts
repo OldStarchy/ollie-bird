@@ -1,4 +1,3 @@
-import sheet1Url from '../assets/sheet1.png';
 import bird_f1 from '../assets/bird_f1.png';
 import bird_f2 from '../assets/bird_f2.png';
 import bird_f3 from '../assets/bird_f3.png';
@@ -9,13 +8,14 @@ import bird_r2 from '../assets/bird_r2.png';
 import bird_r3 from '../assets/bird_r3.png';
 import bird_r4 from '../assets/bird_r4.png';
 import bird_r5 from '../assets/bird_r5.png';
+import sheet1Url from '../assets/sheet1.png';
 
 import Sprite from './core/Sprite';
 
 export default class Resources {
 	static sprites: Sprite[] = [];
 
-	static add(...sprites: Sprite[]): Sprite[] {
+	static add<T extends Sprite[]>(...sprites: T): T {
 		Resources.sprites.push(...sprites);
 		return sprites;
 	}
@@ -37,7 +37,7 @@ export default class Resources {
 		new Sprite(bird_f3),
 		new Sprite(bird_f4),
 		new Sprite(bird_f5),
-	) as [Sprite, Sprite, Sprite, Sprite, Sprite];
+	);
 
 	static readonly birdRightSprites = Resources.add(
 		new Sprite(bird_r1),
@@ -45,5 +45,5 @@ export default class Resources {
 		new Sprite(bird_r3),
 		new Sprite(bird_r4),
 		new Sprite(bird_r5),
-	) as [Sprite, Sprite, Sprite, Sprite, Sprite];
+	);
 }

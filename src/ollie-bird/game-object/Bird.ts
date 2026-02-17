@@ -42,7 +42,9 @@ function getBirdSpriteSet(
 }
 
 class Bird extends GameObject {
+	static readonly raiseToSpreadTime = 0.15;
 	static readonly defaultName: string = 'Bird';
+
 	layer = Layer.Player;
 	public ySpeed: number = 0;
 	private flapHoldTime = 0;
@@ -54,13 +56,12 @@ class Bird extends GameObject {
 		return this.transform.position;
 	}
 
-	public getSpritesRight(): BirdSpriteSet {
-		return getBirdSpriteSet(Resources.birdRightSprites);
-	}
-
-	public getSpritesFront(): BirdSpriteSet {
-		return getBirdSpriteSet(Resources.birdFrontSprites);
-	}
+	static readonly spritesRight: BirdSpriteSet = getBirdSpriteSet(
+		Resources.birdRightSprites,
+	);
+	static readonly spritesFront: BirdSpriteSet = getBirdSpriteSet(
+		Resources.birdFrontSprites,
+	);
 
 	private sprites: BirdSpriteSet;
 	private levelController: LevelEditor;
@@ -73,7 +74,7 @@ class Bird extends GameObject {
 		const collider = this.addModule(CircleCollider2d);
 		collider.radius = 20;
 
-		this.sprites = this.getSpritesFront();
+		this.sprites = Bird.spritesFront;
 
 		this.levelController =
 			game.findObjectsByType(LevelEditor)[0] ??
@@ -210,6 +211,12 @@ class Bird extends GameObject {
 		this.handleInput();
 		this.checkOutOfBounds();
 		this.checkObjCollisions();
+
+		if (this.flapFrameHold > 0) {
+			this.flapFrameHold -= this.game.secondsPerFrame;
+		} else {
+			this.flapFrameHold = 0;
+		}
 	}
 
 	private createExplosion(
@@ -245,24 +252,23 @@ class Bird extends GameObject {
 		// context.arc(...this.position.xy, 20, 0, Math.PI * 2);
 		// context.fill();
 
-		let spriteName = 'idle';
+		let spriteName: keyof BirdSpriteSet = 'idle';
 		let flip = false;
 
 		if (this.#keyRight.isDown) {
-			this.sprites = this.getSpritesRight();
+			this.sprites = Bird.spritesRight;
 		} else if (this.#keyLeft.isDown) {
-			this.sprites = this.getSpritesRight();
+			this.sprites = Bird.spritesRight;
 			flip = true;
 		} else {
-			this.sprites = this.getSpritesFront();
+			this.sprites = Bird.spritesFront;
 		}
 
 		if (this.flapFrameHold > 0) {
-			this.flapFrameHold -= this.game.secondsPerFrame;
 			spriteName = 'flap';
 		} else if (this.#keyFlap.isDown) {
 			spriteName = 'raise';
-			if (this.flapHoldTime > 0.15) {
+			if (this.flapHoldTime > Bird.raiseToSpreadTime) {
 				spriteName = 'spread';
 			}
 		} else if (this.ySpeed > 0) {
