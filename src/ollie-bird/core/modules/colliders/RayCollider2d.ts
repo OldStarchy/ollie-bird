@@ -44,7 +44,6 @@ export default class RayCollider2d extends Collider2d implements Serializable {
 		const { x, y } = this.owner.transform.position;
 		const dir = Vec2.from(this.direction).normalize();
 
-		context.beginPath();
 		context.moveTo(x + this.origin.x, y + this.origin.y);
 		context.lineTo(
 			x + this.origin.x + dir.x * this.distance,

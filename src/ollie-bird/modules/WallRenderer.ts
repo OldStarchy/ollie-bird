@@ -8,6 +8,7 @@ import wallTopLeft from '../../assets/wall-top-left.png';
 import wallTopRight from '../../assets/wall-top-right.png';
 import wallTop from '../../assets/wall-top.png';
 import { CELL_SIZE } from '../const';
+import type { Rect2Like } from '../core/math/Rect2';
 import Module from '../core/Module';
 import RectangleCollider2d from '../core/modules/colliders/RectangleCollider2d';
 
@@ -47,18 +48,26 @@ export default class WallRenderer extends Module {
 	protected override render(context: CanvasRenderingContext2D) {
 		const rectangle = this.collider;
 
-		const { x, y, width, height } = rectangle.getWorldRect();
+		WallRenderer.renderWall(context, rectangle.getWorldRect());
+	}
 
-		const hg = CELL_SIZE / 2;
+	static renderWall(
+		context: CanvasRenderingContext2D,
+		rectangle: Rect2Like,
+		cellSize = CELL_SIZE,
+	) {
+		const { x, y, width, height } = rectangle;
+
+		const hg = cellSize / 2;
 		// Calculate grid dimensions (x, y, width, height are already grid-aligned)
-		const gridWidth = width / CELL_SIZE + 1;
-		const gridHeight = height / CELL_SIZE + 1;
+		const gridWidth = width / cellSize + 1;
+		const gridHeight = height / cellSize + 1;
 
 		// Draw tiles for each grid position covered by this obstacle
 		for (let gx = 0; gx < gridWidth; gx++) {
 			for (let gy = 0; gy < gridHeight; gy++) {
-				const tileX = x + gx * CELL_SIZE;
-				const tileY = y + gy * CELL_SIZE;
+				const tileX = x + gx * cellSize;
+				const tileY = y + gy * cellSize;
 
 				// Determine which sprite to use based on position
 				const isLeft = gx === 0;
@@ -102,8 +111,8 @@ export default class WallRenderer extends Module {
 					sprite,
 					tileX - hg,
 					tileY - hg,
-					CELL_SIZE,
-					CELL_SIZE,
+					cellSize,
+					cellSize,
 				);
 			}
 		}

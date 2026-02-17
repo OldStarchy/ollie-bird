@@ -1,20 +1,15 @@
 import { Subject } from 'rxjs';
-import {
-	CELL_SIZE,
-	TAG_GOAL,
-	TAG_LEVEL_OBJECT,
-	TAG_LEVEL_STRUCTURE,
-} from '../const';
-import RectangleCollider from '../core/collider/RectangleCollider';
+import { CELL_SIZE, TAG_LEVEL_OBJECT, TAG_LEVEL_STRUCTURE } from '../const';
 import type { EventMap } from '../core/EventMap';
 import GameObject from '../core/GameObject';
 import Mouse from '../core/input/mouse/Mouse';
-import { type Rect2Like } from '../core/math/Rect2';
-import Collider2d from '../core/modules/Collider2d';
 import { Option } from '../core/monad/Option';
 import { Err, Ok, Result } from '../core/monad/Result';
-import BoxInputTool from '../modules/BoxInputTool';
 import CheckpointManager from '../modules/CheckpointManager';
+import CreateCheckpointTool from '../modules/editor-tools/CreateCheckpointTool';
+import CreateWallTool from '../modules/editor-tools/CreateWallTool';
+import DeleteThingsTool from '../modules/editor-tools/DeleteThingsTool';
+import SetGoalTool from '../modules/editor-tools/SetGoalTool';
 import GameTimer from '../modules/GameTimer';
 import ObjectSelector from '../modules/ObjectSelector';
 import PlayerSpawner from '../modules/PlayerSpawner';
@@ -56,33 +51,54 @@ export type LevelLoaderEvents = EventMap<{
 export default class LevelEditor extends GameObject {
 	static readonly defaultName: string = 'Level Editor';
 
-	mode: EditorMode = EditorMode.SetSpawnPoint;
+	#mode: EditorMode = EditorMode.SetSpawnPoint;
+	get mode() {
+		return this.#mode;
+	}
+	set mode(value: EditorMode) {
+		this.#mode = value;
+
+		this.setGoalTool.active = value === EditorMode.SetGoal;
+		this.createWallTool.active = value === EditorMode.AddObstacle;
+		this.createCheckpointTool.active = value === EditorMode.AddGate;
+		this.deleteThingsTool.active = value === EditorMode.DeleteThings;
+	}
 
 	gridSize: number = CELL_SIZE;
 
 	readonly #levelLoaderEvent$ = new Subject<LevelLoaderEvents>();
 	readonly levelEvent$ = this.#levelLoaderEvent$.asObservable();
 
-	private boxInput!: BoxInputTool;
+	private createWallTool!: CreateWallTool;
+	private createCheckpointTool!: CreateCheckpointTool;
+	private setGoalTool!: SetGoalTool;
+	private deleteThingsTool!: DeleteThingsTool;
+
+	protected override setup(): void {
+		this.addModule(CheckpointManager);
+		this.addModule(GameTimer);
+		this.addModule(ObjectSelector);
+		this.createWallTool = this.addModule(CreateWallTool);
+		this.createCheckpointTool = this.addModule(CreateCheckpointTool);
+		this.setGoalTool = this.addModule(SetGoalTool);
+		this.deleteThingsTool = this.addModule(DeleteThingsTool);
+	}
 
 	protected override initialize(): void {
 		super.initialize();
 		this.layer = 200;
 
-		this.addModule(CheckpointManager);
-		this.addModule(GameTimer);
-		this.addModule(ObjectSelector);
+		this.createWallTool.transient = true;
+		this.createWallTool.active = true;
 
-		const boxInput = this.addModule(BoxInputTool);
-		boxInput.enabled = true;
-		boxInput.pointer = this.game.input.mouse;
-		boxInput.clicker = this.game.input.mouse.getButton(Mouse.BUTTON_LEFT);
-		boxInput.cancelBtn = this.game.input.keyboard.getButton('Escape');
-		this.boxInput = boxInput;
+		this.createCheckpointTool.transient = true;
+		this.createCheckpointTool.active = false;
 
-		this.disposableStack.use(
-			boxInput.box$.subscribe((rect) => this.handleBoxDrawn(rect)),
-		);
+		this.setGoalTool.transient = true;
+		this.setGoalTool.active = false;
+
+		this.deleteThingsTool.transient = true;
+		this.deleteThingsTool.active = false;
 	}
 
 	#changeToolKey = this.game.input.keyboard.getButton('Tab');
@@ -106,14 +122,11 @@ export default class LevelEditor extends GameObject {
 
 			switch (this.mode) {
 				case EditorMode.AddObstacle:
-				case EditorMode.DeleteThings:
 				case EditorMode.AddGate:
 				case EditorMode.SetGoal:
-					// this.game.cursor = 'crosshair';
-					this.boxInput.enabled = true;
-					break;
-				default:
-					this.boxInput.enabled = false;
+				case EditorMode.DeleteThings:
+					// handled by CreateWallTool
+					return;
 			}
 		}
 
@@ -164,55 +177,6 @@ export default class LevelEditor extends GameObject {
 						.spawn(BaddieSpawner)
 						.transform.position.copy(mPos);
 				}
-				break;
-		}
-	}
-
-	private handleBoxDrawn(rect: Rect2Like) {
-		if (rect.width === 0 || rect.height === 0) {
-			return;
-		}
-
-		switch (this.mode) {
-			case EditorMode.AddObstacle:
-				GameObject.deserializePartial(createWallPrefab(rect), {
-					game: this.game,
-				}).logErr('Failed to create wall');
-				break;
-
-			case EditorMode.DeleteThings: {
-				// Check collision with obstacles in the selection area
-				for (const obj of this.game
-					.findObjectsByTag(TAG_LEVEL_STRUCTURE)
-					.filter(
-						Collider2d.collidingWith(
-							new RectangleCollider(
-								rect.x,
-								rect.y,
-								rect.width,
-								rect.height,
-							),
-						),
-					)) {
-					obj.destroy();
-				}
-				break;
-			}
-
-			case EditorMode.AddGate:
-				GameObject.deserializePartial(createCheckpointPrefab(rect), {
-					game: this.game,
-				}).logErr('Failed to create checkpoint');
-				break;
-
-			case EditorMode.SetGoal:
-				this.game
-					.findObjectsByTag(TAG_GOAL)
-					.forEach((obj) => obj.destroy());
-
-				GameObject.deserializePartial(createGoalPrefab(rect), {
-					game: this.game,
-				}).logErr('Failed to create goal');
 				break;
 		}
 	}

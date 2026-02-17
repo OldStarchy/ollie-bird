@@ -42,7 +42,6 @@ export default class CircleCollider2d
 
 	override doGizmoPath(context: CanvasRenderingContext2D): void {
 		const { x, y } = this.owner.transform.position;
-		context.beginPath();
 		context.arc(
 			x + this.center.x,
 			y + this.center.y,

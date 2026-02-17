@@ -75,6 +75,16 @@ export default class Rect2 implements Rect2Like, ReactInterop<Rect2Like> {
 		this.notify();
 	}
 
+	get center(): [number, number] {
+		return [this.#x + this.#width / 2, this.#y + this.#height / 2];
+	}
+	set center(value: [number, number]) {
+		const [cx, cy] = value;
+		this.#x = cx - this.#width / 2;
+		this.#y = cy - this.#height / 2;
+		this.notify();
+	}
+
 	constructor(x: number, y: number, width: number, height: number) {
 		this.#x = x;
 		this.#y = y;

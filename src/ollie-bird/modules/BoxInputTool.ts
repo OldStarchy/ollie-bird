@@ -1,6 +1,7 @@
 import { Subject } from 'rxjs';
 import { CELL_SIZE } from '../const';
 import type { Button } from '../core/input/Button';
+import Mouse from '../core/input/mouse/Mouse';
 import type { Pointer } from '../core/input/Pointer';
 import Rect2 from '../core/math/Rect2';
 import Vec2, { type Vec2Like } from '../core/math/Vec2';
@@ -9,8 +10,16 @@ import Module from '../core/Module';
 export default class BoxInputTool extends Module {
 	static readonly displayName = 'BoxInputTool';
 
-	accessor enabled = false;
+	#active = false;
+	get active() {
+		return this.#active;
+	}
+	set active(value: boolean) {
+		this.#active = value;
+		if (!value) this.cancel();
+	}
 	accessor alignToGrid = true;
+	accessor renderBox = true;
 
 	readonly gridSize = new Vec2(CELL_SIZE, CELL_SIZE);
 	readonly gridOffset = new Vec2(0, 0);
@@ -25,8 +34,17 @@ export default class BoxInputTool extends Module {
 	readonly #box$ = new Subject<Rect2>();
 	readonly box$ = this.#box$.asObservable();
 
-	update() {
-		if (!this.enabled || !this.pointer || !this.clicker) return;
+	protected override initialize(): void {
+		super.initialize();
+		this.disposableStack.adopt(this.#box$, (subj) => subj.complete());
+
+		this.pointer ??= this.game.input.mouse;
+		this.clicker ??= this.game.input.mouse.getButton(Mouse.BUTTON_LEFT);
+		this.cancelBtn ??= this.game.input.keyboard.getButton('Escape');
+	}
+
+	protected override update() {
+		if (!this.active || !this.pointer || !this.clicker) return;
 
 		if (this.cancelBtn?.isPressed) {
 			this.cancel();
@@ -51,8 +69,21 @@ export default class BoxInputTool extends Module {
 			this.startPoint = null;
 			this.currentPoint = null;
 
+			if (rect.width === 0 || rect.height === 0) return;
+
 			this.#box$.next(rect);
 		}
+	}
+
+	previewBox(): Rect2 | null {
+		if (!this.startPoint || !this.currentPoint) return null;
+
+		return Rect2.fromAABB(
+			this.startPoint.x,
+			this.startPoint.y,
+			this.currentPoint.x,
+			this.currentPoint.y,
+		).normalize();
 	}
 
 	cancel() {
@@ -73,14 +104,10 @@ export default class BoxInputTool extends Module {
 	}
 
 	protected override render(context: CanvasRenderingContext2D): void {
-		if (!this.startPoint || !this.currentPoint) return;
+		if (!this.active || !this.renderBox) return;
 
-		const rect = Rect2.fromAABB(
-			this.startPoint.x,
-			this.startPoint.y,
-			this.currentPoint.x,
-			this.currentPoint.y,
-		).normalize();
+		const rect = this.previewBox();
+		if (!rect) return;
 
 		context.strokeStyle = 'green';
 

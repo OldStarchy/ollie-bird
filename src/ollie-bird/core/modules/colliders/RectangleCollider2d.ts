@@ -65,7 +65,6 @@ export default class RectangleCollider2d
 
 	override doGizmoPath(context: CanvasRenderingContext2D): void {
 		const { x, y } = this.owner.transform.position;
-		context.beginPath();
 		context.rect(x + this.x, y + this.y, this.width, this.height);
 	}
 

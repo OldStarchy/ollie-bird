@@ -21,6 +21,11 @@ export default abstract class Module
 		return this.owner.game;
 	}
 
+	/**
+	 * If true, this will not be saved. Used for modules created by other modules.
+	 */
+	transient = false;
+
 	constructor(readonly owner: GameObject) {}
 
 	#enabled = true;
@@ -36,6 +41,7 @@ export default abstract class Module
 		this.disposableStack.dispose();
 	}
 
+	protected setup(): void {}
 	protected initialize(): void {}
 
 	protected beforeUpdate(): void {}
@@ -62,6 +68,14 @@ export default abstract class Module
 	}
 	addModule<T extends Module>(type: new (owner: GameObject) => T): T {
 		return this.owner.addModule(type);
+	}
+	addTransientModule<T extends Module>(
+		type: new (owner: GameObject) => T,
+	): T {
+		const module = this.owner.addModule(type);
+		module.transient = true;
+		this.disposableStack.use(module);
+		return module;
 	}
 	removeModule(module: Module): void {
 		return this.owner.removeModule(module);

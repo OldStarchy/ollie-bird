@@ -50,6 +50,10 @@ export default class GameObject
 
 	protected disposableStack = new DisposableStack();
 	private modules: ModuleCollection;
+	#initialized = false;
+	get initialized() {
+		return this.#initialized;
+	}
 
 	@onChange((self) => self.notify())
 	accessor layer: number = 0;
@@ -74,6 +78,7 @@ export default class GameObject
 		this.disposableStack.use(this.modules);
 
 		this.transform = this.addModule(Transform2d);
+		this.transform.transient = true;
 	}
 
 	getModulesByType<T extends Module>(
@@ -99,9 +104,19 @@ export default class GameObject
 	}
 
 	// @ts-expect-error
+	private doSetup() {
+		this.setup();
+		this.modules['setup']();
+	}
+	protected setup(): void {}
+
+	// @ts-expect-error
 	private doInitialize() {
+		if (this.#initialized) return;
+
 		this.initialize();
 		this.modules['initialize']();
+		this.#initialized = true;
 	}
 	protected initialize(): void {}
 
@@ -201,6 +216,7 @@ export default class GameObject
 			modules: this.modules
 				.getModules()
 				.filter((module) => module !== this.transform)
+				.filter((module) => !module.transient)
 				.map((m) => Module.serializer.serialize(m)),
 		};
 	}

@@ -213,6 +213,8 @@ class BaseGame implements IGame, ReactInterop<BaseGameSettings> {
 	): InstanceType<Constructor> {
 		const obj = new type(this, ...args) as InstanceType<Constructor>;
 		this.objects.push(obj);
+		obj['doSetup']();
+
 		obj['doInitialize']();
 		this.#gameObjects$.next();
 		return obj;
