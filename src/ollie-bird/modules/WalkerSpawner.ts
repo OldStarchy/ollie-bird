@@ -1,81 +1,59 @@
 import { Subject } from 'rxjs';
 import { toss } from 'toss-expression';
 import { z } from 'zod';
-import baddie1 from '../../assets/baddie-1.png';
-import baddie2 from '../../assets/baddie-2.png';
 import onChange from '../../react-interop/onChange';
 import { ReactInterop } from '../../react-interop/ReactInterop';
-import { CELL_SIZE, Layer, TAG_LEVEL_STRUCTURE } from '../const';
-import GameObject, {
-	gameObjectSchema,
-	type GameObjectView,
-} from '../core/GameObject';
-import type IGame from '../core/IGame';
+import { CELL_SIZE } from '../const';
+import GameObject from '../core/GameObject';
+import Module from '../core/Module';
+import { Err, Ok, type Result } from '../core/monad/Result';
 import filterEvent from '../core/rxjs/filterEvent';
-import Sprite from '../core/Sprite';
+import LevelEditor from '../game-object/LevelEditor';
 import { createWalkerPrefab } from '../prefabs/createWalkerPrefab';
-import LevelEditor from './LevelEditor';
 
-export const baddieSchema = z.object({
+export const walkerSpawnerViewSchema = z.object({
 	startDirection: z.enum(['left', 'right']),
 });
 
-export type BaddieView = z.infer<typeof baddieSchema>;
+export type WalkerSpawnerView = z.infer<typeof walkerSpawnerViewSchema>;
 
-export const baddieSpawnerDtoSchema = z.object({
-	$type: z.string(),
-	...gameObjectSchema.shape,
-	...baddieSchema.shape,
+export const walkerSpawnerDtoSchema = z.object({
+	startDirection: z.enum(['left', 'right']),
 });
 
-export type BaddieSpawnerDto = z.input<typeof baddieSpawnerDtoSchema>;
+export type WalkerSpawnerDto = z.input<typeof walkerSpawnerDtoSchema>;
 
-export default class BaddieSpawner
-	extends GameObject
-	implements ReactInterop<BaddieView>
+export default class WalkerSpawner
+	extends Module
+	implements ReactInterop<WalkerSpawnerView>
 {
-	static readonly defaultName: string = 'Baddie Spawner';
-
-	static frames = [baddie1, baddie2].map((src) => new Sprite(src));
-
-	constructor(game: IGame) {
-		super(game);
-
-		this.layer = Layer.Foreground;
-	}
-
 	@onChange((self) => self.notifyChange())
 	accessor startDirection: 'left' | 'right' = 'left';
 
 	[ReactInterop.get]() {
 		return {
 			startDirection: this.startDirection,
-			...super[ReactInterop.get](),
 		};
 	}
 
-	[ReactInterop.set](data: BaddieView & GameObjectView): void {
-		this.startDirection = data.startDirection;
-		super[ReactInterop.set](data);
+	[ReactInterop.set](data: WalkerSpawnerView): void {
+		if (Object.hasOwn(data, 'startDirection')) {
+			this.startDirection = data.startDirection;
+		}
 	}
 
 	private readonly change = new Subject<void>();
 	private notifyChange() {
 		this.change.next();
 	}
-	[ReactInterop.schema] = z.object({
-		...gameObjectSchema.shape,
-		...baddieSchema.shape,
-	});
+	[ReactInterop.schema] = walkerSpawnerViewSchema;
 	readonly [ReactInterop.asObservable] = this.change.asObservable();
 
 	protected override initialize(): void {
-		this.tags.add(TAG_LEVEL_STRUCTURE);
-
 		const levelController =
 			this.game.findObjectsByType(LevelEditor)[0] ??
 			toss(
-				new Error(`${BaddieSpawner.name} requires ${LevelEditor.name}`),
+				new Error(`${WalkerSpawner.name} requires ${LevelEditor.name}`),
 			);
 
 		this.disposableStack.use(
@@ -92,7 +70,7 @@ export default class BaddieSpawner
 			createWalkerPrefab(
 				this.transform.position,
 				this.startDirection,
-				this.name,
+				this.owner.name,
 			),
 			{ game: this.game },
 		).unwrap();
@@ -110,5 +88,33 @@ export default class BaddieSpawner
 		context.setLineDash([5, 5]);
 		context.stroke();
 		context.setLineDash([]);
+	}
+
+	serialize(): WalkerSpawnerDto {
+		return {
+			startDirection: this.startDirection,
+		};
+	}
+
+	static deserialize(
+		obj: unknown,
+		context: { gameObject: GameObject },
+	): Result<Module, string> {
+		const parsed = walkerSpawnerDtoSchema.safeParse(obj);
+
+		if (!parsed.success) {
+			return Err(`Invalid data: ${parsed.error.message}`);
+		}
+
+		const { startDirection } = parsed.data;
+
+		const module = context.gameObject.addModule(WalkerSpawner);
+		module.startDirection = startDirection;
+
+		return Ok(module);
+	}
+
+	static {
+		Module.serializer.registerSerializationType('WalkerSpawner', this);
 	}
 }

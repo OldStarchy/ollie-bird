@@ -18,8 +18,8 @@ import { Bindings } from '../OllieBirdGame';
 import createCheckpointPrefab from '../prefabs/createCheckpointPrefab';
 import createGoalPrefab from '../prefabs/createGoalPrefab';
 import { createPlayerSpawnerPrefab } from '../prefabs/createPlayerSpawnerPrefab';
+import { createWalkerSpawnerPrefab } from '../prefabs/createWalkerSpawnerPrefab';
 import createWallPrefab from '../prefabs/createWallPrefab';
-import BaddieSpawner from './BaddieSpawner';
 import Bird from './Bird';
 import Bomb from './Bomb';
 
@@ -173,9 +173,10 @@ export default class LevelEditor extends GameObject {
 				break;
 			case EditorMode.AddBaddie:
 				if (this.#primaryMbutton.isPressed) {
-					this.game
-						.spawn(BaddieSpawner)
-						.transform.position.copy(mPos);
+					GameObject.deserializePartial(
+						createWalkerSpawnerPrefab(mPos, 'left'),
+						{ game: this.game },
+					).logErr('Failed to create walker spawner');
 				}
 				break;
 		}
