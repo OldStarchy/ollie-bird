@@ -25,14 +25,14 @@ import SequentialGate from './SequentialGate';
 import SpawnPoint from './SpawnPoint';
 
 enum EditorMode {
-	AddObstacle,
-	DeleteThings,
 	SetSpawnPoint,
+	SetGoal,
+	AddObstacle,
 	CreateBomb,
 	AddGate,
-	SetGoal,
 	AddBaddie,
-	LAST = AddBaddie,
+	DeleteThings,
+	LAST = DeleteThings,
 }
 
 const editorModeLabels = {
@@ -53,7 +53,7 @@ export type LevelLoaderEvents = EventMap<{
 export default class LevelEditor extends GameObject {
 	static readonly defaultName: string = 'Level Editor';
 	layer = 200;
-	mode: EditorMode = EditorMode.AddObstacle;
+	mode: EditorMode = EditorMode.SetSpawnPoint;
 
 	gridSize: number = CELL_SIZE;
 
@@ -67,10 +67,10 @@ export default class LevelEditor extends GameObject {
 
 		// Register all serializable types (only if not already registered)
 		const types: Array<[string, SerializableClass]> = [
-			['Obstacle', Obstacle],
-			['Goal', Goal],
-			['SequentialGate', SequentialGate],
 			['SpawnPoint', SpawnPoint],
+			['Goal', Goal],
+			['Obstacle', Obstacle],
+			['SequentialGate', SequentialGate],
 			['BaddieSpawner', BaddieSpawner],
 		];
 		types.forEach(
