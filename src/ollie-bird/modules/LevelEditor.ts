@@ -125,4 +125,8 @@ export default class LevelEditor extends Module {
 			context.stroke();
 		}
 	}
+
+	static {
+		Module.serializer.registerSerializationType('LevelEditor', this);
+	}
 }
