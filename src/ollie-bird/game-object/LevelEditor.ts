@@ -1,11 +1,17 @@
 import { Subject } from 'rxjs';
-import { CELL_SIZE, TAG_LEVEL_OBJECT, TAG_LEVEL_STRUCTURE } from '../const';
+import {
+	CELL_SIZE,
+	TAG_LEVEL_OBJECT,
+	TAG_LEVEL_STRUCTURE,
+	TAG_PLAYER,
+} from '../const';
 import type { EventMap } from '../core/EventMap';
 import GameObject from '../core/GameObject';
 import type IGame from '../core/IGame';
 import Mouse from '../core/input/mouse/Mouse';
 import { Option } from '../core/monad/Option';
 import { Err, Ok, Result } from '../core/monad/Result';
+import BirdBehavior from '../modules/bird/BirdPlayerInput';
 import CheckpointManager from '../modules/CheckpointManager';
 import CreateCheckpointTool from '../modules/editor-tools/CreateCheckpointTool';
 import CreateWallTool from '../modules/editor-tools/CreateWallTool';
@@ -21,7 +27,6 @@ import createGoalPrefab from '../prefabs/createGoalPrefab';
 import { createPlayerSpawnerPrefab } from '../prefabs/createPlayerSpawnerPrefab';
 import { createWalkerSpawnerPrefab } from '../prefabs/createWalkerSpawnerPrefab';
 import createWallPrefab from '../prefabs/createWallPrefab';
-import Bird from './Bird';
 
 enum EditorMode {
 	SetSpawnPoint,
@@ -131,10 +136,10 @@ export default class LevelEditor extends GameObject {
 		}
 
 		if (this.#pauseKey.isPressed) {
-			const bird = this.game.findObjectsByType(Bird)[0];
+			const bird = this.game.findObjectsByTag(TAG_PLAYER);
 
-			if (bird) {
-				bird.togglePause();
+			if (bird.length > 0) {
+				bird.forEach((b) => b.getModule(BirdBehavior)?.togglePause());
 			}
 		}
 
@@ -189,7 +194,7 @@ export default class LevelEditor extends GameObject {
 	override afterUpdate(): void {
 		if (this.#birdDied) {
 			this.#birdDied = false;
-			if (this.game.findObjectsByType(Bird).length === 0) {
+			if (this.game.findObjectsByTag(TAG_PLAYER).length === 0) {
 				this.#levelLoaderEvent$.next({ type: 'levelComplete' });
 			}
 		}
@@ -402,12 +407,12 @@ export default class LevelEditor extends GameObject {
 		this.#levelLoaderEvent$.next({ type: 'levelStart' });
 	}
 
-	handleBirdReachedGoal(_bird: Bird) {
+	handleBirdReachedGoal(_bird: GameObject) {
 		this.#levelLoaderEvent$.next({ type: 'levelComplete' });
 	}
 
 	#birdDied = false;
-	handleBirdDied(_bird: Bird) {
+	handleBirdDied(_bird: GameObject) {
 		this.#birdDied = true;
 	}
 }

@@ -3,12 +3,12 @@ import { toss } from 'toss-expression';
 import z from 'zod';
 import onChange from '../../react-interop/onChange';
 import { ReactInterop } from '../../react-interop/ReactInterop';
-import type GameObject from '../core/GameObject';
+import GameObject from '../core/GameObject';
 import Module from '../core/Module';
 import { Err, Ok, type Result } from '../core/monad/Result';
 import filterEvent from '../core/rxjs/filterEvent';
-import Bird from '../game-object/Bird';
 import LevelEditor from '../game-object/LevelEditor';
+import { createBirdPrefab } from '../prefabs/createBirdPrefab';
 
 export const playerSpawnerDtoSchema = z.object({
 	playerIndex: z.union([z.literal(0), z.literal(1)]),
@@ -39,9 +39,13 @@ export default class PlayerSpawner
 			levelController.levelEvent$
 				.pipe(filterEvent('levelStart'))
 				.subscribe(() => {
-					const bird = this.game.spawn(Bird);
-					bird.playerIndex = this.playerIndex;
-					bird.transform.position.copy(this.transform.position);
+					GameObject.deserializePartial(
+						createBirdPrefab(
+							this.owner.transform.position,
+							this.playerIndex,
+						),
+						{ game: this.game },
+					).logErr('Failed to create bird');
 				}),
 		);
 	}

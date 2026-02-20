@@ -1,14 +1,14 @@
 import { filter } from 'rxjs';
 import { toss } from 'toss-expression';
-import { CELL_SIZE } from '../const';
+import { CELL_SIZE, TAG_PLAYER } from '../const';
 import GameObject from '../core/GameObject';
 import Module from '../core/Module';
 import Collider2d from '../core/modules/Collider2d';
 import CircleCollider2d from '../core/modules/colliders/CircleCollider2d';
 import filterEvent from '../core/rxjs/filterEvent';
-import Bird from '../game-object/Bird';
 import LevelEditor from '../game-object/LevelEditor';
 import Animation from './Animation';
+import BirdBehavior from './bird/BirdBehavior';
 
 export default class BombBehavior extends Module {
 	private anim: Animation;
@@ -71,14 +71,18 @@ export default class BombBehavior extends Module {
 			this.collider.enabled = true;
 
 			if (!this.#wasFrame4) {
-				this.game.findObjectsByType(Bird).forEach((bird) =>
-					bird.controls.Vibrate?.playEffect('dual-rumble', {
-						duration: 100,
-						startDelay: 0,
-						strongMagnitude: 0.0,
-						weakMagnitude: 0.5,
-					}),
-				);
+				this.game
+					.findObjectsByTag(TAG_PLAYER)
+					.map((obj) => obj.getModule(BirdBehavior))
+					.filter((module) => module !== null)
+					.forEach((bird) =>
+						bird.controls.Vibrate?.playEffect('dual-rumble', {
+							duration: 100,
+							startDelay: 0,
+							strongMagnitude: 0.0,
+							weakMagnitude: 0.5,
+						}),
+					);
 			}
 			this.#wasFrame4 = true;
 		} else {
@@ -95,7 +99,7 @@ export default class BombBehavior extends Module {
 			const myCollider = this.triggerCollider.getCollider();
 
 			const hitBird = this.game
-				.findObjectsByType(Bird)
+				.findObjectsByTag(TAG_PLAYER)
 				.some(Collider2d.collidingWith(myCollider));
 
 			if (hitBird) {

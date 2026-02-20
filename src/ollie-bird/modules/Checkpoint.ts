@@ -1,8 +1,9 @@
 import { z } from 'zod';
 import contextCheckpoint from '../../contextCheckpoint';
+import { TAG_PLAYER } from '../const';
 import Module from '../core/Module';
 import Collider2d from '../core/modules/Collider2d';
-import Bird from '../game-object/Bird';
+import BirdBehavior from './bird/BirdBehavior';
 
 export const checkpointDtoSchema = z.object({
 	sequenceNumber: z.number(),
@@ -30,10 +31,11 @@ export default class Checkpoint extends Module {
 
 		const bird =
 			this.game
-				.findObjectsByType(Bird)
+				.findObjectsByTag(TAG_PLAYER)
 				.filter(
 					Collider2d.collidingWith(this.collider.getCollider()),
-				)[0] ?? null;
+				)[0]
+				?.getModule(BirdBehavior) ?? null;
 
 		if (bird) {
 			this.state = 'passed';

@@ -1,80 +1,68 @@
 import { toss } from 'toss-expression';
-import contextCheckpoint from '../../contextCheckpoint';
-import onChange from '../../react-interop/onChange';
-import type { BirdControls } from '../BirdControls';
-import {
-	Layer,
-	TAG_CHECKPOINT,
-	TAG_DEADLY,
-	TAG_GOAL,
-	TAG_LEVEL_OBJECT,
-} from '../const';
-import GameObject from '../core/GameObject';
-import type IGame from '../core/IGame';
-import Vec2 from '../core/math/Vec2';
-import Collider2d from '../core/modules/Collider2d';
-import CircleCollider2d from '../core/modules/colliders/CircleCollider2d';
-import { Option } from '../core/monad/Option';
-import '../core/monad/OptionResultInterop';
-import Checkpoint from '../modules/Checkpoint';
-import ExplosionBehavior from '../modules/ExplosionBehavior';
-import createExplosionPrefab from '../prefabs/createExplosionPrefab';
-import Resources, { BirdSpriteSet } from '../Resources';
-import LevelEditor from './LevelEditor';
+import z from 'zod';
+import contextCheckpoint from '../../../contextCheckpoint';
+import onChange from '../../../react-interop/onChange';
+import type { BirdControls } from '../../BirdControls';
+import { TAG_CHECKPOINT, TAG_DEADLY, TAG_GOAL } from '../../const';
+import GameObject from '../../core/GameObject';
+import Vec2 from '../../core/math/Vec2';
+import Module from '../../core/Module';
+import Collider2d from '../../core/modules/Collider2d';
+import CircleCollider2d from '../../core/modules/colliders/CircleCollider2d';
+import { Option } from '../../core/monad/Option';
+import '../../core/monad/OptionResultInterop';
+import { Err, Ok, type Result } from '../../core/monad/Result';
+import LevelEditor from '../../game-object/LevelEditor';
+import createExplosionPrefab from '../../prefabs/createExplosionPrefab';
+import Resources, { BirdSpriteSet } from '../../Resources';
+import Checkpoint from '../Checkpoint';
+import ExplosionBehavior from '../ExplosionBehavior';
 
-declare global {
-	interface GameEventMap {
-		gameOver: void;
-	}
-}
+const birdBehaviorDtoSchema = z.object({
+	playerIndex: z.union([z.literal(0), z.literal(1)]),
+});
+export type BirdBehaviorDto = z.input<typeof birdBehaviorDtoSchema>;
 
-class Bird extends GameObject {
+export default class BirdBehavior extends Module {
+	static readonly displayName: string = 'Bird';
+
 	static readonly raiseToSpreadTime = 0.15;
-	static readonly defaultName: string = 'Bird';
-
-	public ySpeed: number = 0;
-	private flapHoldTime = 0;
-	private gravity: number;
-	private flappedOnce = false;
-	private flapFrameHold: number = 0;
-
-	private get position(): Vec2 {
-		return this.transform.position;
-	}
 
 	static readonly spritesRight: BirdSpriteSet =
 		Resources.instance.birdSpriteSet.get('birdRightSprites');
 	static readonly spritesFront: BirdSpriteSet =
 		Resources.instance.birdSpriteSet.get('birdFrontSprites');
 
-	private sprites: BirdSpriteSet;
+	public ySpeed: number = 0;
+	private flapHoldTime = 0;
+	private gravity: number;
+	private flappedOnce = false;
+	private flapFrameHold: number = 0;
 	private levelController: LevelEditor;
-
-	constructor(game: IGame) {
-		super(game);
-		this.tags.add(TAG_LEVEL_OBJECT);
-		this.gravity = game.physics.gravity;
-		this.layer = Layer.Player;
-
-		const collider = this.addModule(CircleCollider2d);
-		collider.radius = 20;
-
-		this.sprites = Bird.spritesFront;
-
-		this.levelController =
-			game.findObjectsByType(LevelEditor)[0] ??
-			toss(new Error('Bird requires a LevelEditor in the scene'));
-	}
-
+	private sprites: BirdSpriteSet;
 	private paused: boolean = false;
-
 	@onChange(
 		(self) =>
 			(self.controls = self.game.input.getSchema<BirdControls>(
 				`Player ${self.playerIndex + 1}`,
 			)),
 	)
-	accessor playerIndex = 0;
+	accessor playerIndex: 0 | 1 = 0;
+
+	private get position(): Vec2 {
+		return this.owner.transform.position;
+	}
+
+	constructor(owner: GameObject) {
+		super(owner);
+		this.sprites = BirdBehavior.spritesFront;
+
+		this.gravity = this.owner.game.physics.gravity;
+
+		this.levelController =
+			this.owner.game.findObjectsByType(LevelEditor)[0] ??
+			toss(new Error('Bird requires a LevelEditor in the scene'));
+	}
 
 	controls: BirdControls = this.game.input.getSchema<BirdControls>(
 		`Player ${this.playerIndex + 1}`,
@@ -163,7 +151,7 @@ class Bird extends GameObject {
 				.findObjectsByTag(TAG_GOAL)
 				.some(Collider2d.collidingWith(myCollider.getCollider()))
 		) {
-			this.levelController.handleBirdReachedGoal(this);
+			this.levelController.handleBirdReachedGoal(this.owner);
 			this.togglePause();
 
 			//spawn explosions in a circle
@@ -228,7 +216,7 @@ class Bird extends GameObject {
 	}
 
 	die() {
-		this.levelController.handleBirdDied(this);
+		this.levelController.handleBirdDied(this.owner);
 		this.#vibrationActuator?.playEffect('dual-rumble', {
 			duration: 600,
 			startDelay: 0,
@@ -237,7 +225,7 @@ class Bird extends GameObject {
 		});
 
 		this.createExplosion(...this.position.xy, 10, 50, 2);
-		this.destroy();
+		this.owner.destroy();
 	}
 
 	override render(context: CanvasRenderingContext2D) {
@@ -250,19 +238,19 @@ class Bird extends GameObject {
 		let flip = false;
 
 		if (this.#keyRight.isDown) {
-			this.sprites = Bird.spritesRight;
+			this.sprites = BirdBehavior.spritesRight;
 		} else if (this.#keyLeft.isDown) {
-			this.sprites = Bird.spritesRight;
+			this.sprites = BirdBehavior.spritesRight;
 			flip = true;
 		} else {
-			this.sprites = Bird.spritesFront;
+			this.sprites = BirdBehavior.spritesFront;
 		}
 
 		if (this.flapFrameHold > 0) {
 			spriteName = 'flap';
 		} else if (this.#keyFlap.isDown) {
 			spriteName = 'raise';
-			if (this.flapHoldTime > Bird.raiseToSpreadTime) {
+			if (this.flapHoldTime > BirdBehavior.raiseToSpreadTime) {
 				spriteName = 'spread';
 			}
 		} else if (this.ySpeed > 0) {
@@ -282,6 +270,33 @@ class Bird extends GameObject {
 
 		super.render(context);
 	}
-}
 
-export default Bird;
+	serialize(): BirdBehaviorDto {
+		return {
+			playerIndex: this.playerIndex,
+		};
+	}
+
+	static deserialize(
+		_obj: unknown,
+		context: { gameObject: GameObject },
+	): Result<Module, string> {
+		const parseResult = birdBehaviorDtoSchema.safeParse(_obj);
+
+		if (!parseResult.success) {
+			return Err(
+				`Failed to deserialize BirdBehavior: ${parseResult.error.message}`,
+			);
+		}
+
+		const module = context.gameObject.addModule(this);
+
+		module.playerIndex = parseResult.data.playerIndex;
+
+		return Ok(module);
+	}
+
+	static {
+		Module.serializer.registerSerializationType('BirdBehavior', this);
+	}
+}

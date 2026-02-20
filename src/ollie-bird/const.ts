@@ -26,6 +26,11 @@ export const TAG_GOAL = 'goal';
  */
 export const TAG_CHECKPOINT = 'checkpoint';
 
+/**
+ * Represents a human controlled character.
+ */
+export const TAG_PLAYER = 'player';
+
 export enum Layer {
 	Background,
 	Default,
