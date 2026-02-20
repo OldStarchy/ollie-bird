@@ -1,15 +1,14 @@
 import { CELL_SIZE } from '../const';
 import GameObject from '../core/GameObject';
-import type IGame from '../core/IGame';
-import type Module from '../core/Module';
-import CreateBombTool from '../modules/editor-tools/CreateBombTool';
-import CreateCheckpointTool from '../modules/editor-tools/CreateCheckpointTool';
-import CreateWalkerSpawnerTool from '../modules/editor-tools/CreateWalkerSpawnerTool';
-import CreateWallTool from '../modules/editor-tools/CreateWallTool';
-import DeleteThingsTool from '../modules/editor-tools/DeleteThingsTool';
-import SetGoalTool from '../modules/editor-tools/SetGoalTool';
-import SetSpawnPointTool from '../modules/editor-tools/SetSpawnPointTool';
-import ObjectSelector from '../modules/ObjectSelector';
+import Module from '../core/Module';
+import CreateBombTool from './editor-tools/CreateBombTool';
+import CreateCheckpointTool from './editor-tools/CreateCheckpointTool';
+import CreateWalkerSpawnerTool from './editor-tools/CreateWalkerSpawnerTool';
+import CreateWallTool from './editor-tools/CreateWallTool';
+import DeleteThingsTool from './editor-tools/DeleteThingsTool';
+import SetGoalTool from './editor-tools/SetGoalTool';
+import SetSpawnPointTool from './editor-tools/SetSpawnPointTool';
+import ObjectSelector from './ObjectSelector';
 
 enum EditorMode {
 	SetSpawnPoint,
@@ -32,8 +31,8 @@ const editorModeLabels = {
 	[EditorMode.AddBaddie]: 'Add Baddie',
 } as const;
 
-export default class LevelEditor extends GameObject {
-	static readonly defaultName: string = 'Level Editor';
+export default class LevelEditor extends Module {
+	static readonly displayName: string = 'Level Editor';
 
 	#mode: EditorMode = EditorMode.SetSpawnPoint;
 	get mode() {
@@ -56,10 +55,10 @@ export default class LevelEditor extends GameObject {
 
 	#changeToolKey = this.game.input.keyboard.getButton('Tab');
 
-	constructor(game: IGame) {
-		super(game);
+	constructor(owner: GameObject) {
+		super(owner);
 
-		this.addModule(ObjectSelector);
+		this.addTransientModule(ObjectSelector);
 
 		this.createWallTool = this.addTransientModule(CreateWallTool);
 		this.createCheckpointTool =
@@ -71,19 +70,6 @@ export default class LevelEditor extends GameObject {
 		this.createWalkerSpawnerTool = this.addTransientModule(
 			CreateWalkerSpawnerTool,
 		);
-	}
-
-	private addTransientModule<T extends Module>(
-		ModuleClass: new (owner: GameObject) => T,
-	): T {
-		const module = this.addModule(ModuleClass);
-		module.transient = true;
-		return module;
-	}
-
-	override initialize(): void {
-		super.initialize();
-		this.layer = 200;
 
 		this.updateActiveTool();
 	}
@@ -98,13 +84,6 @@ export default class LevelEditor extends GameObject {
 		this.deleteThingsTool.active = this.#mode === EditorMode.DeleteThings;
 		this.createWalkerSpawnerTool.active =
 			this.#mode === EditorMode.AddBaddie;
-	}
-
-	alignToGrid(obj: { x: number; y: number }): { x: number; y: number } {
-		return {
-			x: Math.round(obj.x / this.gridSize) * this.gridSize,
-			y: Math.round(obj.y / this.gridSize) * this.gridSize,
-		};
 	}
 
 	override update(): void {

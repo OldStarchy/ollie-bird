@@ -3,45 +3,23 @@ import { CELL_SIZE } from '../../const';
 import GameObject from '../../core/GameObject';
 import Mouse from '../../core/input/mouse/Mouse';
 import Rect2 from '../../core/math/Rect2';
-import Module from '../../core/Module';
 import createWallPrefab from '../../prefabs/createWallPrefab';
 import BoxInputTool from '../BoxInputTool';
 import WallRenderer from '../WallRenderer';
 
-export default class CreateWallTool extends Module {
+export default class CreateWallTool extends BoxInputTool {
 	static readonly displayName = 'CreateWallTool';
-
-	get active() {
-		return this.boxInputTool.active;
-	}
-	set active(value: boolean) {
-		this.boxInputTool.active = value;
-	}
-
-	private boxInputTool: BoxInputTool;
-
-	constructor(owner: GameObject) {
-		super(owner);
-
-		this.boxInputTool = this.addTransientModule(BoxInputTool);
-	}
 
 	protected override initialize(): void {
 		super.initialize();
 
-		this.boxInputTool.active = this.active;
-		this.boxInputTool.renderBox = false;
-		this.boxInputTool.pointer = this.game.input.mouse;
-		this.boxInputTool.clicker = this.game.input.mouse.getButton(
-			Mouse.BUTTON_LEFT,
-		);
-		this.boxInputTool.cancelBtn =
-			this.game.input.keyboard.getButton('Escape');
-
-		this.boxInputTool.box$.subscribe((rect) => this.createBox(rect));
+		this.renderBox = false;
+		this.pointer = this.game.input.mouse;
+		this.clicker = this.game.input.mouse.getButton(Mouse.BUTTON_LEFT);
+		this.cancelBtn = this.game.input.keyboard.getButton('Escape');
 	}
 
-	private createBox(rect: Rect2) {
+	protected override handleBlockPlaced(rect: Rect2) {
 		if (!this.active) return;
 
 		GameObject.deserializePartial(createWallPrefab(rect), {
@@ -49,13 +27,15 @@ export default class CreateWallTool extends Module {
 		}).logErr('Failed to create wall');
 	}
 
-	protected override render(context: CanvasRenderingContext2D): void {
+	protected override renderGizmos(context: CanvasRenderingContext2D): void {
+		super.renderGizmos(context);
+
 		if (!this.active) return;
-		if (!this.boxInputTool.pointer) return;
+		if (!this.pointer) return;
 
 		const pointerBox = new Rect2(
-			this.boxInputTool.pointer.x + CELL_SIZE,
-			this.boxInputTool.pointer.y + CELL_SIZE,
+			this.pointer.x + CELL_SIZE,
+			this.pointer.y + CELL_SIZE,
 			CELL_SIZE,
 			CELL_SIZE,
 		);
@@ -65,7 +45,7 @@ export default class CreateWallTool extends Module {
 
 		WallRenderer.renderWall(context, pointerBox, CELL_SIZE / 2);
 
-		const previewRect = this.boxInputTool.previewBox();
+		const previewRect = this.previewBox();
 		if (!previewRect) return;
 
 		WallRenderer.renderWall(context, previewRect);

@@ -1,23 +1,18 @@
-import { Subject } from 'rxjs';
 import { CELL_SIZE } from '../const';
 import type { Button } from '../core/input/Button';
 import Mouse from '../core/input/mouse/Mouse';
 import type { Pointer } from '../core/input/Pointer';
 import Rect2 from '../core/math/Rect2';
 import Vec2, { type Vec2Like } from '../core/math/Vec2';
-import Module from '../core/Module';
+import LevelEditorTool from './editor-tools/LevelEditorTool';
 
-export default class BoxInputTool extends Module {
-	static readonly displayName = 'BoxInputTool';
+export default abstract class BoxInputTool extends LevelEditorTool {
+	static readonly displayName: string = 'BoxInputTool';
 
-	#active = false;
-	get active() {
-		return this.#active;
+	protected override handleActiveChanged() {
+		if (!this.active) this.cancel();
 	}
-	set active(value: boolean) {
-		this.#active = value;
-		if (!value) this.cancel();
-	}
+
 	accessor alignToGrid = true;
 	accessor renderBox = true;
 
@@ -31,12 +26,8 @@ export default class BoxInputTool extends Module {
 	clicker: Button | null = null;
 	cancelBtn: Button | null = null;
 
-	readonly #box$ = new Subject<Rect2>();
-	readonly box$ = this.#box$.asObservable();
-
 	protected override initialize(): void {
 		super.initialize();
-		this.disposableStack.adopt(this.#box$, (subj) => subj.complete());
 
 		this.pointer ??= this.game.input.mouse;
 		this.clicker ??= this.game.input.mouse.getButton(Mouse.BUTTON_LEFT);
@@ -71,7 +62,7 @@ export default class BoxInputTool extends Module {
 
 			if (rect.width === 0 || rect.height === 0) return;
 
-			this.#box$.next(rect);
+			this.handleBlockPlaced(rect);
 		}
 	}
 
@@ -104,6 +95,8 @@ export default class BoxInputTool extends Module {
 			this.gridOffset.y;
 		return new Vec2(alignedX, alignedY);
 	}
+
+	protected abstract handleBlockPlaced(rect: Rect2): void;
 
 	protected override render(context: CanvasRenderingContext2D): void {
 		if (!this.active || !this.renderBox) return;

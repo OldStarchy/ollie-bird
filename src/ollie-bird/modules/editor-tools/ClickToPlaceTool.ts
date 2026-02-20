@@ -60,7 +60,7 @@ export default abstract class ClickToPlaceTool extends Module {
 		context: CanvasRenderingContext2D,
 	): void;
 
-	protected override render(context: CanvasRenderingContext2D): void {
+	protected override renderGizmos(context: CanvasRenderingContext2D): void {
 		if (!this.active || !this.#pointer) return;
 
 		using _ = contextCheckpoint(context);
