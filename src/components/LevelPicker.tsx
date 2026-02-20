@@ -47,7 +47,7 @@ export default function LevelPicker({ onClose }: { onClose?: () => void }) {
 			game
 				.getObjects()
 				.map((obj) => obj.getModule(LevelGameplayManager))
-				.filter((m) => m !== null)[0] ?? null
+				.find((m) => m !== null) ?? null
 		);
 	}, [game]);
 

@@ -32,7 +32,8 @@ export default class DeleteThingsTool extends BoxInputTool {
 					rectCollider.checkCollision(
 						new PointCollider(...obj.transform.position.xy),
 					),
-			);
+			)
+			.toArray();
 	}
 
 	protected override handleBlockPlaced(rect: Rect2) {

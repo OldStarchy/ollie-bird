@@ -1,5 +1,4 @@
 import { CELL_SIZE } from '../../const';
-import GameObject from '../../core/GameObject';
 import type { Pointer } from '../../core/input/Pointer';
 import { createBombPrefab } from '../../prefabs/createBombPrefab';
 import Resources from '../../Resources';
@@ -9,9 +8,7 @@ export default class CreateBombTool extends ClickToPlaceTool {
 	static readonly displayName = 'CreateBombTool';
 
 	protected override handleClickToPlace(pointer: Pointer): void {
-		GameObject.deserializePartial(createBombPrefab(pointer), {
-			game: this.game,
-		}).logErr('Failed to create bomb');
+		this.game.spawnPrefab(createBombPrefab(pointer));
 	}
 
 	protected override renderToolPreview(

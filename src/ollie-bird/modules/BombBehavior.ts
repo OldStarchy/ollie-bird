@@ -47,7 +47,7 @@ export default class BombBehavior extends Module {
 			this.owner.game
 				.getObjects()
 				.map((obj) => obj.getModule(LevelGameplayManager))
-				.filter((m) => m !== null)[0] ??
+				.find((m) => m !== null) ??
 			toss(
 				new Error(
 					`${BombBehavior.name} requires ${LevelGameplayManager.name}`,

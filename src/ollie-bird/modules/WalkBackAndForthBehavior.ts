@@ -46,11 +46,11 @@ export default class WalkBackAndForthBehavior extends Module {
 
 		const collidingObjects = game
 			.findObjectsByTag(TAG_LEVEL_STRUCTURE)
-			.filter(
+			.some(
 				Collider2d.collidingWith(new PointCollider(check.x, check.y)),
 			);
 
-		if (collidingObjects.length > 0) {
+		if (collidingObjects) {
 			this.direction.x *= -1;
 			this.direction.y *= -1;
 		}

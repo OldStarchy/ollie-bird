@@ -31,7 +31,7 @@ export default class PlayerSpawner
 			this.owner.game
 				.getObjects()
 				.map((obj) => obj.getModule(LevelGameplayManager))
-				.filter((m) => m !== null)[0] ??
+				.find((m) => m !== null) ??
 			toss(
 				new Error(
 					`${PlayerSpawner.displayName} requires ${LevelGameplayManager.name}`,
@@ -42,13 +42,12 @@ export default class PlayerSpawner
 			levelController.event$
 				.pipe(filterEvent('levelStart'))
 				.subscribe(() => {
-					GameObject.deserializePartial(
+					this.game.spawnPrefab(
 						createBirdPrefab(
 							this.owner.transform.position,
 							this.playerIndex,
 						),
-						{ game: this.game },
-					).logErr('Failed to create bird');
+					);
 				}),
 		);
 	}

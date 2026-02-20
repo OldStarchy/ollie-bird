@@ -32,9 +32,7 @@ export default class Checkpoint extends Module {
 		const bird =
 			this.game
 				.findObjectsByTag(TAG_PLAYER)
-				.filter(
-					Collider2d.collidingWith(this.collider.getCollider()),
-				)[0]
+				.find(Collider2d.collidingWith(this.collider.getCollider()))
 				?.getModule(BirdBehavior) ?? null;
 
 		if (bird) {

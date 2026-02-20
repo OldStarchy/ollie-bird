@@ -54,7 +54,7 @@ export default class WalkerSpawner
 			this.owner.game
 				.getObjects()
 				.map((obj) => obj.getModule(LevelGameplayManager))
-				.filter((m) => m !== null)[0] ??
+				.find((m) => m !== null) ??
 			toss(
 				new Error(
 					`${WalkerSpawner.name} requires ${LevelGameplayManager.name}`,
@@ -71,14 +71,13 @@ export default class WalkerSpawner
 	}
 
 	private createBaddie() {
-		GameObject.deserializePartial(
+		this.game.spawnPrefab(
 			createWalkerPrefab(
 				this.transform.position,
 				this.startDirection,
 				this.owner.name,
 			),
-			{ game: this.game },
-		).unwrap();
+		);
 	}
 
 	protected override render(context: CanvasRenderingContext2D) {

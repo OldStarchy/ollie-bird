@@ -1,5 +1,4 @@
 import { CELL_SIZE } from '../../const';
-import GameObject from '../../core/GameObject';
 import { Button } from '../../core/input/Button';
 import type { Pointer } from '../../core/input/Pointer';
 import { Option } from '../../core/monad/Option';
@@ -24,16 +23,11 @@ export default class SetSpawnPointTool extends ClickToPlaceTool {
 
 		this.game
 			.findObjectsByTag('player-spawner')
-			.flatMap((obj) => [...Option.of(obj.getModule(PlayerSpawner))])
+			.flatMap((obj) => Option.of(obj.getModule(PlayerSpawner)))
 			.filter((sp) => sp.playerIndex === player)
 			.forEach((sp) => sp?.owner.destroy());
 
-		GameObject.deserializePartial(
-			createPlayerSpawnerPrefab(pointer, player),
-			{
-				game: this.game,
-			},
-		).logErr('Failed to create player spawner');
+		this.game.spawnPrefab(createPlayerSpawnerPrefab(pointer, player));
 	}
 
 	protected override renderToolPreview(

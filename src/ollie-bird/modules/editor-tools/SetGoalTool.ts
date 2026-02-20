@@ -1,6 +1,5 @@
 import contextCheckpoint from '../../../contextCheckpoint';
 import { CELL_SIZE, TAG_GOAL } from '../../const';
-import GameObject from '../../core/GameObject';
 import Mouse from '../../core/input/mouse/Mouse';
 import Rect2 from '../../core/math/Rect2';
 import createGoalPrefab from '../../prefabs/createGoalPrefab';
@@ -23,9 +22,7 @@ export default class SetGoalTool extends BoxInputTool {
 
 		this.game.findObjectsByTag(TAG_GOAL).forEach((obj) => obj.destroy());
 
-		GameObject.deserializePartial(createGoalPrefab(rect), {
-			game: this.game,
-		}).logErr('Failed to create goal');
+		this.game.spawnPrefab(createGoalPrefab(rect));
 	}
 
 	protected override renderGizmos(context: CanvasRenderingContext2D): void {

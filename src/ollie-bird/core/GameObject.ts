@@ -225,7 +225,7 @@ export default class GameObject
 			});
 		}
 
-		const gameObject = context.game.spawn(GameObject);
+		const gameObject = context.game.spawn();
 
 		if (parsed.name !== undefined) gameObject.name = parsed.name;
 		if (parsed.tags !== undefined) gameObject.tags = new Set(parsed.tags);

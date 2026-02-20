@@ -9,7 +9,6 @@ import Vec2 from '../../core/math/Vec2';
 import Module from '../../core/Module';
 import Collider2d from '../../core/modules/Collider2d';
 import CircleCollider2d from '../../core/modules/colliders/CircleCollider2d';
-import { Option } from '../../core/monad/Option';
 import '../../core/monad/OptionResultInterop';
 import { Err, Ok, type Result } from '../../core/monad/Result';
 import createExplosionPrefab from '../../prefabs/createExplosionPrefab';
@@ -63,7 +62,7 @@ export default class BirdBehavior extends Module {
 			this.owner.game
 				.getObjects()
 				.map((obj) => obj.getModule(LevelGameplayManager))
-				.filter((m) => m !== null)[0] ??
+				.find((m) => m !== null) ??
 			toss(
 				new Error(
 					`${BirdBehavior.displayName} requires a ${LevelGameplayManager.displayName} in the scene`,
@@ -209,17 +208,14 @@ export default class BirdBehavior extends Module {
 		maxRadius: number,
 		expansionRate: number,
 	) {
-		GameObject.deserializePartial(createExplosionPrefab({ x, y }), {
-			game: this.game,
-		})
-			.logErr('Failed to create explosion')
-			.ok()
-			.andThen((obj) => Option.of(obj.getModule(ExplosionBehavior)))
-			.inspect((obj) => {
-				obj.radius = radius;
-				obj.maxRadius = maxRadius;
-				obj.expansionRate = expansionRate;
-			});
+		const obj = this.game.spawnPrefab(createExplosionPrefab({ x, y }));
+		const explosionBehavior =
+			obj.getModule(ExplosionBehavior) ??
+			toss(new Error('Explosion prefab is missing ExplosionBehavior'));
+
+		explosionBehavior.radius = radius;
+		explosionBehavior.maxRadius = maxRadius;
+		explosionBehavior.expansionRate = expansionRate;
 	}
 
 	die() {

@@ -56,7 +56,8 @@ export default class ObjectSelector extends Module {
 
 			const collidingObjects = this.owner.game
 				.getObjects()
-				.filter(Collider2d.collidingWith(mousePoint));
+				.filter(Collider2d.collidingWith(mousePoint))
+				.toArray();
 
 			this.trySelectObject(collidingObjects);
 		}

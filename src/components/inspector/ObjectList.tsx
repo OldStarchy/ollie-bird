@@ -12,9 +12,9 @@ export default function ObjectList() {
 
 	useEffect(() => {
 		const sub = game.gameObjects$.subscribe(() => {
-			setObjects(game.getObjects());
+			setObjects(game.getObjects().toArray());
 		});
-		setObjects(game.getObjects());
+		setObjects(game.getObjects().toArray());
 
 		return toCallable(sub);
 	}, [game]);

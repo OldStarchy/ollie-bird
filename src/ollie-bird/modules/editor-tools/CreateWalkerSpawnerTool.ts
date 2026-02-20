@@ -1,5 +1,4 @@
 import { CELL_SIZE } from '../../const';
-import GameObject from '../../core/GameObject';
 import type { Pointer } from '../../core/input/Pointer';
 import { createWalkerSpawnerPrefab } from '../../prefabs/createWalkerSpawnerPrefab';
 import Resources from '../../Resources';
@@ -9,12 +8,7 @@ export default class CreateWalkerSpawnerTool extends ClickToPlaceTool {
 	static readonly displayName = 'CreateWalkerSpawnerTool';
 
 	protected override handleClickToPlace(pointer: Pointer): void {
-		GameObject.deserializePartial(
-			createWalkerSpawnerPrefab(pointer, 'left'),
-			{
-				game: this.game,
-			},
-		).logErr('Failed to create walker spawner');
+		this.game.spawnPrefab(createWalkerSpawnerPrefab(pointer, 'left'));
 	}
 
 	protected override renderToolPreview(

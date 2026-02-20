@@ -1,6 +1,5 @@
 import contextCheckpoint from '../../../contextCheckpoint';
 import { CELL_SIZE } from '../../const';
-import GameObject from '../../core/GameObject';
 import Mouse from '../../core/input/mouse/Mouse';
 import Rect2 from '../../core/math/Rect2';
 import createCheckpointPrefab from '../../prefabs/createCheckpointPrefab';
@@ -21,9 +20,7 @@ export default class CreateCheckpointTool extends BoxInputTool {
 	protected override handleBlockPlaced(rect: Rect2) {
 		if (!this.active) return;
 
-		GameObject.deserializePartial(createCheckpointPrefab(rect), {
-			game: this.game,
-		}).logErr('Failed to create checkpoint');
+		this.game.spawnPrefab(createCheckpointPrefab(rect));
 	}
 
 	protected override renderGizmos(context: CanvasRenderingContext2D): void {

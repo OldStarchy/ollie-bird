@@ -15,7 +15,7 @@ export default class CheckpointManager extends Module {
 			this.owner.game
 				.getObjects()
 				.map((obj) => obj.getModule(LevelGameplayManager))
-				.filter((m) => m !== null)[0] ??
+				.find((m) => m !== null) ??
 			toss(
 				new Error(
 					`${CheckpointManager.displayName} requires a ${LevelGameplayManager.name}`,
@@ -26,7 +26,8 @@ export default class CheckpointManager extends Module {
 			.subscribe(() => {
 				const gates = owner.game
 					.findObjectsByTag(TAG_CHECKPOINT)
-					.map((obj) => obj.getModule(Checkpoint)!);
+					.map((obj) => obj.getModule(Checkpoint)!)
+					.toArray();
 
 				gates.sort((a, b) => a.sequenceNumber - b.sequenceNumber);
 

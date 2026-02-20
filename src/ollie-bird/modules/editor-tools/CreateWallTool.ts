@@ -1,6 +1,5 @@
 import contextCheckpoint from '../../../contextCheckpoint';
 import { CELL_SIZE } from '../../const';
-import GameObject from '../../core/GameObject';
 import Mouse from '../../core/input/mouse/Mouse';
 import Rect2 from '../../core/math/Rect2';
 import createWallPrefab from '../../prefabs/createWallPrefab';
@@ -22,9 +21,7 @@ export default class CreateWallTool extends BoxInputTool {
 	protected override handleBlockPlaced(rect: Rect2) {
 		if (!this.active) return;
 
-		GameObject.deserializePartial(createWallPrefab(rect), {
-			game: this.game,
-		}).logErr('Failed to create wall');
+		this.game.spawnPrefab(createWallPrefab(rect));
 	}
 
 	protected override renderGizmos(context: CanvasRenderingContext2D): void {

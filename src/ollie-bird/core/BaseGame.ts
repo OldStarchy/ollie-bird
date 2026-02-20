@@ -6,7 +6,7 @@ import onChange from '../../react-interop/onChange';
 import { ReactInterop } from '../../react-interop/ReactInterop';
 import seconds from '../../unit/time/seconds';
 import { CELL_SIZE } from '../const';
-import type GameObject from './GameObject';
+import GameObject, { type GameObjectDto } from './GameObject';
 import type IGame from './IGame';
 import type { GameEvent } from './IGame';
 import Input from './input/Input';
@@ -203,16 +203,21 @@ class BaseGame implements IGame, ReactInterop<BaseGameSettings> {
 		});
 	}
 
-	spawn<Constructor extends new (game: IGame, ...args: any[]) => GameObject>(
-		type: Constructor,
-		...args: Tail<ConstructorParameters<Constructor>>
-	): InstanceType<Constructor> {
-		const obj = new type(this, ...args) as InstanceType<Constructor>;
+	spawn(): GameObject {
+		const obj = new GameObject(this);
 		this.objects.push(obj);
 
 		obj.initialize();
 		this.#gameObjects$.next();
 		return obj;
+	}
+
+	spawnPrefab(prefab: GameObjectDto): GameObject {
+		return GameObject.deserializePartial(prefab, { game: this })
+			.inspectErr((err) => {
+				console.error('Failed to spawn prefab', err.errors);
+			})
+			.unwrap();
 	}
 
 	destroySome(cb: (obj: GameObject) => boolean): void {
@@ -238,21 +243,23 @@ class BaseGame implements IGame, ReactInterop<BaseGameSettings> {
 		this.#gameObjects$.next();
 	}
 
-	findObjectsByTag(tag: string): Array<GameObject> {
-		return this.objects.filter((obj) => obj.tags.has(tag));
+	findObjectsByTag(tag: string): IteratorObject<GameObject> {
+		return this.objects[Symbol.iterator]().filter((obj) =>
+			obj.tags.has(tag),
+		);
 	}
 
 	findObjectsByType<T extends (new (game: IGame) => GameObject)[]>(
 		...types: T
-	): Array<InstanceType<T[number]>> {
-		return this.objects.filter<InstanceType<T[number]>>(
+	): IteratorObject<InstanceType<T[number]>> {
+		return this.objects[Symbol.iterator]().filter<InstanceType<T[number]>>(
 			(obj): obj is InstanceType<T[number]> =>
 				types.some((type) => obj instanceof type),
 		);
 	}
 
-	getObjects(): Array<GameObject> {
-		return Array.from(this.objects);
+	getObjects(): IteratorObject<GameObject> {
+		return this.objects[Symbol.iterator]();
 	}
 
 	private renderAll(
