@@ -8,8 +8,8 @@ import GameObject from '../core/GameObject';
 import Module from '../core/Module';
 import { Err, Ok, type Result } from '../core/monad/Result';
 import filterEvent from '../core/rxjs/filterEvent';
-import LevelEditor from '../game-object/LevelEditor';
 import { createWalkerPrefab } from '../prefabs/createWalkerPrefab';
+import LevelGameplayManager from './LevelGameplayManager';
 
 export const walkerSpawnerViewSchema = z.object({
 	startDirection: z.enum(['left', 'right']),
@@ -51,13 +51,18 @@ export default class WalkerSpawner
 
 	protected override initialize(): void {
 		const levelController =
-			this.game.findObjectsByType(LevelEditor)[0] ??
+			this.owner.game
+				.getObjects()
+				.map((obj) => obj.getModule(LevelGameplayManager))
+				.filter((m) => m !== null)[0] ??
 			toss(
-				new Error(`${WalkerSpawner.name} requires ${LevelEditor.name}`),
+				new Error(
+					`${WalkerSpawner.name} requires ${LevelGameplayManager.name}`,
+				),
 			);
 
 		this.disposableStack.use(
-			levelController.levelEvent$
+			levelController.event$
 				.pipe(filterEvent('levelStart'))
 				.subscribe(() => {
 					this.createBaddie();

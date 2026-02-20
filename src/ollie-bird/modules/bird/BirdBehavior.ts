@@ -12,11 +12,11 @@ import CircleCollider2d from '../../core/modules/colliders/CircleCollider2d';
 import { Option } from '../../core/monad/Option';
 import '../../core/monad/OptionResultInterop';
 import { Err, Ok, type Result } from '../../core/monad/Result';
-import LevelEditor from '../../game-object/LevelEditor';
 import createExplosionPrefab from '../../prefabs/createExplosionPrefab';
 import Resources, { BirdSpriteSet } from '../../Resources';
 import Checkpoint from '../Checkpoint';
 import ExplosionBehavior from '../ExplosionBehavior';
+import LevelGameplayManager from '../LevelGameplayManager';
 
 const birdBehaviorDtoSchema = z.object({
 	playerIndex: z.union([z.literal(0), z.literal(1)]),
@@ -38,7 +38,7 @@ export default class BirdBehavior extends Module {
 	private gravity: number;
 	private flappedOnce = false;
 	private flapFrameHold: number = 0;
-	private levelController: LevelEditor;
+	private levelGameplayManager: LevelGameplayManager;
 	private sprites: BirdSpriteSet;
 	private paused: boolean = false;
 	@onChange(
@@ -59,9 +59,16 @@ export default class BirdBehavior extends Module {
 
 		this.gravity = this.owner.game.physics.gravity;
 
-		this.levelController =
-			this.owner.game.findObjectsByType(LevelEditor)[0] ??
-			toss(new Error('Bird requires a LevelEditor in the scene'));
+		this.levelGameplayManager =
+			this.owner.game
+				.getObjects()
+				.map((obj) => obj.getModule(LevelGameplayManager))
+				.filter((m) => m !== null)[0] ??
+			toss(
+				new Error(
+					`${BirdBehavior.displayName} requires a ${LevelGameplayManager.displayName} in the scene`,
+				),
+			);
 	}
 
 	controls: BirdControls = this.game.input.getSchema<BirdControls>(
@@ -151,7 +158,7 @@ export default class BirdBehavior extends Module {
 				.findObjectsByTag(TAG_GOAL)
 				.some(Collider2d.collidingWith(myCollider.getCollider()))
 		) {
-			this.levelController.handleBirdReachedGoal(this.owner);
+			this.levelGameplayManager.handleBirdReachedGoal(this.owner);
 			this.togglePause();
 
 			//spawn explosions in a circle
@@ -216,7 +223,7 @@ export default class BirdBehavior extends Module {
 	}
 
 	die() {
-		this.levelController.handleBirdDied(this.owner);
+		this.levelGameplayManager.handleBirdDied(this.owner);
 		this.#vibrationActuator?.playEffect('dual-rumble', {
 			duration: 600,
 			startDelay: 0,

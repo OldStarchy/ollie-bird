@@ -6,9 +6,9 @@ import Module from '../core/Module';
 import Collider2d from '../core/modules/Collider2d';
 import CircleCollider2d from '../core/modules/colliders/CircleCollider2d';
 import filterEvent from '../core/rxjs/filterEvent';
-import LevelEditor from '../game-object/LevelEditor';
 import Animation from './Animation';
 import BirdBehavior from './bird/BirdBehavior';
+import LevelGameplayManager from './LevelGameplayManager';
 
 export default class BombBehavior extends Module {
 	private anim: Animation;
@@ -44,13 +44,18 @@ export default class BombBehavior extends Module {
 		);
 
 		const levelController =
-			this.game.findObjectsByType(LevelEditor)[0] ??
+			this.owner.game
+				.getObjects()
+				.map((obj) => obj.getModule(LevelGameplayManager))
+				.filter((m) => m !== null)[0] ??
 			toss(
-				new Error(`${BombBehavior.name} requires ${LevelEditor.name}`),
+				new Error(
+					`${BombBehavior.name} requires ${LevelGameplayManager.name}`,
+				),
 			);
 
 		this.disposableStack.use(
-			levelController.levelEvent$
+			levelController.event$
 				.pipe(filterEvent('levelStart'))
 				.subscribe(() => {
 					this.anim.enabled = true;

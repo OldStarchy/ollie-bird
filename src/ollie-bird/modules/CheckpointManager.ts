@@ -2,8 +2,8 @@ import { toss } from 'toss-expression';
 import { TAG_CHECKPOINT } from '../const';
 import Module from '../core/Module';
 import filterEvent from '../core/rxjs/filterEvent';
-import LevelEditor from '../game-object/LevelEditor';
 import Checkpoint from './Checkpoint';
+import LevelGameplayManager from './LevelGameplayManager';
 
 export default class CheckpointManager extends Module {
 	static readonly displayName = 'Checkpoint Manager';
@@ -12,13 +12,16 @@ export default class CheckpointManager extends Module {
 		super.initialize();
 
 		const owner =
-			this.game.findObjectsByType(LevelEditor)[0] ??
+			this.owner.game
+				.getObjects()
+				.map((obj) => obj.getModule(LevelGameplayManager))
+				.filter((m) => m !== null)[0] ??
 			toss(
 				new Error(
-					`${CheckpointManager.displayName} requires a ${LevelEditor.name}`,
+					`${CheckpointManager.displayName} requires a ${LevelGameplayManager.name}`,
 				),
 			);
-		const subr = owner.levelEvent$
+		const subr = owner.event$
 			.pipe(filterEvent('levelStart'))
 			.subscribe(() => {
 				const gates = owner.game

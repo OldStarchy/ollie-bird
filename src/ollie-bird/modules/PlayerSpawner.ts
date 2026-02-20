@@ -7,8 +7,8 @@ import GameObject from '../core/GameObject';
 import Module from '../core/Module';
 import { Err, Ok, type Result } from '../core/monad/Result';
 import filterEvent from '../core/rxjs/filterEvent';
-import LevelEditor from '../game-object/LevelEditor';
 import { createBirdPrefab } from '../prefabs/createBirdPrefab';
+import LevelGameplayManager from './LevelGameplayManager';
 
 export const playerSpawnerDtoSchema = z.object({
 	playerIndex: z.union([z.literal(0), z.literal(1)]),
@@ -28,15 +28,18 @@ export default class PlayerSpawner
 
 	protected override initialize() {
 		const levelController =
-			this.game.findObjectsByType(LevelEditor)[0] ??
+			this.owner.game
+				.getObjects()
+				.map((obj) => obj.getModule(LevelGameplayManager))
+				.filter((m) => m !== null)[0] ??
 			toss(
 				new Error(
-					`${PlayerSpawner.displayName} requires ${LevelEditor.name}`,
+					`${PlayerSpawner.displayName} requires ${LevelGameplayManager.name}`,
 				),
 			);
 
 		this.disposableStack.use(
-			levelController.levelEvent$
+			levelController.event$
 				.pipe(filterEvent('levelStart'))
 				.subscribe(() => {
 					GameObject.deserializePartial(

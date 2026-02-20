@@ -1,3 +1,4 @@
+import DeferredAction from './DeferredAction';
 import type GameObject from './GameObject';
 import type IModular from './IModular';
 import Module from './Module';
@@ -33,12 +34,20 @@ export default class ModuleCollection implements IModular {
 		return null;
 	}
 
+	#modulesToInitialize: Module[] = [];
+	#initModulesAction = new DeferredAction(() => {
+		for (const module of this.#modulesToInitialize.splice(0).toReversed()) {
+			module['initialize']();
+		}
+	});
 	public addModule<
 		Constructor extends new (owner: GameObject, ...args: any[]) => Module,
 	>(
 		type: Constructor,
 		...args: Tail<ConstructorParameters<Constructor>>
 	): InstanceType<Constructor> {
+		using _ = this.#initModulesAction.defer();
+
 		const module = new type(
 			this.owner,
 			...args,
@@ -46,7 +55,8 @@ export default class ModuleCollection implements IModular {
 		this.modules.push(module);
 
 		if (this.owner.initialized) {
-			module['initialize']();
+			this.#modulesToInitialize.push(module);
+			this.#initModulesAction.invoke();
 		}
 
 		return module;

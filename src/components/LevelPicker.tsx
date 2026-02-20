@@ -1,5 +1,5 @@
 import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
-import LevelEditor from '../ollie-bird/game-object/LevelEditor';
+import LevelGameplayManager from '../ollie-bird/modules/LevelGameplayManager';
 import Button from './Button';
 import Card from './Card';
 import useGameContext from './GameContext';
@@ -41,9 +41,14 @@ export default function LevelPicker({ onClose }: { onClose?: () => void }) {
 	useEffect(() => refreshLevels(), [refreshLevels]);
 
 	const levelEditor = useMemo(() => {
-		if (!game) return;
+		if (!game) return null;
 
-		return game.findObjectsByType(LevelEditor)[0];
+		return (
+			game
+				.getObjects()
+				.map((obj) => obj.getModule(LevelGameplayManager))
+				.filter((m) => m !== null)[0] ?? null
+		);
 	}, [game]);
 
 	const loadLevel = (levelName: string) => {
