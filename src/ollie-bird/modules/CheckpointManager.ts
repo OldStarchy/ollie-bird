@@ -42,9 +42,6 @@ export default class CheckpointManager extends Module {
 	}
 
 	static {
-		Module.serializer.registerSerializationType(
-			'SequentialGateManager',
-			this,
-		);
+		Module.serializer.registerSerializationType('CheckpointManager', this);
 	}
 }
