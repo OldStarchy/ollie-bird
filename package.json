@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint . && prettier --check .",
     "type-check": "tsc -b",
+    "type-check:watch": "tsc -b --watch",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
