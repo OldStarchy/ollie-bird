@@ -92,6 +92,8 @@ export default class BoxInputTool extends Module {
 	}
 
 	private alignPointToGrid(point: Vec2Like): Vec2 {
+		if (!this.alignToGrid) return new Vec2(point.x, point.y);
+
 		const alignedX =
 			Math.round((point.x - this.gridOffset.x) / this.gridSize.x) *
 				this.gridSize.x +

@@ -1,37 +1,35 @@
 import { CELL_SIZE } from '../const';
 import GameObject from '../core/GameObject';
 import type IGame from '../core/IGame';
-import Mouse from '../core/input/mouse/Mouse';
-import { Option } from '../core/monad/Option';
+import type Module from '../core/Module';
+import CreateBombTool from '../modules/editor-tools/CreateBombTool';
 import CreateCheckpointTool from '../modules/editor-tools/CreateCheckpointTool';
+import CreateWalkerSpawnerTool from '../modules/editor-tools/CreateWalkerSpawnerTool';
 import CreateWallTool from '../modules/editor-tools/CreateWallTool';
 import DeleteThingsTool from '../modules/editor-tools/DeleteThingsTool';
 import SetGoalTool from '../modules/editor-tools/SetGoalTool';
+import SetSpawnPointTool from '../modules/editor-tools/SetSpawnPointTool';
 import ObjectSelector from '../modules/ObjectSelector';
-import PlayerSpawner from '../modules/PlayerSpawner';
-import { createBombPrefab } from '../prefabs/createBombPrefab';
-import { createPlayerSpawnerPrefab } from '../prefabs/createPlayerSpawnerPrefab';
-import { createWalkerSpawnerPrefab } from '../prefabs/createWalkerSpawnerPrefab';
 
 enum EditorMode {
 	SetSpawnPoint,
 	SetGoal,
-	AddObstacle,
+	BuildWalls,
 	CreateBomb,
-	AddGate,
+	AddCheckpoint,
 	AddBaddie,
 	DeleteThings,
 	LAST = DeleteThings,
 }
 
 const editorModeLabels = {
-	[EditorMode.AddObstacle]: 'add obstacle',
-	[EditorMode.DeleteThings]: 'delete things',
-	[EditorMode.SetSpawnPoint]: 'set spawn point',
-	[EditorMode.CreateBomb]: 'create bomb',
-	[EditorMode.AddGate]: 'add gate',
-	[EditorMode.SetGoal]: 'set goal',
-	[EditorMode.AddBaddie]: 'add baddie',
+	[EditorMode.BuildWalls]: 'Build Walls',
+	[EditorMode.DeleteThings]: 'Delete Things',
+	[EditorMode.SetSpawnPoint]: 'Set Spawn Point',
+	[EditorMode.CreateBomb]: 'Create Bomb',
+	[EditorMode.AddCheckpoint]: 'Add Checkpoint',
+	[EditorMode.SetGoal]: 'Set Goal',
+	[EditorMode.AddBaddie]: 'Add Baddie',
 } as const;
 
 export default class LevelEditor extends GameObject {
@@ -49,27 +47,38 @@ export default class LevelEditor extends GameObject {
 	gridSize: number = CELL_SIZE;
 
 	private createWallTool: CreateWallTool;
+	private deleteThingsTool: DeleteThingsTool;
+	private setSpawnPointTool: SetSpawnPointTool;
+	private createBombTool: CreateBombTool;
 	private createCheckpointTool: CreateCheckpointTool;
 	private setGoalTool: SetGoalTool;
-	private deleteThingsTool: DeleteThingsTool;
+	private createWalkerSpawnerTool: CreateWalkerSpawnerTool;
 
 	#changeToolKey = this.game.input.keyboard.getButton('Tab');
-	#ctrlKey = this.game.input.keyboard.getButton('ControlLeft');
-
-	#primaryMbutton = this.game.input.mouse.getButton(Mouse.BUTTON_LEFT);
 
 	constructor(game: IGame) {
 		super(game);
 
 		this.addModule(ObjectSelector);
-		this.createWallTool = this.addModule(CreateWallTool);
-		this.createWallTool.transient = true;
-		this.createCheckpointTool = this.addModule(CreateCheckpointTool);
-		this.createCheckpointTool.transient = true;
-		this.setGoalTool = this.addModule(SetGoalTool);
-		this.setGoalTool.transient = true;
-		this.deleteThingsTool = this.addModule(DeleteThingsTool);
-		this.deleteThingsTool.transient = true;
+
+		this.createWallTool = this.addTransientModule(CreateWallTool);
+		this.createCheckpointTool =
+			this.addTransientModule(CreateCheckpointTool);
+		this.setSpawnPointTool = this.addTransientModule(SetSpawnPointTool);
+		this.createBombTool = this.addTransientModule(CreateBombTool);
+		this.setGoalTool = this.addTransientModule(SetGoalTool);
+		this.deleteThingsTool = this.addTransientModule(DeleteThingsTool);
+		this.createWalkerSpawnerTool = this.addTransientModule(
+			CreateWalkerSpawnerTool,
+		);
+	}
+
+	private addTransientModule<T extends Module>(
+		ModuleClass: new (owner: GameObject) => T,
+	): T {
+		const module = this.addModule(ModuleClass);
+		module.transient = true;
+		return module;
 	}
 
 	override initialize(): void {
@@ -81,9 +90,14 @@ export default class LevelEditor extends GameObject {
 
 	private updateActiveTool() {
 		this.setGoalTool.active = this.#mode === EditorMode.SetGoal;
-		this.createWallTool.active = this.#mode === EditorMode.AddObstacle;
-		this.createCheckpointTool.active = this.#mode === EditorMode.AddGate;
+		this.createWallTool.active = this.#mode === EditorMode.BuildWalls;
+		this.setSpawnPointTool.active = this.#mode === EditorMode.SetSpawnPoint;
+		this.createBombTool.active = this.#mode === EditorMode.CreateBomb;
+		this.createCheckpointTool.active =
+			this.#mode === EditorMode.AddCheckpoint;
 		this.deleteThingsTool.active = this.#mode === EditorMode.DeleteThings;
+		this.createWalkerSpawnerTool.active =
+			this.#mode === EditorMode.AddBaddie;
 	}
 
 	alignToGrid(obj: { x: number; y: number }): { x: number; y: number } {
@@ -96,56 +110,6 @@ export default class LevelEditor extends GameObject {
 	override update(): void {
 		if (this.#changeToolKey.isPressed) {
 			this.mode = (this.mode + 1) % (EditorMode.LAST + 1);
-
-			switch (this.mode) {
-				case EditorMode.AddObstacle:
-				case EditorMode.AddGate:
-				case EditorMode.SetGoal:
-				case EditorMode.DeleteThings:
-					// handled by CreateWallTool
-					return;
-			}
-		}
-
-		const mPos = this.alignToGrid({
-			x: this.game.input.mouse.x,
-			y: this.game.input.mouse.y,
-		});
-
-		switch (this.mode) {
-			case EditorMode.SetSpawnPoint:
-				if (this.#primaryMbutton.isPressed) {
-					const player = this.#ctrlKey.isDown ? 1 : 0;
-
-					this.game
-						.findObjectsByTag('player-spawner')
-						.flatMap((obj) => [
-							...Option.of(obj.getModule(PlayerSpawner)),
-						])
-						.filter((sp) => sp.playerIndex === player)
-						.forEach((sp) => sp?.owner.destroy());
-
-					GameObject.deserializePartial(
-						createPlayerSpawnerPrefab(mPos, player),
-						{ game: this.game },
-					).logErr('Failed to create player spawner');
-				}
-				break;
-			case EditorMode.CreateBomb:
-				if (this.#primaryMbutton.isPressed) {
-					GameObject.deserializePartial(createBombPrefab(mPos), {
-						game: this.game,
-					}).logErr('Failed to create bomb');
-				}
-				break;
-			case EditorMode.AddBaddie:
-				if (this.#primaryMbutton.isPressed) {
-					GameObject.deserializePartial(
-						createWalkerSpawnerPrefab(mPos, 'left'),
-						{ game: this.game },
-					).logErr('Failed to create walker spawner');
-				}
-				break;
 		}
 
 		super.update();

@@ -73,7 +73,7 @@ export default class Resources {
 	static instance = new Resources();
 
 	readonly sprite = new ResourceMap<Sprite>('Sprite');
-	readonly spriteSet = new ResourceMap<Sprite[]>('Sprite Sequence');
+	readonly spriteSet = new ResourceMap<readonly Sprite[]>('Sprite Sequence');
 	readonly birdSpriteSet = new ResourceMap<BirdSpriteSet>('5 Sprites');
 
 	getAllSprites(): Sprite[] {
@@ -92,22 +92,26 @@ export default class Resources {
 	static {
 		const sheet1 = Sprite.fromGrid(sheet1Url, 4, 4, 910, 911);
 
-		this.instance.sprite.register('grindingWheel', sheet1[0]);
+		this.instance.sprite.register('bomb', sheet1[1]);
 		this.instance.spriteSet.register('bomb', sheet1.slice(1, 8));
+
+		this.instance.sprite.register('grindingWheel', sheet1[0]);
 		this.instance.spriteSet.register('cloudIdle', sheet1.slice(8, 10));
 		this.instance.spriteSet.register('cloudStrike', sheet1.slice(10, 12));
 		this.instance.spriteSet.register('lightingIdle', sheet1.slice(12, 15));
 		this.instance.sprite.register('lightningStrike', sheet1[15]);
 
-		this.instance.spriteSet.register('walker', [
-			new Sprite(baddie1),
-			new Sprite(baddie2),
-		]);
+		const walkerSet = [new Sprite(baddie1), new Sprite(baddie2)] as const;
+		this.instance.sprite.register('walker', walkerSet[0]);
+		this.instance.spriteSet.register('walker', walkerSet);
+
+		const birdF1 = new Sprite(bird_f1);
+		this.instance.sprite.register('bird-icon', birdF1);
 
 		this.instance.birdSpriteSet.register(
 			'birdFrontSprites',
 			BirdSpriteSet.create(
-				new Sprite(bird_f1),
+				birdF1,
 				new Sprite(bird_f2),
 				new Sprite(bird_f3),
 				new Sprite(bird_f4),
