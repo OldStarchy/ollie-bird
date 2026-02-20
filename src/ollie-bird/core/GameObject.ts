@@ -9,11 +9,7 @@ import Module from './Module';
 import ModuleCollection from './ModuleCollection';
 import Transform2d, { transform2dDtoSchema } from './modules/Transform2d';
 import { Err, Ok, Result } from './monad/Result';
-import {
-	typedDtoSchema,
-	type PartialDeserializer,
-	type Serializable,
-} from './Serializer';
+import { typedDtoSchema, type Serializable } from './Serializer';
 
 export const gameObjectSchema = z.object({
 	name: z.string().meta({ title: 'Name' }),
@@ -268,10 +264,3 @@ export default class GameObject
 	readonly [ReactInterop.schema] = gameObjectSchema;
 	readonly [ReactInterop.asObservable] = this.change$;
 }
-
-// @ts-expect-error
-type _typeCheck = AssertTrue<
-	typeof GameObject extends PartialDeserializer<GameObject, { game: IGame }>
-		? true
-		: false
->;
