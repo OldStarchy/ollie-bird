@@ -9,7 +9,7 @@ import Collider2d, { collider2dDtoSchema } from '../Collider2d';
 
 const circleCollider2dDtoSchema = z.object({
 	base: collider2dDtoSchema,
-	center: z.tuple([z.number(), z.number()]),
+	center: z.tuple([z.number(), z.number()]).optional(),
 	radius: z.number().min(0),
 });
 export type CircleCollider2dDto = z.input<typeof circleCollider2dDtoSchema>;
@@ -72,10 +72,12 @@ export default class CircleCollider2d
 		}
 
 		const { base, center, radius } = parsed.data;
-		const [centerX, centerY] = center;
 		const collider = context.gameObject.addModule(CircleCollider2d);
 
-		collider.center = { x: centerX, y: centerY };
+		if (center !== undefined) {
+			const [centerX, centerY] = center;
+			collider.center = { x: centerX, y: centerY };
+		}
 		collider.radius = radius;
 
 		Collider2d.deserializeBase(base, { collider });
