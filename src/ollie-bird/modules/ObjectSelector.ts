@@ -7,6 +7,7 @@ import Mouse from '../core/input/mouse/Mouse';
 import type { Pointer } from '../core/input/Pointer';
 import Module from '../core/Module';
 import Collider2d from '../core/modules/Collider2d';
+import { Ok, type Result } from '../core/monad/Result';
 
 export default class ObjectSelector extends Module {
 	static readonly displayName = 'ObjectSelector';
@@ -55,7 +56,8 @@ export default class ObjectSelector extends Module {
 
 			const collidingObjects = this.owner.game
 				.getObjects()
-				.filter(Collider2d.collidingWith(mousePoint));
+				.filter(Collider2d.collidingWith(mousePoint))
+				.toArray();
 
 			this.trySelectObject(collidingObjects);
 		}
@@ -80,9 +82,23 @@ export default class ObjectSelector extends Module {
 
 		using _ = contextCheckpoint(context);
 
-		const colliders = this.selectedObject.getModules(Collider2d);
+		const colliders = this.selectedObject.getModulesByType(Collider2d);
 		for (const collider of colliders) {
 			collider.doRenderGizmos(context);
 		}
+	}
+
+	override serialize(): unknown {
+		return undefined;
+	}
+	static deserialize(
+		_obj: unknown,
+		context: { gameObject: GameObject },
+	): Result<Module, string> {
+		return Ok(context.gameObject.addModule(ObjectSelector));
+	}
+
+	static {
+		Module.serializer.registerSerializationType('ObjectSelector', this);
 	}
 }

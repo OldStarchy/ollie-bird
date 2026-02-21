@@ -106,13 +106,13 @@ export default class Sprite implements ReactInterop<SpriteView> {
 		return cells.map((cell) => new Sprite(image, cell));
 	}
 
-	static fromGrid(
+	static fromGrid<X extends number, Y extends number>(
 		imageOrSrc: HTMLImageElement | string,
-		tilesX: number,
-		tilesY: number,
+		tilesX: X,
+		tilesY: Y,
 		imageWidth: number,
 		imageHeight: number,
-	): Sprite[] {
+	): FlattenTuple<Tuple<Tuple<Sprite, Y>, X>> {
 		const image = Sprite.toImage(imageOrSrc);
 		const sprites: Sprite[] = [];
 		const width = imageWidth / tilesX;
@@ -130,7 +130,7 @@ export default class Sprite implements ReactInterop<SpriteView> {
 				);
 			}
 		}
-		return sprites;
+		return sprites as FlattenTuple<Tuple<Tuple<Sprite, Y>, X>>;
 	}
 
 	blit(

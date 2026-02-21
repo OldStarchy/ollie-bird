@@ -1,5 +1,5 @@
 import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
-import LevelEditor from '../ollie-bird/game-object/LevelEditor';
+import LevelGameplayManager from '../ollie-bird/modules/LevelGameplayManager';
 import Button from './Button';
 import Card from './Card';
 import useGameContext from './GameContext';
@@ -26,6 +26,9 @@ export default function LevelPicker({ onClose }: { onClose?: () => void }) {
 	const [levels, setLevels] = useState<string[]>([]);
 	const [visible, setVisible] = useState<boolean>(false);
 	const [levelName, setLevelName] = useState<string>('');
+	const [errors, setErrors] = useState<
+		{ message: string; cause: string[] }[]
+	>([]);
 
 	const refreshLevels = useCallback(() => {
 		setLevels(
@@ -38,31 +41,46 @@ export default function LevelPicker({ onClose }: { onClose?: () => void }) {
 	useEffect(() => refreshLevels(), [refreshLevels]);
 
 	const levelEditor = useMemo(() => {
-		if (!game) return;
+		if (!game) return null;
 
-		return game.findObjectsByType(LevelEditor)[0];
+		return (
+			game
+				.getObjects()
+				.map((obj) => obj.getModule(LevelGameplayManager))
+				.find((m) => m !== null) ?? null
+		);
 	}, [game]);
 
 	const loadLevel = (levelName: string) => {
 		const data = localStorage.getItem(localStorageKeyPrefix + levelName);
 		if (data) {
-			levelEditor?.loadLevelData(data);
+			levelEditor?.loadLevelData(data).match(
+				() => setErrors([]),
+				(errors) => setErrors(errors),
+			);
 			setLevelName(levelName);
 		}
 	};
+
 	const loadEmpty = () => {
-		levelEditor?.loadLevelData('{}');
+		levelEditor?.loadLevelData('{}').match(
+			() => setErrors([]),
+			(errors) => setErrors(errors),
+		);
 	};
 
 	const saveLevel = (levelName: string) => {
 		const data = levelEditor?.getLevelData() ?? null;
 
 		if (data === null) {
-			alert('Failed to get level data for saving.');
+			setErrors([
+				{ message: 'Failed to get level data for saving.', cause: [] },
+			]);
 			return;
 		}
 
 		localStorage.setItem(localStorageKeyPrefix + levelName, data);
+		setErrors([]);
 
 		refreshLevels();
 	};
@@ -254,6 +272,22 @@ export default function LevelPicker({ onClose }: { onClose?: () => void }) {
 						Clear Level
 					</Button>
 				</div>
+				{errors.length > 0 && (
+					<div>
+						{errors.map((error, index) => (
+							<div key={index}>
+								<p>⚠️ {error.message}</p>
+								{error.cause.length > 0 && (
+									<ul style={{ marginLeft: '1rem' }}>
+										{error.cause.map((cause, i) => (
+											<li key={i}>{cause}</li>
+										))}
+									</ul>
+								)}
+							</div>
+						))}
+					</div>
+				)}
 			</div>
 		</Card>
 	);

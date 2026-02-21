@@ -1,6 +1,9 @@
 import { useMemo } from 'react';
 import Module from '../../ollie-bird/core/Module';
-import { ReactInterop } from '../../react-interop/ReactInterop';
+import {
+	ReactInterop,
+	useReactInterop,
+} from '../../react-interop/ReactInterop';
 import { ReactInteropInspector } from '../../react-interop/ReactInteropInspector';
 import { useSelectedObject } from './useSelectedObject';
 
@@ -9,10 +12,12 @@ export default function SelectedObjectInspector() {
 
 	const modules = useMemo(() => {
 		if (!selectedObject) return [];
-		return selectedObject.getModules(Module).toArray();
+		return selectedObject.getModulesByType(Module).toArray();
 	}, [selectedObject]);
 
-	if (!selectedObject) {
+	const [data] = useReactInterop(selectedObject);
+
+	if (!selectedObject || !data) {
 		return <div>No object selected</div>;
 	}
 
@@ -22,19 +27,11 @@ export default function SelectedObjectInspector() {
 			<p>Type: {selectedObject.constructor.defaultName}</p>
 			<p>
 				Tags:{' '}
-				{Array.from(selectedObject.tags, (tag) => tag.toString()).join(
-					', ',
-				)}
+				{Array.from(data.tags, (tag) => tag.toString()).join(', ')}
 			</p>
 			<hr />
 
-			{ReactInterop.schema in selectedObject ? (
-				<ReactInteropInspector
-					model={selectedObject as unknown as ReactInterop<unknown>}
-				/>
-			) : (
-				<p>This object has no directly inspectable properties.</p>
-			)}
+			<ReactInteropInspector model={selectedObject} />
 
 			{modules.map((module, index) => (
 				<div

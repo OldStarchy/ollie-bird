@@ -6,7 +6,7 @@ import onChange from '../../react-interop/onChange';
 import { ReactInterop } from '../../react-interop/ReactInterop';
 import seconds from '../../unit/time/seconds';
 import { CELL_SIZE } from '../const';
-import type GameObject from './GameObject';
+import GameObject, { type GameObjectDto } from './GameObject';
 import type IGame from './IGame';
 import type { GameEvent } from './IGame';
 import Input from './input/Input';
@@ -153,9 +153,9 @@ class BaseGame implements IGame, ReactInterop<BaseGameSettings> {
 	}
 
 	step() {
-		this.objects.forEach((go) => go['doBeforeUpdate']());
-		this.objects.forEach((go) => go['doUpdate']());
-		this.objects.forEach((go) => go['doAfterUpdate']());
+		this.objects.forEach((go) => go.beforeUpdate());
+		this.objects.forEach((go) => go.update());
+		this.objects.forEach((go) => go.afterUpdate());
 
 		this.input.step();
 		this.queueRender();
@@ -188,18 +188,14 @@ class BaseGame implements IGame, ReactInterop<BaseGameSettings> {
 				.sort((a, b) => a - b)
 				.flatMap((layer) => layers.get(layer) ?? []);
 
-			sortedObjects.forEach((go) => go['doBeforeRender'](context));
-			sortedObjects.forEach((go) => go['doRender'](context));
-			sortedObjects.forEach((go) => go['doAfterRender'](context));
+			sortedObjects.forEach((go) => go.beforeRender(context));
+			sortedObjects.forEach((go) => go.render(context));
+			sortedObjects.forEach((go) => go.afterRender(context));
 
 			if (this.renderGizmos) {
-				sortedObjects.forEach((go) =>
-					go['doBeforeRenderGizmos'](context),
-				);
-				sortedObjects.forEach((go) => go['doRenderGizmos'](context));
-				sortedObjects.forEach((go) =>
-					go['doAfterRenderGizmos'](context),
-				);
+				sortedObjects.forEach((go) => go.beforeRenderGizmos(context));
+				sortedObjects.forEach((go) => go.renderGizmos(context));
+				sortedObjects.forEach((go) => go.afterRenderGizmos(context));
 			}
 
 			context.strokeStyle = 'red';
@@ -207,15 +203,21 @@ class BaseGame implements IGame, ReactInterop<BaseGameSettings> {
 		});
 	}
 
-	spawn<Constructor extends new (game: IGame, ...args: any[]) => GameObject>(
-		type: Constructor,
-		...args: Tail<ConstructorParameters<Constructor>>
-	): InstanceType<Constructor> {
-		const obj = new type(this, ...args) as InstanceType<Constructor>;
+	spawn(): GameObject {
+		const obj = new GameObject(this);
 		this.objects.push(obj);
-		obj['doInitialize']();
+
+		obj.initialize();
 		this.#gameObjects$.next();
 		return obj;
+	}
+
+	spawnPrefab(prefab: GameObjectDto): GameObject {
+		return GameObject.deserializePartial(prefab, { game: this })
+			.inspectErr((err) => {
+				console.error('Failed to spawn prefab', err.errors);
+			})
+			.unwrap();
 	}
 
 	destroySome(cb: (obj: GameObject) => boolean): void {
@@ -241,21 +243,23 @@ class BaseGame implements IGame, ReactInterop<BaseGameSettings> {
 		this.#gameObjects$.next();
 	}
 
-	findObjectsByTag(tag: string): Array<GameObject> {
-		return this.objects.filter((obj) => obj.tags.has(tag));
+	findObjectsByTag(tag: string): IteratorObject<GameObject> {
+		return this.objects[Symbol.iterator]().filter((obj) =>
+			obj.tags.has(tag),
+		);
 	}
 
 	findObjectsByType<T extends (new (game: IGame) => GameObject)[]>(
 		...types: T
-	): Array<InstanceType<T[number]>> {
-		return this.objects.filter<InstanceType<T[number]>>(
+	): IteratorObject<InstanceType<T[number]>> {
+		return this.objects[Symbol.iterator]().filter<InstanceType<T[number]>>(
 			(obj): obj is InstanceType<T[number]> =>
 				types.some((type) => obj instanceof type),
 		);
 	}
 
-	getObjects(): Array<GameObject> {
-		return Array.from(this.objects);
+	getObjects(): IteratorObject<GameObject> {
+		return this.objects[Symbol.iterator]();
 	}
 
 	private renderAll(

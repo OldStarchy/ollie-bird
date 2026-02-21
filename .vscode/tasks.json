@@ -18,6 +18,21 @@
 			"problemMatcher": [],
 			"label": "npm: test",
 			"detail": "vitest run"
+		},
+		{
+			"type": "npm",
+			"script": "type-check",
+			"problemMatcher": ["$tsc"],
+			"label": "npm: type-check",
+			"detail": "tsc -b"
+		},
+		{
+			"type": "npm",
+			"script": "type-check:watch",
+			"group": "build",
+			"problemMatcher": ["$tsc-watch"],
+			"label": "npm: type-check:watch",
+			"detail": "tsc -b --watch"
 		}
 	]
 }

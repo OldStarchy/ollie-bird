@@ -1,11 +1,19 @@
+import DeferredAction from './DeferredAction';
 import type GameObject from './GameObject';
 import type IModular from './IModular';
 import Module from './Module';
 
-export default class ModuleCollection extends Module implements IModular {
+export default class ModuleCollection implements IModular {
 	private modules: Module[] = [];
+	//TODO(#49): modules => #modules, + internalAdd, + internalRemove
 
-	public *getModules<T extends Module>(
+	constructor(private owner: GameObject) {}
+
+	public getModules(): Module[] {
+		return this.modules.slice();
+	}
+
+	public *getModulesByType<T extends Module>(
 		type: abstract new (owner: GameObject) => T,
 	): Generator<T> {
 		for (const module of this.modules) {
@@ -26,17 +34,31 @@ export default class ModuleCollection extends Module implements IModular {
 		return null;
 	}
 
+	#modulesToInitialize: Module[] = [];
+	#initModulesAction = new DeferredAction(() => {
+		for (const module of this.#modulesToInitialize.splice(0).toReversed()) {
+			module['initialize']();
+		}
+	});
 	public addModule<
 		Constructor extends new (owner: GameObject, ...args: any[]) => Module,
 	>(
 		type: Constructor,
 		...args: Tail<ConstructorParameters<Constructor>>
 	): InstanceType<Constructor> {
+		using _ = this.#initModulesAction.defer();
+
 		const module = new type(
 			this.owner,
 			...args,
 		) as InstanceType<Constructor>;
 		this.modules.push(module);
+
+		if (this.owner.initialized) {
+			this.#modulesToInitialize.push(module);
+			this.#initModulesAction.invoke();
+		}
+
 		return module;
 	}
 
@@ -60,27 +82,27 @@ export default class ModuleCollection extends Module implements IModular {
 		});
 	}
 
-	protected initialize(): void {
+	initialize(): void {
 		this.each((module) => {
 			module['initialize']();
 		});
 	}
 
-	protected beforeUpdate(): void {
+	beforeUpdate(): void {
 		this.each((module) => {
 			if (module.enabled) {
 				module['beforeUpdate']();
 			}
 		});
 	}
-	protected update(): void {
+	update(): void {
 		this.each((module) => {
 			if (module.enabled) {
 				module['update']();
 			}
 		});
 	}
-	protected afterUpdate(): void {
+	afterUpdate(): void {
 		this.each((module) => {
 			if (module.enabled) {
 				module['afterUpdate']();
@@ -88,21 +110,21 @@ export default class ModuleCollection extends Module implements IModular {
 		});
 	}
 
-	protected beforeRender(context: CanvasRenderingContext2D): void {
+	beforeRender(context: CanvasRenderingContext2D): void {
 		this.each((module) => {
 			if (module.enabled) {
 				module['beforeRender'](context);
 			}
 		});
 	}
-	protected render(context: CanvasRenderingContext2D): void {
+	render(context: CanvasRenderingContext2D): void {
 		this.each((module) => {
 			if (module.enabled) {
 				module['render'](context);
 			}
 		});
 	}
-	protected afterRender(context: CanvasRenderingContext2D): void {
+	afterRender(context: CanvasRenderingContext2D): void {
 		this.each((module) => {
 			if (module.enabled) {
 				module['afterRender'](context);
@@ -110,21 +132,21 @@ export default class ModuleCollection extends Module implements IModular {
 		});
 	}
 
-	protected beforeRenderGizmos(context: CanvasRenderingContext2D): void {
+	beforeRenderGizmos(context: CanvasRenderingContext2D): void {
 		this.each((module) => {
 			if (module.enabled) {
 				module['beforeRenderGizmos'](context);
 			}
 		});
 	}
-	protected renderGizmos(context: CanvasRenderingContext2D): void {
+	renderGizmos(context: CanvasRenderingContext2D): void {
 		this.each((module) => {
 			if (module.enabled) {
 				module['renderGizmos'](context);
 			}
 		});
 	}
-	protected afterRenderGizmos(context: CanvasRenderingContext2D): void {
+	afterRenderGizmos(context: CanvasRenderingContext2D): void {
 		this.each((module) => {
 			if (module.enabled) {
 				module['afterRenderGizmos'](context);

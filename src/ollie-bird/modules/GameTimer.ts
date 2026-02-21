@@ -1,7 +1,8 @@
+import { toss } from 'toss-expression';
 import contextCheckpoint from '../../contextCheckpoint';
 import Module from '../core/Module';
 import filterEvent from '../core/rxjs/filterEvent';
-import LevelEditor from '../game-object/LevelEditor';
+import LevelGameplayManager from './LevelGameplayManager';
 
 export default class GameTimer extends Module {
 	static readonly displayName = 'GameTimer';
@@ -9,12 +10,14 @@ export default class GameTimer extends Module {
 	private elapsedTime: number = 0;
 	private running: boolean = false;
 
-	private get levelController(): LevelEditor {
-		if (this.owner instanceof LevelEditor) return this.owner;
-
-		// TODO(#47): move LevelEditor logic to module
-		throw new Error(
-			`${GameTimer.displayName} must be attached to a ${LevelEditor.defaultName}`,
+	private get levelGameplayManager(): LevelGameplayManager {
+		return (
+			this.getModule(LevelGameplayManager) ??
+			toss(
+				new Error(
+					`${GameTimer.displayName} must be attached to a ${LevelGameplayManager.displayName}`,
+				),
+			)
 		);
 	}
 
@@ -38,7 +41,7 @@ export default class GameTimer extends Module {
 
 	protected override initialize(): void {
 		this.disposableStack.use(
-			this.levelController.levelEvent$
+			this.levelGameplayManager.event$
 				.pipe(filterEvent('levelStart'))
 				.subscribe(() => {
 					this.reset();
@@ -47,7 +50,7 @@ export default class GameTimer extends Module {
 		);
 
 		this.disposableStack.use(
-			this.levelController.levelEvent$
+			this.levelGameplayManager.event$
 				.pipe(filterEvent('levelComplete'))
 				.subscribe(() => {
 					this.stop();
@@ -78,5 +81,9 @@ export default class GameTimer extends Module {
 		context.textAlign = 'center';
 		context.fillText(timeString, centerX, 30);
 		context.textAlign = 'left';
+	}
+
+	static {
+		Module.serializer.registerSerializationType('GameTimer', this);
 	}
 }

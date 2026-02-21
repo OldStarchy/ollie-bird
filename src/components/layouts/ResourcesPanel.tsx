@@ -5,7 +5,7 @@ import { SpriteEditor } from '../SpriteEditor';
 export default function ResourcesPanel() {
 	// const _game = useGameContext();
 
-	const sprites = useMemo(() => Resources.sprites, []);
+	const sprites = useMemo(() => Resources.instance.getAllSprites(), []);
 
 	return (
 		<div

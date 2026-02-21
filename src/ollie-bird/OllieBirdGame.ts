@@ -1,6 +1,7 @@
 import { BirdControls } from './BirdControls';
 import BaseGame from './core/BaseGame';
-import LevelEditor from './game-object/LevelEditor';
+import LevelEditor from './modules/LevelEditor';
+import LevelGameplayManager from './modules/LevelGameplayManager';
 
 export const Bindings = {
 	Restart: 'Restart',
@@ -53,7 +54,12 @@ class OllieBirdGame extends BaseGame {
 
 	override preStart(): void {
 		this.color = 'SkyBlue';
-		this.spawn(LevelEditor);
+		const editor = this.spawn();
+		editor.layer = 200;
+		editor.addModule(LevelEditor);
+
+		const levelGameplayManager = this.spawn();
+		levelGameplayManager.addModule(LevelGameplayManager);
 	}
 }
 

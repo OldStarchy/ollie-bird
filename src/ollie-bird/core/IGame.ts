@@ -1,6 +1,7 @@
 import type { Observable } from 'rxjs';
 import type { EventMap } from './EventMap';
 import type GameObject from './GameObject';
+import type { GameObjectDto } from './GameObject';
 import type Input from './input/Input';
 
 declare global {
@@ -23,16 +24,14 @@ export default interface IGame {
 	updatesPerSecond: number;
 	readonly secondsPerFrame: seconds;
 
-	spawn<Class extends new (game: IGame, ...args: any[]) => GameObject>(
-		type: Class,
-		...args: Tail<ConstructorParameters<Class>>
-	): InstanceType<Class>;
+	spawn(): GameObject;
+	spawnPrefab(prefab: GameObjectDto): GameObject;
 	destroy(obj: GameObject): void;
 	destroySome(cb: (obj: GameObject) => boolean): void;
 
-	findObjectsByTag(tag: string): Array<GameObject>;
+	findObjectsByTag(tag: string): IteratorObject<GameObject>;
 	findObjectsByType<T extends (new (game: IGame) => GameObject)[]>(
 		...types: T
-	): Array<InstanceType<T[number]>>;
-	getObjects(): Array<GameObject>;
+	): IteratorObject<InstanceType<T[number]>>;
+	getObjects(): IteratorObject<GameObject>;
 }

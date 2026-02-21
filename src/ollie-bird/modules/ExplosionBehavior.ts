@@ -1,18 +1,15 @@
-import { Layer } from '../const';
-import GameObject from '../core/GameObject';
+import Module from '../core/Module';
 
-export default class Explosion extends GameObject {
-	static readonly defaultName: string = 'Explosion';
-	layer = Layer.Foreground;
-	public radius: number = 0;
-	public maxRadius: number = 100;
-	public expansionRate: number = 1;
+export default class ExplosionBehavior extends Module {
+	radius: number = 0;
+	maxRadius: number = 100;
+	expansionRate: number = 1;
 
 	protected override update(): void {
 		if (this.radius < this.maxRadius) {
 			this.radius += this.expansionRate;
 		} else {
-			this.destroy();
+			this.owner.destroy();
 		}
 	}
 
@@ -26,5 +23,12 @@ export default class Explosion extends GameObject {
 		context.lineWidth = 3;
 		context.stroke();
 		context.lineWidth = 1;
+	}
+
+	static {
+		Module.serializer.registerSerializationType(
+			'ExplosionBehavior',
+			ExplosionBehavior,
+		);
 	}
 }

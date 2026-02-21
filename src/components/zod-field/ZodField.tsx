@@ -1,4 +1,5 @@
 import z from 'zod';
+import { ZodArrayField } from './ZodArrayField';
 import { ZodBasicField } from './ZodBasicField';
 import { ZodEnumField } from './ZodEnumField';
 import { ZodObjectField } from './ZodObjectField';
@@ -114,6 +115,19 @@ const ZodField = function ZodField<Schema extends ZodFieldSupportedTypes>({
 				schema={schema}
 				value={value as z.input<typeof schema>}
 				onChange={onChange as onChange<typeof schema>}
+				optional={optional}
+			/>
+		);
+	}
+
+	if (schema instanceof z.ZodArray) {
+		return (
+			<ZodArrayField
+				schema={schema}
+				value={value as z.input<typeof schema>}
+				onChange={
+					onChange as (value: Partial<z.output<Schema>>) => void
+				}
 				optional={optional}
 			/>
 		);
