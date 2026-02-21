@@ -2,7 +2,7 @@ import { Subject } from 'rxjs';
 import { Bindings } from '../OllieBirdGame';
 import { TAG_LEVEL_OBJECT, TAG_LEVEL_STRUCTURE, TAG_PLAYER } from '../const';
 import type { EventMap } from '../core/EventMap';
-import GameObject from '../core/GameObject';
+import GameObject, { type GameObjectDto } from '../core/GameObject';
 import Module from '../core/Module';
 import { Err, Ok, Result } from '../core/monad/Result';
 import CheckpointManager from './CheckpointManager';
@@ -74,7 +74,8 @@ export default class LevelGameplayManager extends Module {
 	getLevelData(): string {
 		const objects = this.game
 			.findObjectsByTag(TAG_LEVEL_STRUCTURE)
-			.map((obj) => obj.serialize());
+			.map((obj) => obj.serialize())
+			.toArray();
 
 		return JSON.stringify(
 			{
@@ -82,6 +83,11 @@ export default class LevelGameplayManager extends Module {
 				width: this.game.width,
 				height: this.game.height,
 				background: this.game.backgroundColor,
+			} as {
+				objects: GameObjectDto[];
+				width: number;
+				height: number;
+				background: string;
 			},
 			null,
 			2,
