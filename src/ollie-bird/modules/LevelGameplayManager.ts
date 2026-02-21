@@ -74,8 +74,7 @@ export default class LevelGameplayManager extends Module {
 	getLevelData(): string {
 		const objects = this.game
 			.findObjectsByTag(TAG_LEVEL_STRUCTURE)
-			.map((obj) => obj.serialize())
-			.filter((obj) => obj !== null);
+			.map((obj) => obj.serialize());
 
 		return JSON.stringify(
 			{
@@ -133,7 +132,7 @@ export default class LevelGameplayManager extends Module {
 						.logErr('Failed to deserialize object:')
 						.inspectErr(({ errors }) => {
 							loadErrors.push({
-								message: 'Failed to deserialized Object',
+								message: 'Failed to deserialize Object',
 								cause: errors,
 							});
 						});

@@ -19,7 +19,7 @@ export function ZodArrayField<Schema extends z.ZodArray>({
 			<div
 				style={{ display: 'flex', flexDirection: 'column', gap: '1em' }}
 			>
-				{(value as any[]).map((itemValue, index) => (
+				{(value as unknown[]).map((itemValue, index) => (
 					<div key={index} style={{ display: 'flex', gap: '0.5em' }}>
 						<ZodField
 							schema={itemSchema}

@@ -31,13 +31,7 @@ export default function SelectedObjectInspector() {
 			</p>
 			<hr />
 
-			{ReactInterop.schema in selectedObject ? (
-				<ReactInteropInspector
-					model={selectedObject as unknown as ReactInterop<unknown>}
-				/>
-			) : (
-				<p>This object has no directly inspectable properties.</p>
-			)}
+			<ReactInteropInspector model={selectedObject} />
 
 			{modules.map((module, index) => (
 				<div
