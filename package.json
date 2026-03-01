@@ -28,6 +28,8 @@
   },
   "devDependencies": {
     "@babel/plugin-proposal-decorators": "^7.28.0",
+    "@commitlint/cli": "^20.4.2",
+    "@commitlint/config-conventional": "^20.4.2",
     "@edge-runtime/vm": "^5.0.0",
     "@eslint/js": "^9.36.0",
     "@types/node": "^24.6.0",
