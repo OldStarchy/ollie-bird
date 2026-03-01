@@ -3,7 +3,7 @@ import z from 'zod';
 import contextCheckpoint from '../../../contextCheckpoint';
 import onChange from '../../../react-interop/onChange';
 import type { BirdControls } from '../../BirdControls';
-import { TAG_CHECKPOINT, TAG_DEADLY, TAG_GOAL } from '../../const';
+import { TAG_DEADLY, TAG_GOAL } from '../../const';
 import GameObject from '../../core/GameObject';
 import Vec2 from '../../core/math/Vec2';
 import Module from '../../core/Module';
@@ -59,10 +59,7 @@ export default class BirdBehavior extends Module {
 		this.gravity = this.owner.game.physics.gravity;
 
 		this.levelGameplayManager =
-			this.owner.game
-				.getObjects()
-				.map((obj) => obj.getModule(LevelGameplayManager))
-				.find((m) => m !== null) ??
+			this.owner.game.findModuleByType(LevelGameplayManager) ??
 			toss(
 				new Error(
 					`${BirdBehavior.displayName} requires a ${LevelGameplayManager.displayName} in the scene`,
@@ -148,8 +145,7 @@ export default class BirdBehavior extends Module {
 		}
 
 		const passedAllGates = !this.game
-			.findObjectsByTag(TAG_CHECKPOINT)
-			.map((obj) => obj.getModule(Checkpoint)!)
+			.findModulesByType(Checkpoint)
 			.some((gate) => gate.state !== 'passed');
 		if (
 			passedAllGates &&

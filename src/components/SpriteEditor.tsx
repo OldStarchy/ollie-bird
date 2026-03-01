@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import type Sprite from '../ollie-bird/core/Sprite';
+import type { SpriteImageSource } from '../ollie-bird/core/Sprite';
 import { useReactInterop } from '../react-interop/ReactInterop';
 import { ReactInteropInspector } from '../react-interop/ReactInteropInspector';
 
@@ -7,8 +8,7 @@ export function SpriteEditor({ sprite }: { sprite: Sprite }) {
 	const sheetCanvasRef = useRef<HTMLCanvasElement>(null);
 	const previewCanvasRef = useRef<HTMLCanvasElement>(null);
 
-	const [{ origin: _origin, sourceRect, src: _src }] =
-		useReactInterop(sprite);
+	const [{ origin: _origin, sourceRect }] = useReactInterop(sprite);
 
 	useEffect(() => {
 		const sheetCanvas = sheetCanvasRef.current;
@@ -40,7 +40,7 @@ export function SpriteEditor({ sprite }: { sprite: Sprite }) {
 
 function renderImageSheetWithSourceRect(
 	canvas: HTMLCanvasElement,
-	image: HTMLImageElement,
+	image: SpriteImageSource,
 	sprite: Sprite,
 ) {
 	canvas.width = canvas.clientWidth;
@@ -90,7 +90,7 @@ function renderImageSheetWithSourceRect(
 
 function renderImageSourceRect(
 	canvas: HTMLCanvasElement | null,
-	image: HTMLImageElement,
+	image: SpriteImageSource,
 	sprite: Sprite,
 ) {
 	if (!canvas) return;

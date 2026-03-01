@@ -17,11 +17,7 @@ export function useSelectedObject(): [
 		useState<GameObject | null>(null);
 
 	useEffect(() => {
-		const selector =
-			game
-				.getObjects()
-				.map((obj) => obj.getModule(ObjectSelector))
-				.find((m) => m) ?? null;
+		const selector = game.findModuleByType(ObjectSelector);
 
 		setObjectSelector(selector);
 	}, [game]);

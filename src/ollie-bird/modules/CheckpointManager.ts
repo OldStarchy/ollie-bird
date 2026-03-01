@@ -1,5 +1,4 @@
 import { toss } from 'toss-expression';
-import { TAG_CHECKPOINT } from '../const';
 import Module from '../core/Module';
 import filterEvent from '../core/rxjs/filterEvent';
 import Checkpoint from './Checkpoint';
@@ -12,21 +11,17 @@ export default class CheckpointManager extends Module {
 		super.initialize();
 
 		const owner =
-			this.owner.game
-				.getObjects()
-				.map((obj) => obj.getModule(LevelGameplayManager))
-				.find((m) => m !== null) ??
+			this.owner.game.findModuleByType(LevelGameplayManager) ??
 			toss(
 				new Error(
 					`${CheckpointManager.displayName} requires a ${LevelGameplayManager.name}`,
 				),
 			);
 		const subr = owner.event$
-			.pipe(filterEvent('levelStart'))
+			.pipe(filterEvent('levelInit'))
 			.subscribe(() => {
 				const gates = owner.game
-					.findObjectsByTag(TAG_CHECKPOINT)
-					.map((obj) => obj.getModule(Checkpoint)!)
+					.findModulesByType(Checkpoint)
 					.toArray();
 
 				gates.sort((a, b) => a.sequenceNumber - b.sequenceNumber);
