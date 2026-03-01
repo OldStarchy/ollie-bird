@@ -27,7 +27,6 @@ export default interface IGame {
 	spawn(): GameObject;
 	spawnPrefab(prefab: GameObjectDto): GameObject;
 	destroy(obj: GameObject): void;
-	destroySome(cb: (obj: GameObject) => boolean): void;
 
 	findObjectsByTag(tag: string): IteratorObject<GameObject>;
 	findObjectsByType<T extends (new (game: IGame) => GameObject)[]>(

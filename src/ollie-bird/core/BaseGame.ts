@@ -38,6 +38,8 @@ class BaseGame implements IGame, ReactInterop<BaseGameSettings> {
 	#gameObjects$ = new Subject<void>();
 	readonly gameObjects$ = this.#gameObjects$.asObservable();
 	private readonly objects: GameObject[] = [];
+	#objectsToDestroy: GameObject[] = [];
+	#objectsToCreate: GameObject[] = [];
 	private readonly canvases: Set<GameCanvas> = new Set();
 
 	readonly #event$ = new Subject<GameEvent>();
@@ -159,6 +161,9 @@ class BaseGame implements IGame, ReactInterop<BaseGameSettings> {
 
 		this.input.step();
 		this.queueRender();
+
+		this.destroyQueuedObjects();
+		this.createQueuedObjects();
 	}
 
 	private renderQueued: boolean = false;
@@ -205,10 +210,8 @@ class BaseGame implements IGame, ReactInterop<BaseGameSettings> {
 
 	spawn(): GameObject {
 		const obj = new GameObject(this);
-		this.objects.push(obj);
+		this.#objectsToCreate.push(obj);
 
-		obj.initialize();
-		this.#gameObjects$.next();
 		return obj;
 	}
 
@@ -220,27 +223,35 @@ class BaseGame implements IGame, ReactInterop<BaseGameSettings> {
 			.unwrap();
 	}
 
-	destroySome(cb: (obj: GameObject) => boolean): void {
-		let some = false;
-		for (let i = this.objects.length - 1; i >= 0; i--) {
-			const obj = this.objects[i]!;
-			if (cb(obj)) {
-				some = true;
-				this.objects.splice(i, 1);
-				obj[Symbol.dispose]();
-			}
-		}
-
-		if (some) {
-			this.#gameObjects$.next();
-		}
-	}
 	destroy(obj: GameObject): void {
 		const index = this.objects.indexOf(obj);
 		if (index === -1) return;
-		this.objects.splice(index, 1);
-		obj[Symbol.dispose]();
+		this.#objectsToDestroy.push(obj);
+	}
+
+	private createQueuedObjects() {
+		if (this.#objectsToCreate.length === 0) return;
+
+		const newObjects = this.#objectsToCreate;
+		this.#objectsToCreate = [];
+
+		this.objects.push(...newObjects);
+		newObjects.forEach((obj) => obj.initialize());
+
 		this.#gameObjects$.next();
+	}
+	private destroyQueuedObjects() {
+		const some = this.#objectsToDestroy.length > 0;
+		this.#objectsToDestroy.forEach((obj) => {
+			const index = this.objects.indexOf(obj);
+			if (index !== -1) {
+				this.objects.splice(index, 1);
+				obj[Symbol.dispose]();
+			}
+		});
+
+		this.#objectsToDestroy = [];
+		if (some) this.#gameObjects$.next();
 	}
 
 	findObjectsByTag(tag: string): IteratorObject<GameObject> {

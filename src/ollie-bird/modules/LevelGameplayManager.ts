@@ -46,7 +46,9 @@ export default class LevelGameplayManager extends Module {
 			this.restart();
 		}
 		if (this.#stopKey.isPressed) {
-			this.game.destroySome((obj) => obj.tags.has(TAG_LEVEL_OBJECT));
+			this.game
+				.findObjectsByTag(TAG_LEVEL_OBJECT)
+				.forEach((obj) => obj.destroy());
 			this.#event$.next({ type: 'levelInit' });
 		}
 		super.update();
@@ -65,7 +67,9 @@ export default class LevelGameplayManager extends Module {
 	}
 
 	restart() {
-		this.game.destroySome((obj) => obj.tags.has(TAG_LEVEL_OBJECT));
+		this.game
+			.findObjectsByTag(TAG_LEVEL_OBJECT)
+			.forEach((obj) => obj.destroy());
 		this.#event$.next({ type: 'levelInit' });
 		this.#event$.next({ type: 'levelStart' });
 	}
@@ -104,11 +108,9 @@ export default class LevelGameplayManager extends Module {
 	removeAll() {
 		this.game
 			.findObjectsByTag(TAG_LEVEL_STRUCTURE)
-			.toArray()
 			.forEach((obj) => obj.destroy());
 		this.game
 			.findObjectsByTag(TAG_LEVEL_OBJECT)
-			.toArray()
 			.forEach((obj) => obj.destroy());
 	}
 
