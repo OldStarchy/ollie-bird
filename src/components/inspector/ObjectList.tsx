@@ -1,4 +1,5 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { TAG_EDITOR_OBJECT } from '../../ollie-bird/const';
 import type GameObject from '../../ollie-bird/core/GameObject';
 import toCallable from '../../toCallable';
 import useGameContext from '../GameContext';
@@ -19,6 +20,29 @@ export default function ObjectList() {
 
 		return toCallable(sub);
 	}, [game]);
+
+	const deleteSelectedObject = useCallback(() => {
+		if (selectedObject) {
+			if (selectedObject.tags.has(TAG_EDITOR_OBJECT)) {
+				alert(
+					`Deleting editor objects will break the editor. If you really want to delete this, remove the ${TAG_EDITOR_OBJECT} tag.`,
+				);
+				return;
+			}
+
+			game.destroy(selectedObject);
+		}
+	}, [game, selectedObject]);
+
+	useEffect(() => {
+		const handleKeyDown = (e: KeyboardEvent) => {
+			if (e.key === 'Delete' || e.key === 'Backspace') {
+				deleteSelectedObject();
+			}
+		};
+		window.addEventListener('keydown', handleKeyDown);
+		return () => window.removeEventListener('keydown', handleKeyDown);
+	}, [deleteSelectedObject]);
 
 	return (
 		<div>

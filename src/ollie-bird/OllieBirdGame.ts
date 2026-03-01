@@ -1,4 +1,5 @@
 import { BirdControls } from './BirdControls';
+import { TAG_EDITOR_OBJECT } from './const';
 import BaseGame from './core/BaseGame';
 import LevelEditor from './modules/LevelEditor';
 import LevelGameplayManager from './modules/LevelGameplayManager';
@@ -57,9 +58,13 @@ class OllieBirdGame extends BaseGame {
 		const editor = this.spawn();
 		editor.layer = 200;
 		editor.addModule(LevelEditor);
+		editor.tags.add(TAG_EDITOR_OBJECT);
+		editor.name = 'Level Editor';
 
 		const levelGameplayManager = this.spawn();
 		levelGameplayManager.addModule(LevelGameplayManager);
+		levelGameplayManager.tags.add(TAG_EDITOR_OBJECT);
+		levelGameplayManager.name = 'Level Gameplay Manager';
 	}
 }
 

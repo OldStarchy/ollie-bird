@@ -1,5 +1,6 @@
 export const CELL_SIZE = 50;
 
+export const TAG_EDITOR_OBJECT = 'editor-object';
 /**
  * Objects with this tag will be destroyed when resetting the current level or
  * loading a new / different level
