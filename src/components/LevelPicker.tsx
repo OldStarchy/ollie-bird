@@ -51,16 +51,27 @@ export default function LevelPicker({ onClose }: { onClose?: () => void }) {
 		);
 	}, [game]);
 
-	const loadLevel = (levelName: string) => {
-		const data = localStorage.getItem(localStorageKeyPrefix + levelName);
-		if (data) {
-			levelEditor?.loadLevelData(data).match(
-				() => setErrors([]),
-				(errors) => setErrors(errors),
+	const loadLevel = useCallback(
+		(levelName: string) => {
+			const data = localStorage.getItem(
+				localStorageKeyPrefix + levelName,
 			);
-			setLevelName(levelName);
-		}
-	};
+			if (data) {
+				levelEditor?.loadLevelData(data).match(
+					() => setErrors([]),
+					(errors) => setErrors(errors),
+				);
+				setLevelName(levelName);
+			}
+		},
+		[levelEditor],
+	);
+
+	useEffect(() => {
+		if (!game) return;
+
+		loadLevel('default');
+	}, [game, loadLevel]);
 
 	const loadEmpty = () => {
 		levelEditor?.loadLevelData('{}').match(
