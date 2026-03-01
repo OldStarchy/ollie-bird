@@ -11,32 +11,48 @@ import { CELL_SIZE } from '../const';
 import type { Rect2Like } from '../core/math/Rect2';
 import Module from '../core/Module';
 import RectangleCollider2d from '../core/modules/colliders/RectangleCollider2d';
+import { flattenImageColors, type SpriteImageSource } from '../core/Sprite';
 
 export default class WallRenderer extends Module {
 	static readonly displayName = 'Wall Renderer';
 
 	static sprites = {
-		wallTopLeft: new Image(),
-		wallTopRight: new Image(),
-		wallBottomLeft: new Image(),
-		wallBottomRight: new Image(),
-		wallLeft: new Image(),
-		wallRight: new Image(),
-		wallTop: new Image(),
-		wallBottom: new Image(),
-		wallCenter: new Image(),
+		wallTopLeft: new Image() as SpriteImageSource,
+		wallTopRight: new Image() as SpriteImageSource,
+		wallBottomLeft: new Image() as SpriteImageSource,
+		wallBottomRight: new Image() as SpriteImageSource,
+		wallLeft: new Image() as SpriteImageSource,
+		wallRight: new Image() as SpriteImageSource,
+		wallTop: new Image() as SpriteImageSource,
+		wallBottom: new Image() as SpriteImageSource,
+		wallCenter: new Image() as SpriteImageSource,
 	};
 
 	static {
-		WallRenderer.sprites.wallTopLeft.src = wallTopLeft;
-		WallRenderer.sprites.wallTopRight.src = wallTopRight;
-		WallRenderer.sprites.wallBottomLeft.src = wallBottomLeft;
-		WallRenderer.sprites.wallBottomRight.src = wallBottomRight;
-		WallRenderer.sprites.wallLeft.src = wallLeft;
-		WallRenderer.sprites.wallRight.src = wallRight;
-		WallRenderer.sprites.wallTop.src = wallTop;
-		WallRenderer.sprites.wallBottom.src = wallBottom;
-		WallRenderer.sprites.wallCenter.src = wallCenter;
+		function initImage(
+			name: keyof typeof WallRenderer.sprites,
+			src: string,
+		) {
+			const img = WallRenderer.sprites[name] as HTMLImageElement;
+			img.src = src;
+			img.addEventListener(
+				'load',
+				() => {
+					WallRenderer.sprites[name] = flattenImageColors(img, 240);
+				},
+				{ once: true },
+			);
+		}
+
+		initImage('wallTopLeft', wallTopLeft);
+		initImage('wallTopRight', wallTopRight);
+		initImage('wallBottomLeft', wallBottomLeft);
+		initImage('wallBottomRight', wallBottomRight);
+		initImage('wallLeft', wallLeft);
+		initImage('wallRight', wallRight);
+		initImage('wallTop', wallTop);
+		initImage('wallBottom', wallBottom);
+		initImage('wallCenter', wallCenter);
 	}
 
 	protected collider!: RectangleCollider2d;
@@ -75,7 +91,7 @@ export default class WallRenderer extends Module {
 				const isTop = gy === 0;
 				const isBottom = gy === gridHeight - 1;
 
-				let sprite: HTMLImageElement;
+				let sprite: SpriteImageSource;
 
 				if (isTop && isLeft) {
 					// Top-left corner
