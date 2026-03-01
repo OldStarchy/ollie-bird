@@ -104,9 +104,11 @@ export default class LevelGameplayManager extends Module {
 	removeAll() {
 		this.game
 			.findObjectsByTag(TAG_LEVEL_STRUCTURE)
+			.toArray()
 			.forEach((obj) => obj.destroy());
 		this.game
 			.findObjectsByTag(TAG_LEVEL_OBJECT)
+			.toArray()
 			.forEach((obj) => obj.destroy());
 	}
 
