@@ -22,7 +22,7 @@ export default class CheckpointManager extends Module {
 				),
 			);
 		const subr = owner.event$
-			.pipe(filterEvent('levelStart'))
+			.pipe(filterEvent('levelInit'))
 			.subscribe(() => {
 				const gates = owner.game
 					.findObjectsByTag(TAG_CHECKPOINT)

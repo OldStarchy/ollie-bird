@@ -56,7 +56,7 @@ export default class BombBehavior extends Module {
 
 		this.disposableStack.use(
 			levelController.event$
-				.pipe(filterEvent('levelStart'))
+				.pipe(filterEvent('levelInit'))
 				.subscribe(() => {
 					this.anim.enabled = true;
 					this.anim.paused = true;

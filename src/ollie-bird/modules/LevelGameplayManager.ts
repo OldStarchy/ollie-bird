@@ -10,6 +10,7 @@ import GameTimer from './GameTimer';
 import BirdBehavior from './bird/BirdBehavior';
 
 export type LevelGameplayManagerEvents = EventMap<{
+	levelInit: void;
 	levelStart: void;
 	levelEnd: void;
 	levelComplete: void;
@@ -23,6 +24,7 @@ export default class LevelGameplayManager extends Module {
 
 	#pauseKey = this.game.input.keyboard.getButton('KeyP');
 	#restartKey = this.game.input.getButton(Bindings.Restart);
+	#stopKey = this.game.input.keyboard.getButton('KeyQ');
 
 	#birdDied = false;
 
@@ -43,6 +45,10 @@ export default class LevelGameplayManager extends Module {
 		if (this.#restartKey.isPressed) {
 			this.restart();
 		}
+		if (this.#stopKey.isPressed) {
+			this.game.destroySome((obj) => obj.tags.has(TAG_LEVEL_OBJECT));
+			this.#event$.next({ type: 'levelInit' });
+		}
 		super.update();
 	}
 	override afterUpdate(): void {
@@ -60,6 +66,7 @@ export default class LevelGameplayManager extends Module {
 
 	restart() {
 		this.game.destroySome((obj) => obj.tags.has(TAG_LEVEL_OBJECT));
+		this.#event$.next({ type: 'levelInit' });
 		this.#event$.next({ type: 'levelStart' });
 	}
 
