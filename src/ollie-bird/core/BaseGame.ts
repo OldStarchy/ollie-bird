@@ -13,6 +13,7 @@ import Input from './input/Input';
 import Rect2 from './math/Rect2';
 import { round } from './math/round';
 import type { Vec2Like } from './math/Vec2';
+import type Module from './Module';
 
 const bgColors = ['Custom', ...htmlColors];
 
@@ -260,13 +261,22 @@ class BaseGame implements IGame, ReactInterop<BaseGameSettings> {
 		);
 	}
 
-	findObjectsByType<T extends (new (game: IGame) => GameObject)[]>(
-		...types: T
-	): IteratorObject<InstanceType<T[number]>> {
-		return this.objects[Symbol.iterator]().filter<InstanceType<T[number]>>(
-			(obj): obj is InstanceType<T[number]> =>
-				types.some((type) => obj instanceof type),
+	findModulesByType<T extends Module>(
+		type: abstract new (owner: GameObject) => T,
+	): IteratorObject<T> {
+		return this.objects[Symbol.iterator]().flatMap((obj) =>
+			obj.getModulesByType(type),
 		);
+	}
+
+	findModuleByType<T extends Module>(
+		type: abstract new (owner: GameObject) => T,
+	): T | null {
+		const first = this.findModulesByType(type).next();
+		if (first.done) {
+			return null;
+		}
+		return first.value;
 	}
 
 	getObjects(): IteratorObject<GameObject> {

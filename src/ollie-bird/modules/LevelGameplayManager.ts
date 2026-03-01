@@ -37,9 +37,9 @@ export default class LevelGameplayManager extends Module {
 
 	override update(): void {
 		if (this.#pauseKey.isPressed) {
-			const bird = this.game.findObjectsByTag(TAG_PLAYER);
-
-			bird.forEach((b) => b.getModule(BirdBehavior)?.togglePause());
+			this.game
+				.findModulesByType(BirdBehavior)
+				.forEach((b) => b.togglePause());
 		}
 
 		if (this.#restartKey.isPressed) {
@@ -56,10 +56,7 @@ export default class LevelGameplayManager extends Module {
 	override afterUpdate(): void {
 		if (this.#birdDied) {
 			this.#birdDied = false;
-			if (
-				this.game.findObjectsByTag(TAG_PLAYER).take(1).toArray()
-					.length === 0
-			) {
+			if (this.game.findObjectsByTag(TAG_PLAYER).next().done) {
 				this.#event$.next({ type: 'levelComplete' });
 			}
 		}

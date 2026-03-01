@@ -51,10 +51,7 @@ export default class WalkerSpawner
 
 	protected override initialize(): void {
 		const levelController =
-			this.owner.game
-				.getObjects()
-				.map((obj) => obj.getModule(LevelGameplayManager))
-				.find((m) => m !== null) ??
+			this.owner.game.findModuleByType(LevelGameplayManager) ??
 			toss(
 				new Error(
 					`${WalkerSpawner.name} requires ${LevelGameplayManager.name}`,

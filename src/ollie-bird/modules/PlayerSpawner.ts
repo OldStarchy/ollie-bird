@@ -28,10 +28,7 @@ export default class PlayerSpawner
 
 	protected override initialize() {
 		const levelController =
-			this.owner.game
-				.getObjects()
-				.map((obj) => obj.getModule(LevelGameplayManager))
-				.find((m) => m !== null) ??
+			this.owner.game.findModuleByType(LevelGameplayManager) ??
 			toss(
 				new Error(
 					`${PlayerSpawner.displayName} requires ${LevelGameplayManager.name}`,
