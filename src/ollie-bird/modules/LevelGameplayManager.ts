@@ -57,7 +57,9 @@ export default class LevelGameplayManager extends Module {
 		if (this.#birdDied) {
 			this.#birdDied = false;
 			if (this.game.findObjectsByTag(TAG_PLAYER).next().done) {
-				this.#event$.next({ type: 'levelComplete' });
+				this.game.waitFrames(0).then(() => {
+					this.#event$.next({ type: 'levelComplete' });
+				});
 			}
 		}
 		super.afterUpdate();
@@ -67,8 +69,11 @@ export default class LevelGameplayManager extends Module {
 		this.game
 			.findObjectsByTag(TAG_LEVEL_OBJECT)
 			.forEach((obj) => obj.destroy());
-		this.#event$.next({ type: 'levelInit' });
-		this.#event$.next({ type: 'levelStart' });
+
+		this.game.waitFrames(0).then(() => {
+			this.#event$.next({ type: 'levelInit' });
+			this.#event$.next({ type: 'levelStart' });
+		});
 	}
 
 	handleBirdReachedGoal(_bird: GameObject) {

@@ -1,4 +1,4 @@
-import { Subject } from 'rxjs';
+import { firstValueFrom, skip, Subject } from 'rxjs';
 import z from 'zod';
 import contextCheckpoint from '../../contextCheckpoint';
 import htmlColors, { type HtmlColor } from '../../htmlColors';
@@ -155,7 +155,10 @@ class BaseGame implements IGame, ReactInterop<BaseGameSettings> {
 		setTimeout(() => this.tick(), 1000 / this.updatesPerSecond);
 	}
 
+	#tick$ = new Subject<void>();
+	tick$ = this.#tick$.asObservable();
 	step() {
+		this.#tick$.next();
 		this.objects.forEach((go) => go.beforeUpdate());
 		this.objects.forEach((go) => go.update());
 		this.objects.forEach((go) => go.afterUpdate());
@@ -165,6 +168,10 @@ class BaseGame implements IGame, ReactInterop<BaseGameSettings> {
 
 		this.destroyQueuedObjects();
 		this.createQueuedObjects();
+	}
+
+	waitFrames(frames: number): Promise<void> {
+		return firstValueFrom(this.tick$.pipe(skip(frames)));
 	}
 
 	private renderQueued: boolean = false;

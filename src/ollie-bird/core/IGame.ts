@@ -38,4 +38,6 @@ export default interface IGame {
 	findModuleByType<T extends Module>(
 		type: abstract new (owner: GameObject) => T,
 	): T | null;
+
+	waitFrames(frames: number): Promise<void>;
 }
