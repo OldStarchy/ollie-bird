@@ -173,21 +173,29 @@ function GameObjectListEntry({
 			value={obj.id}
 			onClick={() => onSelect(obj)}
 		>
-			{name} (
-			{Array.from(obj.tags)
-				.map(
-					(tag) =>
-						(
-							<Pill
-								key={tag}
-								style={{ backgroundColor: colorFromHash(tag) }}
-							>
-								{tag}
-							</Pill>
-						) as ReactNode,
-				)
-				.reduce((prev, curr) => [prev, ', ', curr])}
-			)
+			{name}
+			{obj.tags.size > 0 && (
+				<>
+					{' '}
+					(
+					{Array.from(obj.tags)
+						.map(
+							(tag) =>
+								(
+									<Pill
+										key={tag}
+										style={{
+											backgroundColor: colorFromHash(tag),
+										}}
+									>
+										{tag}
+									</Pill>
+								) as ReactNode,
+						)
+						.reduce((prev, curr) => [prev, ', ', curr])}
+					)
+				</>
+			)}
 		</li>
 	);
 }
