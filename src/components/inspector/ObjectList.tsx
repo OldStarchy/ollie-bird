@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import {
+	useCallback,
+	useEffect,
+	useRef,
+	useState,
+	type ReactNode,
+} from 'react';
 import { TAG_EDITOR_OBJECT } from '../../ollie-bird/const';
 import type GameObject from '../../ollie-bird/core/GameObject';
 import toCallable from '../../toCallable';
@@ -9,6 +15,7 @@ import { useSelectedObject } from './useSelectedObject';
 export default function ObjectList() {
 	const game = useGameContext();
 
+	const rootRef = useRef<HTMLDivElement>(null);
 	const [objects, setObjects] = useState<GameObject[]>([]);
 	const [selectedObject, setSelectedObject] = useSelectedObject();
 
@@ -22,30 +29,93 @@ export default function ObjectList() {
 	}, [game]);
 
 	const deleteSelectedObject = useCallback(() => {
-		if (selectedObject) {
+		setSelectedObject((selectedObject) => {
+			if (!selectedObject) {
+				return selectedObject;
+			}
 			if (selectedObject.tags.has(TAG_EDITOR_OBJECT)) {
 				alert(
 					`Deleting editor objects will break the editor. If you really want to delete this, remove the ${TAG_EDITOR_OBJECT} tag.`,
 				);
-				return;
+				return selectedObject;
 			}
+
+			const index = objects.findIndex(
+				(obj) => obj.id === selectedObject.id,
+			);
+			if (index === -1) return selectedObject;
 
 			game.destroy(selectedObject);
-		}
-	}, [game, selectedObject]);
+			return objects.at(index + 1) ?? null;
+		});
+	}, [game, objects, setSelectedObject]);
+
+	const handleKeyDown = useCallback(
+		(e: KeyboardEvent) => {
+			switch (e.key) {
+				case 'Delete':
+				case 'Backspace':
+					e.preventDefault();
+					deleteSelectedObject();
+					break;
+				case 'ArrowUp': {
+					e.preventDefault();
+					setSelectedObject((selectedObject) => {
+						if (!selectedObject) return null;
+
+						const index = objects.findIndex(
+							(obj) => obj.id === selectedObject.id,
+						);
+						if (index < 1) return selectedObject;
+						return objects.at(index - 1) ?? null;
+					});
+					break;
+				}
+				case 'ArrowDown': {
+					e.preventDefault();
+					setSelectedObject((selectedObject) => {
+						if (!selectedObject) return null;
+
+						const index = objects.findIndex(
+							(obj) => obj.id === selectedObject.id,
+						);
+						if (index === -1 || index === objects.length - 1)
+							return selectedObject;
+						return objects.at(index + 1) ?? null;
+					});
+					break;
+				}
+				case 'Home': {
+					e.preventDefault();
+					if (objects.length === 0) return;
+					setSelectedObject(objects.at(0) ?? null);
+					break;
+				}
+				case 'End': {
+					e.preventDefault();
+					if (objects.length === 0) return;
+					setSelectedObject(objects.at(-1) ?? null);
+					break;
+				}
+				default:
+					break;
+			}
+		},
+		[deleteSelectedObject, objects, setSelectedObject],
+	);
 
 	useEffect(() => {
-		const handleKeyDown = (e: KeyboardEvent) => {
-			if (e.key === 'Delete' || e.key === 'Backspace') {
-				deleteSelectedObject();
-			}
-		};
-		window.addEventListener('keydown', handleKeyDown);
-		return () => window.removeEventListener('keydown', handleKeyDown);
-	}, [deleteSelectedObject]);
+		if (!rootRef.current) return;
+
+		const ctrl = new AbortController();
+		rootRef.current.addEventListener('keydown', handleKeyDown, {
+			signal: ctrl.signal,
+		});
+		return () => ctrl.abort();
+	}, [handleKeyDown]);
 
 	return (
-		<div>
+		<div ref={rootRef} tabIndex={-1}>
 			<h3>Game Objects</h3>
 			<ul>
 				{objects.map((obj) => {
@@ -74,6 +144,7 @@ function GameObjectListEntry({
 	onSelect: (obj: GameObject) => void;
 }) {
 	const [name, setName] = useState(obj.name);
+	const liRef = useRef<HTMLLIElement>(null);
 
 	useEffect(() => {
 		const sub = obj.change$.subscribe(() => {
@@ -84,8 +155,15 @@ function GameObjectListEntry({
 		return toCallable(sub);
 	}, [obj]);
 
+	useEffect(() => {
+		if (selected && liRef.current) {
+			liRef.current.scrollIntoView({ block: 'nearest' });
+		}
+	}, [selected]);
+
 	return (
 		<li
+			ref={liRef}
 			style={{
 				background: selected ? 'rgba(0, 120, 215, 0.3)' : 'transparent',
 				cursor: 'pointer',

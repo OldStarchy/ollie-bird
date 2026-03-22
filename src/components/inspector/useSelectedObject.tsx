@@ -1,4 +1,10 @@
-import { type Dispatch, useCallback, useEffect, useState } from 'react';
+import {
+	type Dispatch,
+	type SetStateAction,
+	useCallback,
+	useEffect,
+	useState,
+} from 'react';
 import type GameObject from '../../ollie-bird/core/GameObject';
 import ObjectSelector from '../../ollie-bird/modules/ObjectSelector';
 import toCallable from '../../toCallable';
@@ -6,7 +12,7 @@ import useGameContext from '../GameContext';
 
 export function useSelectedObject(): [
 	GameObject | null,
-	Dispatch<GameObject | null>,
+	Dispatch<SetStateAction<GameObject | null>>,
 ] {
 	const game = useGameContext();
 
@@ -35,9 +41,21 @@ export function useSelectedObject(): [
 	}, [objectSelector]);
 
 	const setSelectedObject = useCallback(
-		(obj: GameObject | null) => {
+		(
+			obj:
+				| GameObject
+				| null
+				| ((previous: GameObject | null) => GameObject | null),
+		) => {
 			if (objectSelector) {
-				objectSelector.selectedObject = obj;
+				if (typeof obj !== 'function') {
+					const val = obj;
+					obj = () => val;
+				}
+
+				objectSelector.selectedObject = obj(
+					objectSelector.selectedObject,
+				);
 			}
 		},
 		[objectSelector],
