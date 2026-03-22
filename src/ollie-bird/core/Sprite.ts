@@ -96,11 +96,11 @@ export default class Sprite implements ReactInterop<SpriteView> {
 			}
 		}
 		if (this.#image instanceof HTMLImageElement) {
-			const src = this.#image.src;
+			// const src = this.#image.src;
 			this.#image.addEventListener(
 				'load',
 				() => {
-					console.log(src);
+					// console.log(src);
 					this.#image = flattenImageColors(this.#image);
 					this.#ready = true;
 				},
@@ -185,6 +185,8 @@ export default class Sprite implements ReactInterop<SpriteView> {
 
 const kernel = createSquareKernelIndicies(1);
 
+// TODO: #67 Do this properly or remove flattenImageColors.
+const hackyCache = new Map<SpriteImageSource, HTMLCanvasElement>();
 /**
  * Processes an image and makes pixels above a certain brightness threshold transparent.
  * @param image - The source image (SpriteImageSource) to process.
@@ -195,6 +197,9 @@ export function flattenImageColors(
 	source: SpriteImageSource,
 	threshold: number = 10,
 ): HTMLCanvasElement {
+	if (hackyCache.has(source)) {
+		return hackyCache.get(source)!;
+	}
 	// 1. Create off-screen canvas and typed context
 	const canvas: HTMLCanvasElement = document.createElement('canvas');
 	const ctx = canvas.getContext('2d', { willReadFrequently: true });
@@ -222,8 +227,8 @@ export function flattenImageColors(
 	);
 	const data: Uint8ClampedArray = imageData.data;
 
-	let avgDist = 0;
-	const factor = 1 / (data.length / 4);
+	// let avgDist = 0;
+	// const factor = 1 / (data.length / 4);
 	const dist = [];
 	// 4. Pixel manipulation loop
 	for (let i = 0; i < data.length; i += 4) {
@@ -232,7 +237,7 @@ export function flattenImageColors(
 		const b = 255 - data[i + 2]!;
 
 		dist[i / 4] = Math.hypot(r, g, b);
-		avgDist += dist[i / 4]! * factor;
+		// avgDist += dist[i / 4]! * factor;
 	}
 
 	for (let i = 0; i < data.length; i += 4) {
@@ -258,11 +263,12 @@ export function flattenImageColors(
 			data[i + 3] = 0;
 		}
 	}
-	console.log(avgDist);
+	// console.log(avgDist);
 
 	// 5. Update canvas with transparent pixels
 	ctx.putImageData(imageData, 0, 0);
 
+	hackyCache.set(source, canvas);
 	return canvas;
 }
 
