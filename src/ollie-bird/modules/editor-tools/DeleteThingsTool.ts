@@ -1,5 +1,5 @@
 import contextCheckpoint from '../../../contextCheckpoint';
-import { CELL_SIZE, TAG_LEVEL_STRUCTURE } from '../../const';
+import { CELL_SIZE, TAG_EDITOR_OBJECT, TAG_LEVEL_STRUCTURE } from '../../const';
 import PointCollider from '../../core/collider/PointCollider';
 import RectangleCollider from '../../core/collider/RectangleCollider';
 import type GameObject from '../../core/GameObject';
@@ -8,6 +8,7 @@ import Rect2 from '../../core/math/Rect2';
 import Collider2d from '../../core/modules/Collider2d';
 import Animation from '../Animation';
 import BoxInputTool from '../BoxInputTool';
+import ObjectSelector from '../ObjectSelector';
 
 export default class DeleteThingsTool extends BoxInputTool {
 	static readonly displayName = 'DeleteThingsTool';
@@ -20,6 +21,27 @@ export default class DeleteThingsTool extends BoxInputTool {
 		this.pointer = this.game.input.mouse;
 		this.clicker = this.game.input.mouse.getButton(Mouse.BUTTON_LEFT);
 		this.cancelBtn = this.game.input.keyboard.getButton('Escape');
+	}
+
+	protected override update(): void {
+		super.update();
+
+		if (this.game.input.keyboard.getButton('Delete').isPressed) {
+			const selector = this.getModule(ObjectSelector);
+
+			if (selector?.selectedObject) {
+				const selectedObject = selector.selectedObject;
+
+				if (selectedObject.tags.has(TAG_EDITOR_OBJECT)) {
+					alert(
+						`Deleting editor objects will break the editor. If you really want to delete this, remove the ${TAG_EDITOR_OBJECT} tag.`,
+					);
+					return;
+				}
+
+				selectedObject.destroy();
+			}
+		}
 	}
 
 	private findThingsToDelete(rect: Rect2): GameObject[] {

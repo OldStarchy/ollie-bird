@@ -10,6 +10,7 @@ import GameTimer from './GameTimer';
 import BirdBehavior from './bird/BirdBehavior';
 
 export type LevelGameplayManagerEvents = EventMap<{
+	levelInit: void;
 	levelStart: void;
 	levelEnd: void;
 	levelComplete: void;
@@ -23,6 +24,7 @@ export default class LevelGameplayManager extends Module {
 
 	#pauseKey = this.game.input.keyboard.getButton('KeyP');
 	#restartKey = this.game.input.getButton(Bindings.Restart);
+	#stopKey = this.game.input.keyboard.getButton('KeyQ');
 
 	#birdDied = false;
 
@@ -35,32 +37,43 @@ export default class LevelGameplayManager extends Module {
 
 	override update(): void {
 		if (this.#pauseKey.isPressed) {
-			const bird = this.game.findObjectsByTag(TAG_PLAYER);
-
-			bird.forEach((b) => b.getModule(BirdBehavior)?.togglePause());
+			this.game
+				.findModulesByType(BirdBehavior)
+				.forEach((b) => b.togglePause());
 		}
 
 		if (this.#restartKey.isPressed) {
 			this.restart();
+		}
+		if (this.#stopKey.isPressed) {
+			this.game
+				.findObjectsByTag(TAG_LEVEL_OBJECT)
+				.forEach((obj) => obj.destroy());
+			this.#event$.next({ type: 'levelInit' });
 		}
 		super.update();
 	}
 	override afterUpdate(): void {
 		if (this.#birdDied) {
 			this.#birdDied = false;
-			if (
-				this.game.findObjectsByTag(TAG_PLAYER).take(1).toArray()
-					.length === 0
-			) {
-				this.#event$.next({ type: 'levelComplete' });
+			if (this.game.findObjectsByTag(TAG_PLAYER).next().done) {
+				this.game.waitFrames(0).then(() => {
+					this.#event$.next({ type: 'levelComplete' });
+				});
 			}
 		}
 		super.afterUpdate();
 	}
 
 	restart() {
-		this.game.destroySome((obj) => obj.tags.has(TAG_LEVEL_OBJECT));
-		this.#event$.next({ type: 'levelStart' });
+		this.game
+			.findObjectsByTag(TAG_LEVEL_OBJECT)
+			.forEach((obj) => obj.destroy());
+
+		this.game.waitFrames(0).then(() => {
+			this.#event$.next({ type: 'levelInit' });
+			this.#event$.next({ type: 'levelStart' });
+		});
 	}
 
 	handleBirdReachedGoal(_bird: GameObject) {

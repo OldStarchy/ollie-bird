@@ -1,7 +1,6 @@
 import { CELL_SIZE } from '../../const';
 import { Button } from '../../core/input/Button';
 import type { Pointer } from '../../core/input/Pointer';
-import { Option } from '../../core/monad/Option';
 import { createPlayerSpawnerPrefab } from '../../prefabs/createPlayerSpawnerPrefab';
 import Resources from '../../Resources';
 import PlayerSpawner from '../PlayerSpawner';
@@ -22,10 +21,9 @@ export default class SetSpawnPointTool extends ClickToPlaceTool {
 		const player = this.#ctrlKey?.isDown ? 1 : 0;
 
 		this.game
-			.findObjectsByTag('player-spawner')
-			.flatMap((obj) => Option.of(obj.getModule(PlayerSpawner)))
+			.findModulesByType(PlayerSpawner)
 			.filter((sp) => sp.playerIndex === player)
-			.forEach((sp) => sp?.owner.destroy());
+			.forEach((sp) => sp.owner.destroy());
 
 		this.game.spawnPrefab(createPlayerSpawnerPrefab(pointer, player));
 	}

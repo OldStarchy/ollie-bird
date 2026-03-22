@@ -40,27 +40,32 @@ export default function LevelPicker({ onClose }: { onClose?: () => void }) {
 
 	useEffect(() => refreshLevels(), [refreshLevels]);
 
-	const levelEditor = useMemo(() => {
-		if (!game) return null;
+	const levelEditor = useMemo(
+		() => game.findModuleByType(LevelGameplayManager),
+		[game],
+	);
 
-		return (
-			game
-				.getObjects()
-				.map((obj) => obj.getModule(LevelGameplayManager))
-				.find((m) => m !== null) ?? null
-		);
-	}, [game]);
-
-	const loadLevel = (levelName: string) => {
-		const data = localStorage.getItem(localStorageKeyPrefix + levelName);
-		if (data) {
-			levelEditor?.loadLevelData(data).match(
-				() => setErrors([]),
-				(errors) => setErrors(errors),
+	const loadLevel = useCallback(
+		(levelName: string) => {
+			const data = localStorage.getItem(
+				localStorageKeyPrefix + levelName,
 			);
-			setLevelName(levelName);
-		}
-	};
+			if (data) {
+				levelEditor?.loadLevelData(data).match(
+					() => setErrors([]),
+					(errors) => setErrors(errors),
+				);
+				setLevelName(levelName);
+			}
+		},
+		[levelEditor],
+	);
+
+	useEffect(() => {
+		if (!game) return;
+
+		loadLevel('default');
+	}, [game, loadLevel]);
 
 	const loadEmpty = () => {
 		levelEditor?.loadLevelData('{}').match(

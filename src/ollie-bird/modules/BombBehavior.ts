@@ -44,10 +44,7 @@ export default class BombBehavior extends Module {
 		);
 
 		const levelController =
-			this.owner.game
-				.getObjects()
-				.map((obj) => obj.getModule(LevelGameplayManager))
-				.find((m) => m !== null) ??
+			this.owner.game.findModuleByType(LevelGameplayManager) ??
 			toss(
 				new Error(
 					`${BombBehavior.name} requires ${LevelGameplayManager.name}`,
@@ -56,7 +53,7 @@ export default class BombBehavior extends Module {
 
 		this.disposableStack.use(
 			levelController.event$
-				.pipe(filterEvent('levelStart'))
+				.pipe(filterEvent('levelInit'))
 				.subscribe(() => {
 					this.anim.enabled = true;
 					this.anim.paused = true;
@@ -76,18 +73,14 @@ export default class BombBehavior extends Module {
 			this.collider.enabled = true;
 
 			if (!this.#wasFrame4) {
-				this.game
-					.findObjectsByTag(TAG_PLAYER)
-					.map((obj) => obj.getModule(BirdBehavior))
-					.filter((module) => module !== null)
-					.forEach((bird) =>
-						bird.controls.Vibrate?.playEffect('dual-rumble', {
-							duration: 100,
-							startDelay: 0,
-							strongMagnitude: 0.0,
-							weakMagnitude: 0.5,
-						}),
-					);
+				this.game.findModulesByType(BirdBehavior).forEach((bird) =>
+					bird.controls.Vibrate?.playEffect('dual-rumble', {
+						duration: 100,
+						startDelay: 0,
+						strongMagnitude: 0.0,
+						weakMagnitude: 0.5,
+					}),
+				);
 			}
 			this.#wasFrame4 = true;
 		} else {

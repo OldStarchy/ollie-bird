@@ -3,6 +3,7 @@ import type { EventMap } from './EventMap';
 import type GameObject from './GameObject';
 import type { GameObjectDto } from './GameObject';
 import type Input from './input/Input';
+import type Module from './Module';
 
 declare global {
 	interface GameEventMap {}
@@ -27,11 +28,16 @@ export default interface IGame {
 	spawn(): GameObject;
 	spawnPrefab(prefab: GameObjectDto): GameObject;
 	destroy(obj: GameObject): void;
-	destroySome(cb: (obj: GameObject) => boolean): void;
 
-	findObjectsByTag(tag: string): IteratorObject<GameObject>;
-	findObjectsByType<T extends (new (game: IGame) => GameObject)[]>(
-		...types: T
-	): IteratorObject<InstanceType<T[number]>>;
 	getObjects(): IteratorObject<GameObject>;
+	findObjectsByTag(tag: string): IteratorObject<GameObject>;
+
+	findModulesByType<T extends Module>(
+		type: abstract new (owner: GameObject) => T,
+	): IteratorObject<T>;
+	findModuleByType<T extends Module>(
+		type: abstract new (owner: GameObject) => T,
+	): T | null;
+
+	waitFrames(frames: number): Promise<void>;
 }

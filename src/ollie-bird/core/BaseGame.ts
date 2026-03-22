@@ -1,4 +1,4 @@
-import { Subject } from 'rxjs';
+import { firstValueFrom, skip, Subject } from 'rxjs';
 import z from 'zod';
 import contextCheckpoint from '../../contextCheckpoint';
 import htmlColors, { type HtmlColor } from '../../htmlColors';
@@ -13,6 +13,7 @@ import Input from './input/Input';
 import Rect2 from './math/Rect2';
 import { round } from './math/round';
 import type { Vec2Like } from './math/Vec2';
+import type Module from './Module';
 
 const bgColors = ['Custom', ...htmlColors];
 
@@ -38,6 +39,8 @@ class BaseGame implements IGame, ReactInterop<BaseGameSettings> {
 	#gameObjects$ = new Subject<void>();
 	readonly gameObjects$ = this.#gameObjects$.asObservable();
 	private readonly objects: GameObject[] = [];
+	#objectsToDestroy: GameObject[] = [];
+	#objectsToCreate: GameObject[] = [];
 	private readonly canvases: Set<GameCanvas> = new Set();
 
 	readonly #event$ = new Subject<GameEvent>();
@@ -152,13 +155,23 @@ class BaseGame implements IGame, ReactInterop<BaseGameSettings> {
 		setTimeout(() => this.tick(), 1000 / this.updatesPerSecond);
 	}
 
+	#tick$ = new Subject<void>();
+	tick$ = this.#tick$.asObservable();
 	step() {
+		this.#tick$.next();
 		this.objects.forEach((go) => go.beforeUpdate());
 		this.objects.forEach((go) => go.update());
 		this.objects.forEach((go) => go.afterUpdate());
 
 		this.input.step();
 		this.queueRender();
+
+		this.destroyQueuedObjects();
+		this.createQueuedObjects();
+	}
+
+	waitFrames(frames: number): Promise<void> {
+		return firstValueFrom(this.tick$.pipe(skip(frames)));
 	}
 
 	private renderQueued: boolean = false;
@@ -205,10 +218,8 @@ class BaseGame implements IGame, ReactInterop<BaseGameSettings> {
 
 	spawn(): GameObject {
 		const obj = new GameObject(this);
-		this.objects.push(obj);
+		this.#objectsToCreate.push(obj);
 
-		obj.initialize();
-		this.#gameObjects$.next();
 		return obj;
 	}
 
@@ -220,27 +231,35 @@ class BaseGame implements IGame, ReactInterop<BaseGameSettings> {
 			.unwrap();
 	}
 
-	destroySome(cb: (obj: GameObject) => boolean): void {
-		let some = false;
-		for (let i = this.objects.length - 1; i >= 0; i--) {
-			const obj = this.objects[i]!;
-			if (cb(obj)) {
-				some = true;
-				this.objects.splice(i, 1);
-				obj[Symbol.dispose]();
-			}
-		}
-
-		if (some) {
-			this.#gameObjects$.next();
-		}
-	}
 	destroy(obj: GameObject): void {
 		const index = this.objects.indexOf(obj);
 		if (index === -1) return;
-		this.objects.splice(index, 1);
-		obj[Symbol.dispose]();
+		this.#objectsToDestroy.push(obj);
+	}
+
+	private createQueuedObjects() {
+		if (this.#objectsToCreate.length === 0) return;
+
+		const newObjects = this.#objectsToCreate;
+		this.#objectsToCreate = [];
+
+		this.objects.push(...newObjects);
+		newObjects.forEach((obj) => obj.initialize());
+
 		this.#gameObjects$.next();
+	}
+	private destroyQueuedObjects() {
+		const some = this.#objectsToDestroy.length > 0;
+		this.#objectsToDestroy.forEach((obj) => {
+			const index = this.objects.indexOf(obj);
+			if (index !== -1) {
+				this.objects.splice(index, 1);
+				obj[Symbol.dispose]();
+			}
+		});
+
+		this.#objectsToDestroy = [];
+		if (some) this.#gameObjects$.next();
 	}
 
 	findObjectsByTag(tag: string): IteratorObject<GameObject> {
@@ -249,13 +268,22 @@ class BaseGame implements IGame, ReactInterop<BaseGameSettings> {
 		);
 	}
 
-	findObjectsByType<T extends (new (game: IGame) => GameObject)[]>(
-		...types: T
-	): IteratorObject<InstanceType<T[number]>> {
-		return this.objects[Symbol.iterator]().filter<InstanceType<T[number]>>(
-			(obj): obj is InstanceType<T[number]> =>
-				types.some((type) => obj instanceof type),
+	findModulesByType<T extends Module>(
+		type: abstract new (owner: GameObject) => T,
+	): IteratorObject<T> {
+		return this.objects[Symbol.iterator]().flatMap((obj) =>
+			obj.getModulesByType(type),
 		);
+	}
+
+	findModuleByType<T extends Module>(
+		type: abstract new (owner: GameObject) => T,
+	): T | null {
+		const first = this.findModulesByType(type).next();
+		if (first.done) {
+			return null;
+		}
+		return first.value;
 	}
 
 	getObjects(): IteratorObject<GameObject> {
