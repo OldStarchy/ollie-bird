@@ -1,8 +1,12 @@
+import { introCinematic } from './assets/intro-cinematic';
 import { BirdControls } from './BirdControls';
 import { TAG_EDITOR_OBJECT } from './const';
 import BaseGame from './core/BaseGame';
-import LevelEditor from './modules/LevelEditor';
-import LevelGameplayManager from './modules/LevelGameplayManager';
+import Cinematic from './modules/Cinematic';
+import CinematicPlayerControl from './modules/CinematicPlayerControl';
+
+// Eager-load all the modules so that they're registered in the serializer and available for spawning prefabs
+import.meta.glob('./modules/**/*.ts', { eager: true });
 
 export const Bindings = {
 	Restart: 'Restart',
@@ -55,16 +59,28 @@ class OllieBirdGame extends BaseGame {
 
 	override preStart(): void {
 		this.color = 'SkyBlue';
-		const editor = this.spawn();
-		editor.layer = 200;
-		editor.addModule(LevelEditor);
-		editor.tags.add(TAG_EDITOR_OBJECT);
-		editor.name = 'Level Editor';
+		this.spawnPrefab({
+			version: 1,
+			layer: 200,
+			tags: [TAG_EDITOR_OBJECT],
+			name: 'Level Editor',
+			modules: [{ $type: 'LevelEditor' }],
+		});
 
-		const levelGameplayManager = this.spawn();
-		levelGameplayManager.addModule(LevelGameplayManager);
-		levelGameplayManager.tags.add(TAG_EDITOR_OBJECT);
-		levelGameplayManager.name = 'Level Gameplay Manager';
+		this.spawnPrefab({
+			version: 1,
+			tags: [TAG_EDITOR_OBJECT],
+			name: 'Level Gameplay Manager',
+			modules: [{ $type: 'LevelGameplayManager' }],
+		});
+
+		const ic = this.spawnPrefab({
+			version: 1,
+			layer: 1000,
+			name: 'Intro Cinematic',
+		});
+		ic.addModule(Cinematic, introCinematic);
+		ic.addModule(CinematicPlayerControl);
 	}
 }
 

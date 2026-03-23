@@ -1,3 +1,4 @@
+import { engine } from 'animejs';
 import { firstValueFrom, skip, Subject } from 'rxjs';
 import z from 'zod';
 import contextCheckpoint from '../../contextCheckpoint';
@@ -14,6 +15,12 @@ import Rect2 from './math/Rect2';
 import { round } from './math/round';
 import type { Vec2Like } from './math/Vec2';
 import type Module from './Module';
+
+// Eager-load all the modules so that they're registered in the serializer and available for spawning prefabs
+import.meta.glob('./modules/**/*.ts', { eager: true });
+
+// animejs animations are controlled by the engine.update() call in step()
+engine.useDefaultMainLoop = false;
 
 const bgColors = ['Custom', ...htmlColors];
 
@@ -159,6 +166,7 @@ class BaseGame implements IGame, ReactInterop<BaseGameSettings> {
 	tick$ = this.#tick$.asObservable();
 	step() {
 		this.#tick$.next();
+		engine.update();
 		this.objects.forEach((go) => go.beforeUpdate());
 		this.objects.forEach((go) => go.update());
 		this.objects.forEach((go) => go.afterUpdate());

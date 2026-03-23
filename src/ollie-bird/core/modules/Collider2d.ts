@@ -45,7 +45,7 @@ export default abstract class Collider2d
 
 	abstract getWorldCenter(): Vec2Like;
 
-	protected override renderGizmos(context: CanvasRenderingContext2D): void {
+	protected override render(context: CanvasRenderingContext2D): void {
 		if (!this.renderWidget) {
 			return;
 		}

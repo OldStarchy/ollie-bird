@@ -56,7 +56,7 @@ export default class LevelGameplayManager extends Module {
 	}
 
 	override afterUpdate(): void {
-		if (this.#birdDied.take()) {
+		if (this.#birdDied.reset()) {
 			if (this.game.findObjectsByTag(TAG_PLAYER).next().done) {
 				this.game.waitFrames(0).then(() => {
 					this.#event$.next({ type: 'levelComplete' });
