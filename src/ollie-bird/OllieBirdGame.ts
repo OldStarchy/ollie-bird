@@ -83,12 +83,8 @@ class OllieBirdGame extends BaseGame {
 					duration: 5,
 					caption: 'A world unlike any other…',
 					kenBurns: {
-						startScale: 1.0,
-						endScale: 1.08,
-						startX: 0,
-						startY: 0,
-						endX: 0.03,
-						endY: 0.01,
+						startRect: { x: 0, y: 0, w: 1, h: 1 },
+						endRect: { x: 0.05, y: 0.02, w: 0.9, h: 0.9 },
 					},
 				},
 				{
@@ -96,12 +92,8 @@ class OllieBirdGame extends BaseGame {
 					duration: 5,
 					caption: 'Darkness spread across the land.',
 					kenBurns: {
-						startScale: 1.08,
-						endScale: 1.0,
-						startX: 0.03,
-						startY: 0.01,
-						endX: 0,
-						endY: 0,
+						startRect: { x: 0.05, y: 0.02, w: 0.9, h: 0.9 },
+						endRect: { x: 0, y: 0, w: 1, h: 1 },
 					},
 				},
 				{
@@ -109,12 +101,8 @@ class OllieBirdGame extends BaseGame {
 					duration: 5,
 					caption: 'But one small bird refused to give up.',
 					kenBurns: {
-						startScale: 1.0,
-						endScale: 1.06,
-						startX: -0.02,
-						startY: 0,
-						endX: 0.02,
-						endY: 0,
+						startRect: { x: 0, y: 0, w: 1, h: 1 },
+						endRect: { x: 0.1, y: 0.05, w: 0.8, h: 0.85 },
 					},
 				},
 				{
@@ -122,12 +110,8 @@ class OllieBirdGame extends BaseGame {
 					duration: 5,
 					caption: 'The adventure begins…',
 					kenBurns: {
-						startScale: 1.05,
-						endScale: 1.0,
-						startX: 0,
-						startY: 0.02,
-						endX: 0,
-						endY: 0,
+						startRect: { x: 0.1, y: 0.05, w: 0.8, h: 0.85 },
+						endRect: { x: 0, y: 0, w: 1, h: 1 },
 					},
 				},
 			]);

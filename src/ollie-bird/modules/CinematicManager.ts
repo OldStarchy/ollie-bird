@@ -4,19 +4,31 @@ import type { EventMap } from '../core/EventMap';
 import Module from '../core/Module';
 import BirdBehavior from './bird/BirdBehavior';
 
+/** A normalized rectangle in image space, where all values are in the range [0, 1]. */
+export interface NormalizedRect {
+	/** Left edge, as a fraction of the image width. */
+	x: number;
+	/** Top edge, as a fraction of the image height. */
+	y: number;
+	/** Width, as a fraction of the image width. */
+	w: number;
+	/** Height, as a fraction of the image height. */
+	h: number;
+}
+
 export interface KenBurnsConfig {
-	/** Starting zoom level (1.0 = fit image to game world). */
-	startScale: number;
-	/** Ending zoom level. */
-	endScale: number;
-	/** Starting horizontal pan offset, as a fraction of game width (-1 = full left, 1 = full right). */
-	startX: number;
-	/** Starting vertical pan offset, as a fraction of game height. */
-	startY: number;
-	/** Ending horizontal pan offset. */
-	endX: number;
-	/** Ending vertical pan offset. */
-	endY: number;
+	/**
+	 * Sub-rectangle of the image (in normalized image coordinates, 0–1) to
+	 * show at the start of the frame.  The renderer lerps from this rect to
+	 * `endRect` over the frame's duration, scaling the current sub-rect up so
+	 * it covers the entire game view.
+	 *
+	 * Example – show the whole image:   `{ x: 0, y: 0, w: 1, h: 1 }`
+	 * Example – zoom into the centre:   `{ x: 0.25, y: 0.25, w: 0.5, h: 0.5 }`
+	 */
+	startRect: NormalizedRect;
+	/** Sub-rectangle of the image to show at the end of the frame. */
+	endRect: NormalizedRect;
 }
 
 export interface CinematicFrame {
@@ -37,12 +49,9 @@ export type CinematicManagerEvents = EventMap<{
 }>;
 
 const DEFAULT_KEN_BURNS: KenBurnsConfig = {
-	startScale: 1.0,
-	endScale: 1.05,
-	startX: 0,
-	startY: 0,
-	endX: 0.02,
-	endY: 0.01,
+	// Subtle zoom-in: start on the full image, end on a slightly smaller centre crop
+	startRect: { x: 0, y: 0, w: 1, h: 1 },
+	endRect: { x: 0.025, y: 0.025, w: 0.95, h: 0.95 },
 };
 
 /**
@@ -206,30 +215,43 @@ export default class CinematicManager extends Module {
 		);
 		const kb = frame.kenBurns ?? DEFAULT_KEN_BURNS;
 
-		const scale = kb.startScale + (kb.endScale - kb.startScale) * t;
-		const panX = kb.startX + (kb.endX - kb.startX) * t;
-		const panY = kb.startY + (kb.endY - kb.startY) * t;
+		// Lerp between the two normalized rects
+		const rx = kb.startRect.x + (kb.endRect.x - kb.startRect.x) * t;
+		const ry = kb.startRect.y + (kb.endRect.y - kb.startRect.y) * t;
+		const rw = kb.startRect.w + (kb.endRect.w - kb.startRect.w) * t;
+		const rh = kb.startRect.h + (kb.endRect.h - kb.startRect.h) * t;
 
-		const imgRatio = img.naturalWidth / img.naturalHeight;
-		const worldRatio = gw / gh;
+		// Convert normalized rect to pixel source coordinates
+		const iw = img.naturalWidth;
+		const ih = img.naturalHeight;
+		const srcX = rx * iw;
+		const srcY = ry * ih;
+		const srcW = rw * iw;
+		const srcH = rh * ih;
 
-		// Scale image to cover the game world
-		const baseScale =
-			imgRatio > worldRatio
-				? gh / img.naturalHeight
-				: gw / img.naturalWidth;
+		// Scale the source rect to cover the game view (object-fit: cover)
+		const srcAspect = srcW / srcH;
+		const viewAspect = gw / gh;
+		let dstW: number;
+		let dstH: number;
+		if (srcAspect > viewAspect) {
+			// Source rect is wider than the view: fill by height, center horizontally
+			dstH = gh;
+			dstW = gh * srcAspect;
+		} else {
+			// Source rect is taller than the view: fill by width, center vertically
+			dstW = gw;
+			dstH = gw / srcAspect;
+		}
 
-		const drawWidth = img.naturalWidth * baseScale * scale;
-		const drawHeight = img.naturalHeight * baseScale * scale;
-
-		const drawX = (gw - drawWidth) / 2 + panX * gw;
-		const drawY = (gh - drawHeight) / 2 + panY * gh;
+		const dstX = (gw - dstW) / 2;
+		const dstY = (gh - dstH) / 2;
 
 		context.save();
 		context.beginPath();
 		context.rect(0, 0, gw, gh);
 		context.clip();
-		context.drawImage(img, drawX, drawY, drawWidth, drawHeight);
+		context.drawImage(img, srcX, srcY, srcW, srcH, dstX, dstY, dstW, dstH);
 		context.restore();
 	}
 
