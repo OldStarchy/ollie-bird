@@ -1,6 +1,11 @@
+import scene1 from '../assets/cinematics/scene1.png';
+import scene2 from '../assets/cinematics/scene2.png';
+import scene3 from '../assets/cinematics/scene3.png';
+import scene4 from '../assets/cinematics/scene4.png';
 import { BirdControls } from './BirdControls';
 import { TAG_EDITOR_OBJECT } from './const';
 import BaseGame from './core/BaseGame';
+import CinematicManager from './modules/CinematicManager';
 import LevelEditor from './modules/LevelEditor';
 import LevelGameplayManager from './modules/LevelGameplayManager';
 
@@ -65,6 +70,52 @@ class OllieBirdGame extends BaseGame {
 		levelGameplayManager.addModule(LevelGameplayManager);
 		levelGameplayManager.tags.add(TAG_EDITOR_OBJECT);
 		levelGameplayManager.name = 'Level Gameplay Manager';
+
+		const cinematicObj = this.spawn();
+		cinematicObj.layer = 1000;
+		cinematicObj.name = 'Cinematic Manager';
+		const cinematicManager = cinematicObj.addModule(CinematicManager);
+
+		this.waitFrames(1).then(() => {
+			cinematicManager.play([
+				{
+					imageSrc: scene1,
+					duration: 5,
+					caption: 'A world unlike any other…',
+					kenBurns: {
+						startRect: { x: 0, y: 0, w: 1, h: 1 },
+						endRect: { x: 0.05, y: 0.02, w: 0.9, h: 0.9 },
+					},
+				},
+				{
+					imageSrc: scene2,
+					duration: 5,
+					caption: 'Darkness spread across the land.',
+					kenBurns: {
+						startRect: { x: 0.05, y: 0.02, w: 0.9, h: 0.9 },
+						endRect: { x: 0, y: 0, w: 1, h: 1 },
+					},
+				},
+				{
+					imageSrc: scene3,
+					duration: 5,
+					caption: 'But one small bird refused to give up.',
+					kenBurns: {
+						startRect: { x: 0, y: 0, w: 1, h: 1 },
+						endRect: { x: 0.1, y: 0.05, w: 0.8, h: 0.85 },
+					},
+				},
+				{
+					imageSrc: scene4,
+					duration: 5,
+					caption: 'The adventure begins…',
+					kenBurns: {
+						startRect: { x: 0.1, y: 0.05, w: 0.8, h: 0.85 },
+						endRect: { x: 0, y: 0, w: 1, h: 1 },
+					},
+				},
+			]);
+		});
 	}
 }
 
