@@ -89,6 +89,14 @@ export default class BirdBehavior extends Module {
 		this.paused = !this.paused;
 	}
 
+	pause() {
+		this.paused = true;
+	}
+
+	resume() {
+		this.paused = false;
+	}
+
 	protected handleInput() {
 		// Key Downs
 		if (this.#keyFlap.isDown) {

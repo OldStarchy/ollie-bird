@@ -1,0 +1,282 @@
+import { Subject } from 'rxjs';
+import contextCheckpoint from '../../contextCheckpoint';
+import type { EventMap } from '../core/EventMap';
+import Module from '../core/Module';
+import BirdBehavior from './bird/BirdBehavior';
+
+export interface KenBurnsConfig {
+	/** Starting zoom level (1.0 = fit image to game world). */
+	startScale: number;
+	/** Ending zoom level. */
+	endScale: number;
+	/** Starting horizontal pan offset, as a fraction of game width (-1 = full left, 1 = full right). */
+	startX: number;
+	/** Starting vertical pan offset, as a fraction of game height. */
+	startY: number;
+	/** Ending horizontal pan offset. */
+	endX: number;
+	/** Ending vertical pan offset. */
+	endY: number;
+}
+
+export interface CinematicFrame {
+	/** URL or import string of the image to display. */
+	imageSrc: string;
+	/** Duration this frame is shown, in seconds. */
+	duration: number;
+	/** Ken Burns pan/zoom configuration. Defaults to a subtle zoom-in. */
+	kenBurns?: KenBurnsConfig;
+	/** Optional caption text displayed at the bottom of the frame. */
+	caption?: string;
+}
+
+export type CinematicManagerEvents = EventMap<{
+	start: void;
+	end: void;
+	frameChange: number;
+}>;
+
+const DEFAULT_KEN_BURNS: KenBurnsConfig = {
+	startScale: 1.0,
+	endScale: 1.05,
+	startX: 0,
+	startY: 0,
+	endX: 0.02,
+	endY: 0.01,
+};
+
+/**
+ * Plays a sequence of images as a cinematic intro/cutscene.
+ *
+ * - Call `play(frames)` to start the cinematic.
+ * - While active, all BirdBehavior modules are paused.
+ * - The player can press **Space** to skip to the next frame or **Escape** to
+ *   skip the entire cinematic.
+ * - Attach this module to a game object with a high layer number so it renders
+ *   on top of all other objects.
+ */
+export default class CinematicManager extends Module {
+	static override readonly displayName = 'CinematicManager';
+
+	readonly #event$ = new Subject<CinematicManagerEvents>();
+	readonly event$ = this.#event$.asObservable();
+
+	#frames: CinematicFrame[] = [];
+	#currentFrameIndex = 0;
+	#frameElapsed = 0;
+	#active = false;
+	#images = new Map<string, HTMLImageElement>();
+	#imageErrors = new Set<string>();
+
+	readonly #skipKey = this.game.input.keyboard.getButton('Space');
+	readonly #skipAllKey = this.game.input.keyboard.getButton('Escape');
+
+	/** Returns `true` while a cinematic sequence is playing. */
+	get isActive(): boolean {
+		return this.#active;
+	}
+
+	/**
+	 * Starts playing the given sequence of cinematic frames.
+	 * Pauses all active BirdBehavior modules until the cinematic ends.
+	 */
+	play(frames: CinematicFrame[]): void {
+		if (frames.length === 0) return;
+
+		this.#frames = frames;
+		this.#currentFrameIndex = 0;
+		this.#frameElapsed = 0;
+		this.#active = true;
+
+		for (const frame of frames) {
+			if (!this.#images.has(frame.imageSrc)) {
+				const img = new Image();
+				img.onerror = () => {
+					this.#imageErrors.add(frame.imageSrc);
+					console.warn(
+						`CinematicManager: failed to load image "${frame.imageSrc}"`,
+					);
+				};
+				img.src = frame.imageSrc;
+				this.#images.set(frame.imageSrc, img);
+			}
+		}
+
+		this.game.findModulesByType(BirdBehavior).forEach((b) => b.pause());
+
+		this.#event$.next({ type: 'start' });
+	}
+
+	/** Stops the cinematic immediately and resumes gameplay. */
+	stop(): void {
+		if (!this.#active) return;
+		this.#active = false;
+
+		this.game.findModulesByType(BirdBehavior).forEach((b) => b.resume());
+
+		this.#event$.next({ type: 'end' });
+	}
+
+	protected override update(): void {
+		if (!this.#active) return;
+
+		if (this.#skipAllKey.isPressed) {
+			this.stop();
+			return;
+		}
+
+		const currentFrame = this.#frames[this.#currentFrameIndex];
+		if (!currentFrame) {
+			this.stop();
+			return;
+		}
+
+		this.#frameElapsed += this.game.secondsPerFrame;
+		// Clamp elapsed time to prevent floating-point accumulation
+		this.#frameElapsed = Math.min(
+			this.#frameElapsed,
+			currentFrame.duration,
+		);
+
+		const shouldAdvance =
+			this.#frameElapsed >= currentFrame.duration ||
+			this.#skipKey.isPressed;
+
+		if (shouldAdvance) {
+			this.#currentFrameIndex++;
+			this.#frameElapsed = 0;
+
+			if (this.#currentFrameIndex >= this.#frames.length) {
+				this.stop();
+				return;
+			}
+
+			this.#event$.next({
+				type: 'frameChange',
+				data: this.#currentFrameIndex,
+			});
+		}
+
+		super.update();
+	}
+
+	protected override render(context: CanvasRenderingContext2D): void {
+		if (!this.#active) return;
+
+		const frame = this.#frames[this.#currentFrameIndex];
+		if (!frame) return;
+
+		using _ = contextCheckpoint(context);
+
+		const gw = this.game.width;
+		const gh = this.game.height;
+
+		context.fillStyle = 'black';
+		context.fillRect(0, 0, gw, gh);
+
+		const img = this.#images.get(frame.imageSrc);
+		if (
+			img &&
+			img.complete &&
+			img.naturalWidth > 0 &&
+			!this.#imageErrors.has(frame.imageSrc)
+		) {
+			this.#renderImageWithKenBurns(context, img, frame, gw, gh);
+		}
+
+		if (frame.caption) {
+			this.#renderCaption(context, frame.caption, gw, gh);
+		}
+
+		this.#renderSkipHint(context, gw, gh);
+
+		super.render(context);
+	}
+
+	#renderImageWithKenBurns(
+		context: CanvasRenderingContext2D,
+		img: HTMLImageElement,
+		frame: CinematicFrame,
+		gw: number,
+		gh: number,
+	): void {
+		const t = Math.min(
+			this.#frameElapsed / Math.max(frame.duration, 0.001),
+			1,
+		);
+		const kb = frame.kenBurns ?? DEFAULT_KEN_BURNS;
+
+		const scale = kb.startScale + (kb.endScale - kb.startScale) * t;
+		const panX = kb.startX + (kb.endX - kb.startX) * t;
+		const panY = kb.startY + (kb.endY - kb.startY) * t;
+
+		const imgRatio = img.naturalWidth / img.naturalHeight;
+		const worldRatio = gw / gh;
+
+		// Scale image to cover the game world
+		const baseScale =
+			imgRatio > worldRatio
+				? gh / img.naturalHeight
+				: gw / img.naturalWidth;
+
+		const drawWidth = img.naturalWidth * baseScale * scale;
+		const drawHeight = img.naturalHeight * baseScale * scale;
+
+		const drawX = (gw - drawWidth) / 2 + panX * gw;
+		const drawY = (gh - drawHeight) / 2 + panY * gh;
+
+		context.save();
+		context.beginPath();
+		context.rect(0, 0, gw, gh);
+		context.clip();
+		context.drawImage(img, drawX, drawY, drawWidth, drawHeight);
+		context.restore();
+	}
+
+	#renderCaption(
+		context: CanvasRenderingContext2D,
+		caption: string,
+		gw: number,
+		gh: number,
+	): void {
+		const fontSize = Math.round(gh * 0.04);
+		context.font = `${fontSize}px sans-serif`;
+		context.textAlign = 'center';
+		context.textBaseline = 'bottom';
+
+		const metrics = context.measureText(caption);
+		const padding = fontSize * 0.5;
+		const textX = gw / 2;
+		const textY = gh * 0.9;
+		const boxWidth = metrics.width + padding * 2;
+		const boxHeight = fontSize + padding * 2;
+
+		context.fillStyle = 'rgba(0, 0, 0, 0.6)';
+		context.fillRect(
+			textX - boxWidth / 2,
+			textY - boxHeight,
+			boxWidth,
+			boxHeight,
+		);
+
+		context.fillStyle = 'white';
+		context.fillText(caption, textX, textY - padding);
+	}
+
+	#renderSkipHint(
+		context: CanvasRenderingContext2D,
+		gw: number,
+		gh: number,
+	): void {
+		const fontSize = Math.round(gh * 0.025);
+		context.font = `${fontSize}px sans-serif`;
+		context.textAlign = 'right';
+		context.textBaseline = 'bottom';
+		context.fillStyle = 'rgba(255, 255, 255, 0.5)';
+		context.fillText(
+			'SPACE - next  |  ESC - skip all',
+			gw * 0.97,
+			gh * 0.97,
+		);
+	}
+}
