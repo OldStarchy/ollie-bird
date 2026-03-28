@@ -4,6 +4,8 @@ import type { Pointer } from './Pointer';
 import Gamepad from './gamepad/Gamepad';
 import Keyboard from './keyboard/Keyboard';
 import Mouse from './mouse/Mouse';
+import Touch from './touch/Touch';
+import { VirtualButton } from './VirtualButton';
 
 /**
  * Handles input devices that can provide user inputs to the game.
@@ -50,8 +52,10 @@ export default class Input implements Disposable {
 	readonly keyboard = new Keyboard();
 	readonly mouse = new Mouse();
 	readonly gamepads = new Gamepad();
+	readonly touch = new Touch();
 
 	#disposableStack = new DisposableStack();
+	readonly #virtualButtons: VirtualButton[] = [];
 
 	/**
 	 * @internal
@@ -59,6 +63,7 @@ export default class Input implements Disposable {
 	constructor() {
 		this.#disposableStack.use(this.keyboard);
 		this.#disposableStack.use(this.mouse);
+		this.#disposableStack.use(this.touch);
 		this.#disposableStack.use(this.gamepads.attachTo(window));
 	}
 
@@ -74,6 +79,20 @@ export default class Input implements Disposable {
 		this.keyboard.step();
 		this.mouse.step();
 		this.gamepads.step();
+		this.touch.step();
+		for (const btn of this.#virtualButtons) {
+			btn.step();
+		}
+	}
+
+	/**
+	 * Creates a VirtualButton whose state can be driven programmatically
+	 * (e.g. from an on-screen button component).
+	 */
+	createVirtualButton(): VirtualButton {
+		const btn = new VirtualButton();
+		this.#virtualButtons.push(btn);
+		return btn;
 	}
 
 	private readonly buttons: Record<string, Button> = {};
