@@ -12,6 +12,10 @@ export class VirtualButton extends Button {
 	#isDown: boolean = false;
 	#wasDown: boolean = false;
 
+	constructor(readonly name: string) {
+		super();
+	}
+
 	/** Mark the button as held down. */
 	press(): void {
 		this.#isDown = true;

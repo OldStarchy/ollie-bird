@@ -36,8 +36,8 @@ export default class Input implements Disposable {
 	 * Creates a VirtualButton whose state can be driven programmatically
 	 * (e.g. from an on-screen button component).
 	 */
-	createVirtualButton(): VirtualButton {
-		const btn = new VirtualButton();
+	createVirtualButton(name: string): VirtualButton {
+		const btn = new VirtualButton(name);
 		this.#virtualButtons.push(btn);
 		return btn;
 	}
