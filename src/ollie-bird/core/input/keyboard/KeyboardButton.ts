@@ -13,7 +13,12 @@ export class KeyboardButton extends Button {
 	get isDown(): boolean {
 		return this.keyboard.isKeyDown(this.keyCode);
 	}
+
 	get wasDown(): boolean {
 		return this.keyboard.wasKeyDown(this.keyCode);
+	}
+
+	get name(): string {
+		return `Key ${this.keyCode}`;
 	}
 }
