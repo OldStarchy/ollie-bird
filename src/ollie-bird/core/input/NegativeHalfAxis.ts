@@ -13,4 +13,8 @@ export class NegativeHalfAxis extends HalfAxis {
 	get previousValueRaw() {
 		return Math.max(0, -this.parent.previousValueRaw);
 	}
+
+	get name() {
+		return `${this.parent.name}-`;
+	}
 }

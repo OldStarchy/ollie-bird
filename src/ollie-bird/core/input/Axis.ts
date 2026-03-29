@@ -11,6 +11,7 @@ import { PositiveHalfAxis } from './PositiveHalfAxis';
 export abstract class Axis {
 	abstract get valueRaw(): number;
 	abstract get previousValueRaw(): number;
+	abstract get name(): string;
 
 	accessor deadzone: number;
 
@@ -38,13 +39,27 @@ export abstract class Axis {
 	}
 
 	static combineHalfAxes(positive: HalfAxis, negative: HalfAxis): Axis {
-		return new (class extends Axis {
-			get valueRaw() {
-				return positive.valueRaw - negative.valueRaw;
-			}
-			get previousValueRaw() {
-				return positive.previousValueRaw - negative.previousValueRaw;
-			}
-		})();
+		return new CombindedHalfAxesAxis(positive, negative);
+	}
+}
+
+class CombindedHalfAxesAxis extends Axis {
+	constructor(
+		private positive: HalfAxis,
+		private negative: HalfAxis,
+	) {
+		super(0);
+	}
+	get valueRaw() {
+		return this.positive.valueRaw - this.negative.valueRaw;
+	}
+	get previousValueRaw() {
+		return this.positive.previousValueRaw - this.negative.previousValueRaw;
+	}
+	get name() {
+		return `(${this.positive.name}/${this.negative.name})`;
+	}
+	override splitHalfAxis(): [HalfAxis, HalfAxis] {
+		return [this.positive, this.negative];
 	}
 }

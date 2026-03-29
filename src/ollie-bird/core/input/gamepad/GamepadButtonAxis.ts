@@ -1,5 +1,6 @@
 import { HalfAxis } from '../HalfAxis';
 import type Gamepad from './Gamepad';
+import { XboxGamepadAxisMap } from './XboxGamepadAxisMap';
 
 export class GamepadButtonAxis extends HalfAxis {
 	accessor deadzone: number;
@@ -11,6 +12,13 @@ export class GamepadButtonAxis extends HalfAxis {
 	) {
 		super();
 		this.deadzone = 0;
+
+		const name =
+			Object.entries(XboxGamepadAxisMap).find(
+				([, index]) => index === this.buttonPositiveIndex,
+			)?.[0] ?? `Axis ${this.buttonPositiveIndex}`;
+
+		this.name = `Gamepad ${this.gamepadIndex} Axis ${name}`;
 	}
 
 	get valueRaw(): number {
@@ -28,4 +36,6 @@ export class GamepadButtonAxis extends HalfAxis {
 			];
 		return button?.value ?? 0;
 	}
+
+	readonly name: string;
 }

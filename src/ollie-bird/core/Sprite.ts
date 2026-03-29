@@ -59,12 +59,17 @@ export default class Sprite implements ReactInterop<SpriteView> {
 		this.#change$.next();
 	}
 
-	constructor(image: SpriteImageSource, sourceRect?: Rect2Like);
-	constructor(src: string, sourceRect?: Rect2Like);
+	constructor(
+		image: SpriteImageSource,
+		sourceRect?: Rect2Like,
+		flatten?: boolean,
+	);
+	constructor(src: string, sourceRect?: Rect2Like, flatten?: boolean);
 
 	constructor(
 		imageOrSrc: SpriteImageSource | string,
 		sourceRect?: Rect2Like,
+		flatten = true,
 	) {
 		this.#image = Sprite.toImage(imageOrSrc);
 
@@ -101,14 +106,18 @@ export default class Sprite implements ReactInterop<SpriteView> {
 				'load',
 				() => {
 					// console.log(src);
-					this.#image = flattenImageColors(this.#image);
+					if (flatten) {
+						this.#image = flattenImageColors(this.#image);
+					}
 					this.#ready = true;
 				},
 				{ once: true },
 			);
 		} else {
 			this.#ready = true;
-			this.#image = flattenImageColors(this.#image);
+			if (flatten) {
+				this.#image = flattenImageColors(this.#image);
+			}
 		}
 
 		this.origin[ReactInterop.asObservable].subscribe(this.#change$);

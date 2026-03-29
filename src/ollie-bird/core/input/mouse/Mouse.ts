@@ -6,6 +6,25 @@ import { MouseButton } from './MouseButton';
 
 export type MouseButtonCode = 0 | 1 | 2 | 3 | 4;
 
+export namespace MouseButtonCode {
+	export function nameOf(code: MouseButtonCode): string {
+		switch (code) {
+			case Mouse.BUTTON_LEFT:
+				return 'Left';
+			case Mouse.BUTTON_MIDDLE:
+				return 'Middle';
+			case Mouse.BUTTON_RIGHT:
+				return 'Right';
+			case Mouse.BUTTON_BACK:
+				return 'Back';
+			case Mouse.BUTTON_FORWARD:
+				return 'Forward';
+			default:
+				return `${code + 1}`;
+		}
+	}
+}
+
 export default class Mouse implements Pointer, Disposable {
 	static readonly BUTTON_LEFT = 0;
 	static readonly BUTTON_MIDDLE = 1;

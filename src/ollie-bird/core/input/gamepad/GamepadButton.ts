@@ -1,5 +1,6 @@
 import { Button } from '../Button';
 import type Gamepad from './Gamepad';
+import { XboxGamepadButtonMap } from './XboxGamepadButtonMap';
 
 export class GamepadButton extends Button {
 	constructor(
@@ -8,6 +9,12 @@ export class GamepadButton extends Button {
 		private buttonIndex: number,
 	) {
 		super();
+		const name =
+			Object.entries(XboxGamepadButtonMap).find(
+				([, index]) => index === this.buttonIndex,
+			)?.[0] ?? `Index ${this.buttonIndex}`;
+
+		this.name = `Gamepad ${this.gamepadIndex} Button ${name}`;
 	}
 
 	get isDown(): boolean {
@@ -24,4 +31,6 @@ export class GamepadButton extends Button {
 			]?.pressed ?? false
 		);
 	}
+
+	readonly name: string;
 }

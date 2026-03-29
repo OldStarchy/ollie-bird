@@ -1,4 +1,5 @@
 import { Subject } from 'rxjs';
+import Flag from '../../Flag';
 import { Bindings } from '../OllieBirdGame';
 import { TAG_LEVEL_OBJECT, TAG_LEVEL_STRUCTURE, TAG_PLAYER } from '../const';
 import type { EventMap } from '../core/EventMap';
@@ -26,7 +27,7 @@ export default class LevelGameplayManager extends Module {
 	#restartKey = this.game.input.getButton(Bindings.Restart);
 	#stopKey = this.game.input.keyboard.getButton('KeyQ');
 
-	#birdDied = false;
+	readonly #birdDied = new Flag();
 
 	constructor(owner: GameObject) {
 		super(owner);
@@ -53,9 +54,9 @@ export default class LevelGameplayManager extends Module {
 		}
 		super.update();
 	}
+
 	override afterUpdate(): void {
-		if (this.#birdDied) {
-			this.#birdDied = false;
+		if (this.#birdDied.reset()) {
 			if (this.game.findObjectsByTag(TAG_PLAYER).next().done) {
 				this.game.waitFrames(0).then(() => {
 					this.#event$.next({ type: 'levelComplete' });
@@ -81,7 +82,7 @@ export default class LevelGameplayManager extends Module {
 	}
 
 	handleBirdDied(_bird: GameObject) {
-		this.#birdDied = true;
+		this.#birdDied.set();
 	}
 
 	getLevelData(): string {

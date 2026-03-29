@@ -21,6 +21,10 @@ function OllieBirdGameComponent() {
 		};
 	}, []);
 
+	useEffect(() => {
+		canvasRef.current?.focus();
+	}, [game]);
+
 	return (
 		<ErrorBoundary
 			fallbackRender={({ error, resetErrorBoundary }) => (

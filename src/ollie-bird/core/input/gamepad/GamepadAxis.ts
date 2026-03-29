@@ -1,5 +1,6 @@
 import { Axis } from '../Axis';
 import type Gamepad from './Gamepad';
+import { XboxGamepadAxisMap } from './XboxGamepadAxisMap';
 
 export class GamepadAxis extends Axis {
 	constructor(
@@ -10,6 +11,13 @@ export class GamepadAxis extends Axis {
 	) {
 		super();
 		this.deadzone = deadzone;
+
+		const name =
+			Object.entries(XboxGamepadAxisMap).find(
+				([, index]) => index === this.axisIndex,
+			)?.[0] ?? `Axis ${this.axisIndex}`;
+
+		this.name = `Gamepad ${this.gamepadIndex} ${name}`;
 	}
 
 	get valueRaw(): number {
@@ -25,4 +33,6 @@ export class GamepadAxis extends Axis {
 			0
 		);
 	}
+
+	readonly name: string;
 }

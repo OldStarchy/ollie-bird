@@ -8,6 +8,7 @@ import { HalfAxisButton } from './HalfAxisButton';
 export abstract class HalfAxis {
 	abstract get valueRaw(): number;
 	abstract get previousValueRaw(): number;
+	abstract get name(): string;
 
 	accessor deadzone: number;
 

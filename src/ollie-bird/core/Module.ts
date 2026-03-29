@@ -56,22 +56,30 @@ export default abstract class Module
 	protected afterRenderGizmos(_context: CanvasRenderingContext2D): void {}
 
 	getModulesByType<T extends Module>(
-		type: abstract new (owner: GameObject) => T,
+		type: abstract new (owner: GameObject, ...args: any[]) => T,
 	): Iterable<T> {
 		return this.owner.getModulesByType(type);
 	}
 	getModule<T extends Module>(
-		type: abstract new (owner: GameObject) => T,
+		type: abstract new (owner: GameObject, ...args: any[]) => T,
 	): T | null {
 		return this.owner.getModule(type);
 	}
-	addModule<T extends Module>(type: new (owner: GameObject) => T): T {
-		return this.owner.addModule(type);
+	addModule<
+		Constructor extends new (owner: GameObject, ...args: any[]) => Module,
+	>(
+		type: Constructor,
+		...args: Tail<ConstructorParameters<Constructor>>
+	): InstanceType<Constructor> {
+		return this.owner.addModule(type, ...args);
 	}
-	addTransientModule<T extends Module>(
-		type: new (owner: GameObject) => T,
-	): T {
-		const module = this.owner.addModule(type);
+	addTransientModule<
+		Constructor extends new (owner: GameObject, ...args: any[]) => Module,
+	>(
+		type: Constructor,
+		...args: Tail<ConstructorParameters<Constructor>>
+	): InstanceType<Constructor> {
+		const module = this.owner.addModule(type, ...args);
 		module.transient = true;
 		this.disposableStack.use(module);
 		return module;

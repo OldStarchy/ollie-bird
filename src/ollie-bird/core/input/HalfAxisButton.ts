@@ -8,10 +8,16 @@ export class HalfAxisButton extends Button {
 	) {
 		super();
 	}
+
 	get isDown() {
 		return this.parent.valueRaw >= this.threshold;
 	}
+
 	get wasDown() {
 		return this.parent.previousValueRaw >= this.threshold;
+	}
+
+	get name() {
+		return this.parent.name;
 	}
 }
