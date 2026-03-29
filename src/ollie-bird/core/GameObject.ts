@@ -78,12 +78,12 @@ export default class GameObject
 	}
 
 	getModulesByType<T extends Module>(
-		type: abstract new (owner: GameObject) => T,
+		type: abstract new (owner: GameObject, ...args: any[]) => T,
 	): IteratorObject<T> {
 		return this.modules.getModulesByType(type);
 	}
 	getModule<T extends Module>(
-		type: abstract new (owner: GameObject) => T,
+		type: abstract new (owner: GameObject, ...args: any[]) => T,
 	): T | null {
 		return this.modules.getModule(type);
 	}
