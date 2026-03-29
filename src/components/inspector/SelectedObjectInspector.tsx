@@ -24,7 +24,6 @@ export default function SelectedObjectInspector() {
 	return (
 		<div key={selectedObject.id}>
 			<h3>Selected Object</h3>
-			<p>Type: {selectedObject.constructor.defaultName}</p>
 			<p>
 				Tags:{' '}
 				{Array.from(data.tags, (tag) => tag.toString()).join(', ')}
