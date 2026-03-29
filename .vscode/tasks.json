@@ -6,7 +6,11 @@
 			"script": "dev",
 			"problemMatcher": [],
 			"label": "npm: dev",
-			"detail": "vite"
+			"detail": "vite",
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			}
 		},
 		{
 			"type": "npm",
@@ -22,6 +26,7 @@
 		{
 			"type": "npm",
 			"script": "type-check",
+			"group": "test",
 			"problemMatcher": ["$tsc"],
 			"label": "npm: type-check",
 			"detail": "tsc -b"
@@ -29,7 +34,7 @@
 		{
 			"type": "npm",
 			"script": "type-check:watch",
-			"group": "build",
+			"group": "test",
 			"problemMatcher": ["$tsc-watch"],
 			"label": "npm: type-check:watch",
 			"detail": "tsc -b --watch"
