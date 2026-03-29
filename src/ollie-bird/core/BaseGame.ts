@@ -513,6 +513,8 @@ export class GameCanvas implements Disposable {
 	/**
 	 * Do not use this directly, instead use {@link BaseGame.addCanvas} to
 	 * create a GameCanvas.
+	 *
+	 * @internal
 	 */
 	constructor(
 		public game: BaseGame,
@@ -568,6 +570,8 @@ export class GameCanvas implements Disposable {
 	 *
 	 * This is used by {@link BaseGame} to render the game objects to this
 	 * canvas each tick.
+	 *
+	 * @internal
 	 */
 	doRender(
 		renderCallback: (context: CanvasRenderingContext2D) => void,
