@@ -9,7 +9,6 @@ import seconds from '../../unit/time/seconds';
 import { CELL_SIZE } from '../const';
 import GameObject, { type GameObjectDto } from './GameObject';
 import type IGame from './IGame';
-import type { GameEvent } from './IGame';
 import Input from './input/Input';
 import Rect2 from './math/Rect2';
 import { round } from './math/round';
@@ -41,40 +40,94 @@ const baseGameSettingsSchema = z.object({
 
 type BaseGameSettings = z.infer<typeof baseGameSettingsSchema>;
 
+/**
+ * BaseGame implements the core game loop, rendering, and object management.
+ *
+ * The most basic setup for a game is to create a BaseGame (or derivative),
+ * add a canvas for rendering, and spawn some objects with some modules.
+ *
+ * ```ts
+ * const game = new BaseGame();
+ * const canvas = document.getElementById('game') as HTMLCanvasElement;
+ * game.addCanvas(canvas);
+ *
+ * const player = game.spawn();
+ *
+ * player.addModule(class extends Module {
+ *   protected override update() {
+ *     if (this.input.keyboard.getButton('ArrowRight').isPressed)
+ *       this.transform.position.x += 5;
+ *
+ *     if (this.input.keyboard.getButton('ArrowLeft').isPressed)
+ * 	     this.transform.position.x -= 5;
+ *   }
+ *
+ *   protected override render(context: CanvasRenderingContext2D) {
+ *     context.fillStyle = 'red';
+ *     context.fillRect(this.transform.position.x, this.transform.position.y, 50, 50);
+ *   }
+ * });
+ *
+ * game.start();
+ * ```
+ */
 class BaseGame implements IGame, ReactInterop<BaseGameSettings> {
-	private abortController = new AbortController();
-	#gameObjects$ = new Subject<void>();
+	readonly #abortController = new AbortController();
+	readonly #gameObjects$ = new Subject<void>();
 	readonly gameObjects$ = this.#gameObjects$.asObservable();
-	private readonly objects: GameObject[] = [];
+	readonly #objects: GameObject[] = [];
 	#objectsToDestroy: GameObject[] = [];
 	#objectsToCreate: GameObject[] = [];
 	private readonly canvases: Set<GameCanvas> = new Set();
 
-	readonly #event$ = new Subject<GameEvent>();
-	readonly event$ = this.#event$.asObservable();
+	/**
+	 * Access to the various input methods for the game, such as keyboard, mouse, and gamepad.
+	 */
 	readonly input = new Input();
 
 	constructor() {
-		this.abortController.signal.addEventListener('abort', () => {
+		this.#abortController.signal.addEventListener('abort', () => {
 			this.input[Symbol.dispose]();
-			this.objects.forEach((obj) => obj[Symbol.dispose]());
+			this.#objects.forEach((obj) => obj[Symbol.dispose]());
 		});
 	}
 
+	/**
+	 * The target number of times {@link step} is called per second.
+	 *
+	 * {@link step} calls both {@link Module.update} and {@link Module.render}.
+	 *
+	 * Note that the time between calls to {@link step} is handled by
+	 * {@link setTimeout}.
+	 */
 	updatesPerSecond: number = 60;
+
+	/**
+	 * A simple shared data object for physics settings. Modules may choose to
+	 * use or modify this object as necessary.
+	 */
 	physics = {
 		gravity: 0.2,
 	};
 
+	/**
+	 * Whether to call {@link Module.renderGizmos} each step.
+	 */
 	renderGizmos: boolean = true;
 
 	#currentSecondsPerFrame: seconds = seconds(1 / this.updatesPerSecond);
+	/**
+	 * The time since the last call to {@link step}.
+	 *
+	 * Changes to {@link updatesPerSecond} will be reflected in this value on
+	 * the next tick.
+	 */
 	get secondsPerFrame(): seconds {
 		return this.#currentSecondsPerFrame;
 	}
 
 	#change = new Subject<void>();
-	notify(): void {
+	private notify(): void {
 		this.#change.next();
 	}
 
@@ -105,15 +158,30 @@ class BaseGame implements IGame, ReactInterop<BaseGameSettings> {
 		return baseGameSettingsSchema;
 	}
 
+	/**
+	 * The width of the game world.
+	 */
 	@onChange((self) => self.notify())
 	accessor width = round(1920, CELL_SIZE);
 
+	/**
+	 * The height of the game world.
+	 */
 	@onChange((self) => self.notify())
 	accessor height = round(1080, CELL_SIZE);
 
+	/**
+	 * The background color of the game world.
+	 *
+	 * Either a named html color ({@link HtmlColor}) or a custom hex code.
+	 */
 	@onChange((self) => self.notify())
 	accessor backgroundColor: HtmlColor = 'SkyBlue';
 
+	/**
+	 * A convenience property for {@link backgroundColor} used by the GUI to
+	 * show a drop-down list of colors.
+	 */
 	set color(value: (typeof bgColors)[number]) {
 		if (value === 'Custom') {
 			this.backgroundColor = '#857';
@@ -129,18 +197,29 @@ class BaseGame implements IGame, ReactInterop<BaseGameSettings> {
 		return this.backgroundColor as (typeof bgColors)[number];
 	}
 
+	/**
+	 * Begins rendering this game to the given canvas.
+	 *
+	 * The render function is called for each canvas on each tick.
+	 */
 	addCanvas(canvas: HTMLCanvasElement): GameCanvas {
 		const gameCanvas = new GameCanvas(this, canvas);
 
 		this.canvases.add(gameCanvas);
 
-		this.abortController.signal.addEventListener('abort', () => {
+		this.#abortController.signal.addEventListener('abort', () => {
 			gameCanvas[Symbol.dispose]();
 		});
 
 		return gameCanvas;
 	}
 
+	/**
+	 * Starts the game loop, which repeatedly calls {@link step} at a rate
+	 * determined by {@link updatesPerSecond}.
+	 *
+	 * The game loop can be stopped by calling {@link stop}.
+	 */
 	start() {
 		this.preStart();
 
@@ -149,27 +228,62 @@ class BaseGame implements IGame, ReactInterop<BaseGameSettings> {
 
 	protected preStart(): void {}
 
+	/**
+	 * Stops the game loop, and disposes of this BaseGame instance.
+	 */
 	stop() {
-		this.abortController.abort();
+		this.#abortController.abort();
 	}
 
-	tick() {
-		if (this.abortController.signal.aborted) return;
+	private tick() {
+		if (this.#abortController.signal.aborted) return;
+
+		const cspf = seconds(1 / this.updatesPerSecond);
+		setTimeout(() => {
+			this.#currentSecondsPerFrame = cspf;
+			this.tick();
+		}, 1000 / this.updatesPerSecond);
 
 		this.step();
-
-		this.#currentSecondsPerFrame = seconds(1 / this.updatesPerSecond);
-		setTimeout(() => this.tick(), 1000 / this.updatesPerSecond);
 	}
 
 	#tick$ = new Subject<void>();
 	tick$ = this.#tick$.asObservable();
+	/**
+	 * Advances the game by one frame.
+	 *
+	 * First, {@link tick$} is triggered. Then for each object
+	 * * {@link Module.beforeUpdate}
+	 * * {@link Module.update}
+	 * * {@link Module.afterUpdate}
+	 * are called in sequence.
+	 *
+	 * Then, any objects queued for destruction are destroyed, and any objects queued for creation are created and
+	 * initialized.
+	 *
+	 * After this {@link input.step} is called to update all game input states
+	 * (e.g. calculating pressed vs. held buttons).
+	 *
+	 * Finally rendering is queued for the next animation frame.
+	 *
+	 * Rendering iterates over all objects (in {@link GameObject.layer | layer}\
+	 * order) multiple times, once for each of the following methods for every
+	 * {@link GameCanvas} (see {@link addCanvas}):
+	 * * {@link Module.beforeRender}
+	 * * {@link Module.render}
+	 * * {@link Module.afterRender}
+	 * * if {@link renderGizmos} is true, also calls
+	 *   * {@link Module.beforeRenderGizmos}
+	 *   * {@link Module.renderGizmos}
+	 *   * {@link Module.afterRenderGizmos}
+	 */
 	step() {
 		this.#tick$.next();
+
 		engine.update();
-		this.objects.forEach((go) => go.beforeUpdate());
-		this.objects.forEach((go) => go.update());
-		this.objects.forEach((go) => go.afterUpdate());
+		this.#objects.forEach((go) => go.beforeUpdate());
+		this.#objects.forEach((go) => go.update());
+		this.#objects.forEach((go) => go.afterUpdate());
 
 		this.input.step();
 		this.queueRender();
@@ -178,18 +292,22 @@ class BaseGame implements IGame, ReactInterop<BaseGameSettings> {
 		this.createQueuedObjects();
 	}
 
+	/**
+	 * Returns a promise that resolves after the given number of frames have
+	 * passed, as defined by {@link tick$}.
+	 */
 	waitFrames(frames: number): Promise<void> {
 		return firstValueFrom(this.tick$.pipe(skip(frames)));
 	}
 
 	private renderQueued: boolean = false;
-	queueRender() {
+	private queueRender() {
 		if (this.renderQueued) return;
 		this.renderQueued = true;
 		requestAnimationFrame(() => this.render());
 	}
 
-	render() {
+	private render() {
 		this.renderQueued = false;
 
 		this.renderAll((context) => {
@@ -198,7 +316,7 @@ class BaseGame implements IGame, ReactInterop<BaseGameSettings> {
 
 			const layers = new Map<number, GameObject[]>();
 
-			this.objects.forEach((go) => {
+			this.#objects.forEach((go) => {
 				if (!layers.has(go.layer)) {
 					layers.set(go.layer, []);
 				}
@@ -224,6 +342,13 @@ class BaseGame implements IGame, ReactInterop<BaseGameSettings> {
 		});
 	}
 
+	/**
+	 * Creates a new {@link GameObject} and queues it for initialization at the
+	 * end of the current update cycle.
+	 *
+	 * The new GameObject is returned immediately, but will not appear in
+	 * {@link getObjects} until the next tick.
+	 */
 	spawn(): GameObject {
 		const obj = new GameObject(this);
 		this.#objectsToCreate.push(obj);
@@ -231,6 +356,17 @@ class BaseGame implements IGame, ReactInterop<BaseGameSettings> {
 		return obj;
 	}
 
+	/**
+	 * Similar to {@link spawn}, but creates a new {@link GameObject} from the
+	 * given prefab data.
+	 *
+	 * Prefabs are serialized GameObjects per {@link GameObject.serialize} and
+	 * {@link Module.serialize}.
+	 *
+	 * ## Note
+	 * Code around this functionality is likely to change as work on Resources
+	 * and Assets progresses.
+	 */
 	spawnPrefab(prefab: GameObjectDto): GameObject {
 		return GameObject.deserializePartial(prefab, { game: this })
 			.inspectErr((err) => {
@@ -239,8 +375,14 @@ class BaseGame implements IGame, ReactInterop<BaseGameSettings> {
 			.unwrap();
 	}
 
+	/**
+	 * Queues the given {@link GameObject} for destruction at the end of the
+	 * current update cycle (after {@link Module.afterUpdate | afterUpdate} but
+	 * before {@link Module.beforeRender | beforeRender}).
+	 */
 	destroy(obj: GameObject): void {
-		const index = this.objects.indexOf(obj);
+		if (!this.#objects.includes(obj)) return;
+		const index = this.#objects.indexOf(obj);
 		if (index === -1) return;
 		this.#objectsToDestroy.push(obj);
 	}
@@ -251,7 +393,7 @@ class BaseGame implements IGame, ReactInterop<BaseGameSettings> {
 		const newObjects = this.#objectsToCreate;
 		this.#objectsToCreate = [];
 
-		this.objects.push(...newObjects);
+		this.#objects.push(...newObjects);
 		newObjects.forEach((obj) => obj.initialize());
 
 		this.#gameObjects$.next();
@@ -259,9 +401,9 @@ class BaseGame implements IGame, ReactInterop<BaseGameSettings> {
 	private destroyQueuedObjects() {
 		const some = this.#objectsToDestroy.length > 0;
 		this.#objectsToDestroy.forEach((obj) => {
-			const index = this.objects.indexOf(obj);
+			const index = this.#objects.indexOf(obj);
 			if (index !== -1) {
-				this.objects.splice(index, 1);
+				this.#objects.splice(index, 1);
 				obj[Symbol.dispose]();
 			}
 		});
@@ -270,20 +412,52 @@ class BaseGame implements IGame, ReactInterop<BaseGameSettings> {
 		if (some) this.#gameObjects$.next();
 	}
 
+	/**
+	 * Returns an iterator of all {@link GameObject}s with the given tag.
+	 *
+	 * ## Note
+	 * Iterators are lazy, so be sure to collect the results before
+	 * the next tick (i.e. with {@link IteratorObject.toArray | .toArray()}).
+	 */
 	findObjectsByTag(tag: string): IteratorObject<GameObject> {
-		return this.objects[Symbol.iterator]().filter((obj) =>
-			obj.tags.has(tag),
-		);
+		return this.#objects
+			[Symbol.iterator]()
+			.filter((obj) => obj.tags.has(tag));
 	}
 
+	/**
+	 * Returns an iterator of all Modules of the given type in all GameObjects.
+	 *
+	 * The {@link type} parameter should be the class of the Module, not an
+	 * instance or name.
+	 *
+	 * ```ts
+	 * const colliders: CircleCollider2d[] = game.findModulesByType(CircleCollider2d).toArray();
+	 * ```
+	 *
+	 * ## Note
+	 * Iterators are lazy, so be sure to collect the results before
+	 * the next tick (i.e. with {@link IteratorObject.toArray | .toArray()}).
+	 */
 	findModulesByType<T extends Module>(
 		type: abstract new (owner: GameObject) => T,
 	): IteratorObject<T> {
-		return this.objects[Symbol.iterator]().flatMap((obj) =>
-			obj.getModulesByType(type),
-		);
+		return this.#objects
+			[Symbol.iterator]()
+			.flatMap((obj) => obj.getModulesByType(type));
 	}
 
+	/**
+	 * Returns the first Module of the given type in any GameObject, or null if
+	 * none is found.
+	 *
+	 * The {@link type} parameter should be the class of the Module, not an
+	 * instance or name.
+	 *
+	 * ## Note
+	 * Iterators are lazy, so be sure to collect the results before
+	 * the next tick (i.e. with {@link IteratorObject.toArray | .toArray()}).
+	 */
 	findModuleByType<T extends Module>(
 		type: abstract new (owner: GameObject) => T,
 	): T | null {
@@ -294,8 +468,15 @@ class BaseGame implements IGame, ReactInterop<BaseGameSettings> {
 		return first.value;
 	}
 
+	/**
+	 * Returns an iterator of all {@link GameObject}s in this game.
+	 *
+	 * ## Note
+	 * Iterators are lazy, so be sure to collect the results before
+	 * the next tick (i.e. with {@link IteratorObject.toArray | .toArray()}).
+	 */
 	getObjects(): IteratorObject<GameObject> {
-		return this.objects[Symbol.iterator]();
+		return this.#objects[Symbol.iterator]();
 	}
 
 	private renderAll(
@@ -309,6 +490,19 @@ class BaseGame implements IGame, ReactInterop<BaseGameSettings> {
 
 export default BaseGame;
 
+/**
+ * An interactive render target for a {@link BaseGame}.
+ *
+ * Creating a GameCanvas with {@link BaseGame.addCanvas} will set up event
+ * listeners to handle keyboard input, and mouse/touch input events on the given
+ * canvas element.
+ *
+ * Mouse and touch input coordinates are transformed into world space.
+ *
+ * ## Note
+ * Code around this is likely to change once Camera and viewport functionality
+ * is implemented.
+ */
 export class GameCanvas implements Disposable {
 	shouldRefreshSize: { width: number; height: number } | null = null;
 
@@ -316,6 +510,10 @@ export class GameCanvas implements Disposable {
 
 	readonly disposableStack: DisposableStack;
 
+	/**
+	 * Do not use this directly, instead use {@link BaseGame.addCanvas} to
+	 * create a GameCanvas.
+	 */
 	constructor(
 		public game: BaseGame,
 		public canvas: HTMLCanvasElement,
@@ -336,11 +534,22 @@ export class GameCanvas implements Disposable {
 		this.disposableStack = ds.move();
 	}
 
+	/**
+	 * Detaches this GameCanvas from its BaseGame, removing it from the game's
+	 * render loop and disposing of all event listeners.
+	 *
+	 * The canvas element itself is not removed or modified in any way.
+	 */
 	[Symbol.dispose](): void {
 		this.disposableStack.dispose();
 		this.game['canvases'].delete(this);
 	}
 
+	/**
+	 * This contains the transform used in the most recent call to
+	 * {@link doRender}. It is used to transform input coordinates from screen
+	 * space to world space.
+	 */
 	lastTransform = new DOMMatrix();
 	private projectMouseCoordinates = (e: MouseEvent): Vec2Like => {
 		const rect = this.canvas.getBoundingClientRect();
@@ -353,6 +562,13 @@ export class GameCanvas implements Disposable {
 		return transformedPoint;
 	};
 
+	/**
+	 * Sets up scaling and translation to fit the game world within the canvas,
+	 * then calls {@link renderCallback} with the canvas context.
+	 *
+	 * This is used by {@link BaseGame} to render the game objects to this
+	 * canvas each tick.
+	 */
 	doRender(
 		renderCallback: (context: CanvasRenderingContext2D) => void,
 	): void {
@@ -397,6 +613,16 @@ export class GameCanvas implements Disposable {
 		renderCallback(this.context);
 	}
 
+	/**
+	 * Requests that the canvas rendering context be resized to match the real
+	 * size of the canvas element.
+	 *
+	 * This should be called whenever the canvas element is resized (e.g. on
+	 * window resize) to ensure the rendering context matches the size of the
+	 * canvas and avoid scaling issues.
+	 *
+	 * @see [GameCanvas.tsx](../../components/GameCanvas.tsx)
+	 */
 	requestResize() {
 		this.shouldRefreshSize = {
 			width: this.canvas.clientWidth,
