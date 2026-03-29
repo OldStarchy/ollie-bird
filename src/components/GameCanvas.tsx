@@ -44,6 +44,7 @@ export default function GameCanvas({
 		if (!canvasRef.current) return;
 
 		canvasObj.current = game.addCanvas(canvasRef.current);
+		canvasRef.current.focus();
 
 		return () => {
 			canvasObj.current?.[Symbol.dispose]();
