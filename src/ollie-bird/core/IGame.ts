@@ -1,4 +1,3 @@
-import type { Observable } from 'rxjs';
 import type { EventMap } from './EventMap';
 import type GameObject from './GameObject';
 import type { GameObjectDto } from './GameObject';
@@ -16,7 +15,6 @@ export default interface IGame {
 	readonly physics: {
 		gravity: number;
 	};
-	readonly event$: Observable<GameEvent>;
 
 	width: number;
 	height: number;
