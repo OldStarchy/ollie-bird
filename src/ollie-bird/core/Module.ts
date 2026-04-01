@@ -6,6 +6,36 @@ import { Err, Ok, type Result } from './monad/Result';
 import type { Serializable } from './Serializer';
 import Serializer from './Serializer';
 
+/**
+ * Extend this class to provide functionality to {@link GameObject}s.
+ *
+ * They can process inputs, update state, and render.
+ * Modules can also be added and removed on the fly to provide dynamic behavior.
+ *
+ * The primary way to interact with other objects is through this.{@link game}.
+ *
+ * Modules share a similar lifecycle and update cycle to GameObjects.
+ *
+ * 1. constructor()
+ *   1. constructor() for sub-modules (created in the constructor)
+ *   2. initialize() for sub-modules
+ * 2. initialize()
+ *
+ * Each tick, for `.enabled = true` modules
+ * 1. beforeUpdate()
+ * 2. update()
+ * 3. afterUpdate()
+ * 4. beforeRender()
+ * 5. render()
+ * 6. afterRender()
+ * 7. beforeRenderGizmos()
+ * 8. renderGizmos()
+ * 9. afterRenderGizmos()
+ *
+ * If `.enabled` becomes false at any stage, the effect is immediate and the
+ * module will skip the following stages. (this might change if it causes
+ * issues)
+ */
 export default abstract class Module
 	implements Disposable, IModular, Serializable
 {
@@ -22,25 +52,84 @@ export default abstract class Module
 	}
 
 	/**
-	 * If true, this will not be saved. Used for modules created by other modules.
+	 * If true, this will not be serialized/saved. Used for modules created by other modules.
 	 */
 	transient = false;
 
 	constructor(readonly owner: GameObject) {}
 
 	#enabled = true;
-	public get enabled() {
+	/**
+	 * If this is false, this module will not have its update or render methods
+	 * called.
+	 *
+	 * Changes to this value take effect immediately. For example, if you set
+	 * `enabled = false` in {@link befureUpdate}, the {@link update} (and
+	 * following methods) will not be called.
+	 */
+	get enabled() {
 		return this.#enabled;
 	}
-	public set enabled(value: boolean) {
+	set enabled(value: boolean) {
 		this.#enabled = value;
 	}
 
 	protected disposableStack = new DisposableStack();
-	public [Symbol.dispose](): void {
+	[Symbol.dispose](): void {
 		this.disposableStack.dispose();
 	}
 
+	/**
+	 * {@link addModule} will call this method after attaching this module to
+	 * the {@link GameObject}.
+	 *
+	 * This method is called after the constructor, and after all sub-modules
+	 * created in the constructor have been initialized. This way, all
+	 * sub-modules added in the constructor are guaranteed to be ready to use by
+	 * the time this method is called.
+	 *
+	 * For new GameObjects (those created this tick), this method is not called
+	 * until the end of the current tick, when the object is added to the object
+	 * list.
+	 * For existing GameObjects, this method is called immediately after the
+	 * module is added to the GameObject.
+	 *
+	 * Example:
+	 *
+	 * ```ts
+	 * class MyModule extends Module {
+	 *   constructor(owner: GameObject) {
+	 *     super(owner);
+	 *     console.log('MyModule constructor');
+	 *     this.addModule(SubModule); // Logs "SubModule constructor"
+	 *   }
+	 *
+	 *   protected override initialize() {
+	 *     console.log('MyModule initialize');
+	 *   }
+	 * }
+	 *
+	 * class SubModule extends Module {
+	 *   constructor(owner: GameObject) {
+	 *     super(owner);
+	 *     console.log('SubModule constructor');
+	 *   }
+	 *
+	 *   protected override initialize() {
+	 *     console.log('SubModule initialize');
+	 *   }
+	 * }
+	 *
+	 * const gameObject = game.spawn();
+	 * gameObject.addModule(MyModule);
+	 *
+	 * // Logs
+	 * // "MyModule constructor"
+	 * // "SubModule constructor"
+	 * // "SubModule initialize"
+	 * // "MyModule initialize"
+	 * ```
+	 */
 	protected initialize(): void {}
 
 	protected beforeUpdate(): void {}
@@ -55,16 +144,27 @@ export default abstract class Module
 	protected renderGizmos(_context: CanvasRenderingContext2D): void {}
 	protected afterRenderGizmos(_context: CanvasRenderingContext2D): void {}
 
+	/**
+	 * @inheritdoc
+	 */
 	getModulesByType<T extends Module>(
 		type: abstract new (owner: GameObject, ...args: any[]) => T,
 	): Iterable<T> {
 		return this.owner.getModulesByType(type);
 	}
+
+	/**
+	 * @inheritdoc
+	 */
 	getModule<T extends Module>(
 		type: abstract new (owner: GameObject, ...args: any[]) => T,
 	): T | null {
 		return this.owner.getModule(type);
 	}
+
+	/**
+	 * @inheritdoc
+	 */
 	addModule<
 		Constructor extends new (owner: GameObject, ...args: any[]) => Module,
 	>(
@@ -73,6 +173,11 @@ export default abstract class Module
 	): InstanceType<Constructor> {
 		return this.owner.addModule(type, ...args);
 	}
+
+	/**
+	 * This is a convenience method for {@link addModule} that also marks the
+	 * added module as {@link transient} = true.
+	 */
 	addTransientModule<
 		Constructor extends new (owner: GameObject, ...args: any[]) => Module,
 	>(
@@ -84,19 +189,73 @@ export default abstract class Module
 		this.disposableStack.use(module);
 		return module;
 	}
+
+	/**
+	 * @inheritdoc
+	 */
 	removeModule(module: Module): void {
 		return this.owner.removeModule(module);
 	}
 
+	/**
+	 * Convert this object into a plain JavaScript object that can be further
+	 * serialized to JSON.
+	 *
+	 * The resulting object must be deserializable by the corresponding
+	 * {@link Deserializer<Output, Context>} instance.
+	 *
+	 * For modules, the deserializer should be registered with
+	 * {@link serializer}.{@link Serializer.registerSerializationType | registerSerializationType}.
+	 * This should be done in a static block for the module subclass. For example,
+	 *
+	 * ```ts
+	 * class MyModule extends Module {
+	 *   static {
+	 *     Module.serializer.registerSerializationType('MyModule', this);
+	 *   }
+	 *
+	 *   foo: string;
+	 *
+	 *   serialize() {
+	 *     return {
+	 *       foo: this.foo,
+	 *     };
+	 *   }
+	 *
+	 *   static deserialize(obj: unknown, context: { gameObject: GameObject }): Result<MyModule, string> {
+	 *     if (!('foo' in obj) || typeof obj.foo !== 'string') {
+	 *       return Err('Invalid MyModule data');
+	 *     }
+	 *
+	 *     const module = context.gameObject.addModule(MyModule);
+	 *     module.foo = obj.foo;
+	 *     return Ok(module);
+	 *   }
+	 * }
+	 * ```
+	 */
 	serialize(): unknown {
 		return undefined;
 	}
 
+	/**
+	 * This serializer is used by {@link GameObject} to both attach type
+	 * information to modules when they get serialized, and to find the correct
+	 * class to deserialize based on the type of module stored in the serialized
+	 * data.
+	 */
 	static readonly serializer = new Serializer<
 		abstract new (...args: any[]) => Module,
 		{ gameObject: GameObject }
 	>();
 
+	/**
+	 * Module itself cannot be deserialized, this method can be inherited by
+	 * subclasses that don't have any specifc data to deserialize. Subclasses
+	 * still need to register themselves with
+	 * {@link Serializer.registerSerializationType | Module.serializer.registerSerializationType}
+	 * as the deserializer for their type.
+	 */
 	static deserialize(
 		_obj: unknown,
 		context: { gameObject: GameObject },

@@ -2,8 +2,16 @@ import z from 'zod';
 import { Err, type Result } from './monad/Result';
 
 export interface Serializable {
+	/**
+	 * Convert this object into a plain JavaScript objec that can be further
+	 * serialized to JSON.
+	 *
+	 * The resulting object must be deserializable by the corresponding
+	 * {@link Deserializer<Output, Context>} instance.
+	 */
 	serialize(): unknown;
 }
+
 export const typedDtoSchema = z.object({
 	$type: z.string(),
 	data: z.unknown().optional(),

@@ -162,22 +162,7 @@ export default class GameObject
 	}
 
 	/**
-	 * Iterates over all modules attached to this object that are instances of
-	 * the given type. For example,
-	 * ```ts
-	 * // Get all modules that are instances of the Health component
-	 * for (const health of obj.getModulesByType(Health)) {
-	 *   console.log(health.current);
-	 * }
-	 * ```
-	 *
-	 * Note that this method will return modules that are subclasses of the
-	 * given type as well. For example, if EnemyHealth extends Health, it will
-	 * be returned by `getModulesByType(Health)`.
-	 *
-	 * ## Note
-	 * Iterators are lazy, so be sure to collect the results before
-	 * the next tick (i.e. with {@link IteratorObject.toArray | .toArray()}).
+	 * @inheritdoc
 	 */
 	getModulesByType<T extends Module>(
 		type: abstract new (owner: GameObject, ...args: any[]) => T,
@@ -186,8 +171,7 @@ export default class GameObject
 	}
 
 	/**
-	 * Returns the first module attached to this object that is an instance of
-	 * the given type, or null if no such module exists. For example,
+	 * @inheritdoc
 	 */
 	getModule<T extends Module>(
 		type: abstract new (owner: GameObject, ...args: any[]) => T,
@@ -196,12 +180,7 @@ export default class GameObject
 	}
 
 	/**
-	 * Adds a module of the given type to this object. The module is initialized
-	 * before addModule returns, so the returned module is ready to use
-	 * immediately.
-	 *
-	 * If the module constructor also adds more modules, the sub-modules will
-	 * be initialized first.
+	 * @inheritdoc
 	 */
 	addModule<
 		Constructor extends new (owner: GameObject, ...args: any[]) => Module,
@@ -213,8 +192,7 @@ export default class GameObject
 	}
 
 	/**
-	 * Removes a module from this object. The module is removed immediately and
-	 * disposed.
+	 * @inheritdoc
 	 */
 	removeModule(module: Module): void {
 		return this.#modules.removeModule(module);
