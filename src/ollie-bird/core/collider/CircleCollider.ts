@@ -1,5 +1,8 @@
 import type ColliderShape from './ColliderShape';
 
+/**
+ * @see {@link ColliderShape}
+ */
 export default class CircleCollider implements ColliderShape {
 	readonly precedence = 1;
 

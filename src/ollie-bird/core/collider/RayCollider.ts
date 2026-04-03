@@ -4,6 +4,9 @@ import CircleCollider from './CircleCollider';
 import type ColliderShape from './ColliderShape';
 import RectangleCollider from './RectangleCollider';
 
+/**
+ * @see {@link ColliderShape}
+ */
 export default class RayCollider implements ColliderShape {
 	readonly precedence = 3;
 
