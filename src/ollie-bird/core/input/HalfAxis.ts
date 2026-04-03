@@ -1,7 +1,8 @@
 import { HalfAxisButton } from './HalfAxisButton';
 
 /**
- * 0 to 1.
+ * Represents an input that can only vary "forward" eg. a trigger. The range of
+ * values is 0 to 1.
  *
  * Deadzone is an area around 0 that gets treated as 0, to prevent drift from imperfect hardware.
  */
