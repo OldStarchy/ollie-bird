@@ -124,6 +124,9 @@ namespace OptionImpl {
 	}
 }
 
+/**
+ * @see {@link https://doc.rust-lang.org/std/option/}
+ */
 export type Option<T> = OptionImpl.Some<T> | OptionImpl.None;
 
 export namespace Option {
