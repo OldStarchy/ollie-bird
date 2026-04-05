@@ -10,7 +10,7 @@ import Mouse from './mouse/Mouse';
  *
  * Inputs are represented as {@link Button}s, {@link Axis}es, and
  * {@link Pointer}s, which can be defined per device, or created as virtual
- * inputs driven programatically.
+ * inputs driven programmatically.
  *
  * The individual inputs can be named and accessed through the `define` and
  * `get` methods per input type, and grouped into schemas for structured control

@@ -1,5 +1,5 @@
 /**
- * Allows blocking an action from occuring for some time.
+ * Allows blocking an action from occurring for some time.
  *
  * Very much the same as a rising-edge debounce, but
  * * can be invoked immediately if there are no blockers

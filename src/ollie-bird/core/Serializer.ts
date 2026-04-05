@@ -3,7 +3,7 @@ import { Err, type Result } from './monad/Result';
 
 export interface Serializable {
 	/**
-	 * Convert this object into a plain JavaScript objec that can be further
+	 * Convert this object into a plain JavaScript object that can be further
 	 * serialized to JSON.
 	 *
 	 * The resulting object must be deserializable by the corresponding
@@ -51,20 +51,21 @@ export default class Serializer<
 	 * will be tagged with this key.
 	 *
 	 * When deserializing, this key is used to look up the corresponding
-	 * deserializer for the data. This means that that all types that can be
+	 * deserializer for the data. This means that all types that can be
 	 * deserialized must be proactively registered before deserializing any
 	 * data.
 	 *
 	 * ## Proactive Registration
 	 *
-	 * An easy mistake to make is to not pre-emptivley import a module that
-	 * is registered in the serializer.
+	 * An easy mistake to make is to not pre-emptively import a module that is
+	 * registered in the serializer.
 	 *
 	 * Eg. if you have a file `ModuleA.ts`
 	 *
 	 * ```ts
-	 * import sharedSerializer from './sharedSerializer.ts';
+	 * import sharedSerializer, { Context } from './sharedSerializer.ts';
 	 * import {type Serializable} from './Serializer';
+	 * import { Ok } from './monad/Result';
 	 *
 	 * export default class ModuleA implements Serializable {
 	 *   constructor(public foo: string) {}
@@ -73,10 +74,10 @@ export default class Serializer<
 	 *     return { foo: this.foo };
 	 *   }
 	 *
-	 *   static deserialize(obj: unknown) {
+	 *   static deserialize(obj: unknown, _context: Context) {
 	 *     // Validation of obj is omitted for brevity.
 	 *
-	 *     return new ModuleA(obj.foo);
+	 *     return Ok(new ModuleA(obj.foo));
 	 *   }
 	 *
 	 *   static {
@@ -130,9 +131,9 @@ export default class Serializer<
 	}
 
 	/**
-	 * Serializes the given {@link serializable} object and attach its
+	 * Serializes the given {@link serializable} object and attaches its
 	 * serialization key. The resulting object is a {@link TypedDto} that can be
-	 * passed to {@link deserialize} to get create an instance matching the
+	 * passed to {@link deserialize} to create an instance matching the
 	 * original object.
 	 *
 	 * The {@link serializable} must be an instance of a class that is

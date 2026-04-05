@@ -61,7 +61,7 @@ export default abstract class Collider2d
 	accessor widgetLineDash: number[] = [];
 
 	/**
-	 * Create and returns a collider shape for for this module based on the
+	 * Creates and returns a collider shape for this module based on the
 	 * current state of the GameObject.
 	 */
 	abstract getCollider(): ColliderShape;

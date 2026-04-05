@@ -66,7 +66,7 @@ export default abstract class Module
 	 * called.
 	 *
 	 * Changes to this value take effect immediately. For example, if you set
-	 * `enabled = false` in {@link befureUpdate}, the {@link update} (and
+	 * `enabled = false` in {@link beforeUpdate}, the {@link update} (and
 	 * following methods) will not be called.
 	 */
 	get enabled() {
@@ -242,10 +242,10 @@ export default abstract class Module
 	 * serialized to JSON.
 	 *
 	 * The resulting object must be deserializable by the corresponding
-	 * {@link Deserializer<Output, Context>} instance.
+	 * deserializer for this module type.
 	 *
 	 * For modules, the deserializer should be registered with
-	 * {@link serializer}.{@link Serializer.registerSerializationType | registerSerializationType}.
+	 * {@link Module.serializer}.{@link Serializer.registerSerializationType | registerSerializationType}.
 	 * This should be done in a static block for the module subclass. For example,
 	 *
 	 * ```ts
@@ -291,7 +291,7 @@ export default abstract class Module
 
 	/**
 	 * Module itself cannot be deserialized, this method can be inherited by
-	 * subclasses that don't have any specifc data to deserialize. Subclasses
+	 * subclasses that don't have any specific data to deserialize. Subclasses
 	 * still need to register themselves with
 	 * {@link Serializer.registerSerializationType | Module.serializer.registerSerializationType}
 	 * as the deserializer for their type.

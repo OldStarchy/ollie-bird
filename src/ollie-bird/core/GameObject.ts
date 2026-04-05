@@ -116,7 +116,7 @@ export default class GameObject
 	/**
 	 * Represents the position~~, rotation and scale of this object~~.
 	 *
-	 * Rotation and scale are not yet implementd.
+	 * Rotation and scale are not yet implemented.
 	 *
 	 * Every GameObject has a Transform2d by default, and it cannot be removed.
 	 */
@@ -135,7 +135,7 @@ export default class GameObject
 	#change$ = new Subject<void>();
 
 	/**
-	 * Indicates a change to one of this objects inspecatble properties (name,
+	 * Indicates a change to one of this objects inspectable properties (name,
 	 * tags, layer). Used to trigger updates in the editor.
 	 *
 	 * This observable completes when this object is destroyed.

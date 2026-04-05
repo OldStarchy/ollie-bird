@@ -36,7 +36,7 @@ class Transform2d
 	 * The current position of the GameObject in world space.
 	 *
 	 * This property is readonly, but the x, y coordinates of the Vec2 can be
-	 * modified. Becareful about use of mutable vs immutable methods on Vec2.
+	 * modified. Be careful about use of mutable vs immutable methods on Vec2.
 	 *
 	 * @example the following will not work, because it returns a new Vec2
 	 * instance rather than modifying the one attached to this transform:
