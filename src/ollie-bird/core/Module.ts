@@ -1,3 +1,5 @@
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import type { GameCanvas } from './BaseGame';
 import type GameObject from './GameObject';
 import type IGame from './IGame';
 import type IModular from './IModular';
@@ -132,16 +134,54 @@ export default abstract class Module
 	 */
 	protected initialize(): void {}
 
+	/**
+	 * Called once per frame just before {@link update}.
+	 */
 	protected beforeUpdate(): void {}
+
+	/**
+	 * Called once per frame. Use {@link IGame.secondsPerFrame} to get the
+	 * target time since the last call to update (based on the accuracy of
+	 * setTimeout).
+	 */
 	protected update(): void {}
+
+	/**
+	 * Called once per frame just after {@link update}
+	 */
 	protected afterUpdate(): void {}
 
+	/**
+	 * Called once per frame per {@link GameCanvas} just before {@link render}.
+	 */
 	protected beforeRender(_context: CanvasRenderingContext2D): void {}
+	/**
+	 * Called once per frame per {@link GameCanvas}. Use the provided context to
+	 * render to the canvas.
+	 */
 	protected render(_context: CanvasRenderingContext2D): void {}
+	/**
+	 * Called once per frame per {@link GameCanvas} just after {@link render}.
+	 */
 	protected afterRender(_context: CanvasRenderingContext2D): void {}
 
+	/**
+	 * Called once per frame per {@link GameCanvas} just before {@link renderGizmos}.
+	 */
 	protected beforeRenderGizmos(_context: CanvasRenderingContext2D): void {}
+
+	/**
+	 * Called once per frame per {@link GameCanvas}. Use the provided context to
+	 * render gizmos (eg. collider shapes).
+	 *
+	 * This is called after {@link render} so it's a good place to render debug
+	 * visuals.
+	 */
 	protected renderGizmos(_context: CanvasRenderingContext2D): void {}
+
+	/**
+	 * Called once per frame per {@link GameCanvas} just after {@link renderGizmos}.
+	 */
 	protected afterRenderGizmos(_context: CanvasRenderingContext2D): void {}
 
 	/**

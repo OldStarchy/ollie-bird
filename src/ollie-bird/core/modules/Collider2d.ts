@@ -19,20 +19,62 @@ export const collider2dDtoSchema = z
 
 export type Collider2dDto = z.input<typeof collider2dDtoSchema>;
 
+/**
+ * Base class for attaching various 2D colliders to GameObjects.
+ *
+ * ## Note
+ *
+ * There are both "Collider Shapes" and "Collider Modules". Collider modules
+ * (ie. a subclass of `Collider2d`) attach to {@link GameObject}s and provide
+ * functionality for creating collider shapes based on the objects current
+ * location and transform.
+ *
+ * To find colliding objects, you can use the static {@link collidingWith}
+ * method with a collider shape.
+ */
 export default abstract class Collider2d
 	extends Module
 	implements Serializable
 {
+	// TODO: #81 add collision layer support
+
+	/**
+	 * Whether to render a gizmo for this collider.
+	 */
 	accessor renderWidget: boolean = false;
+
+	/**
+	 * The fill style for this colliders gizmo.
+	 */
 	accessor widgetFillStyle: string = 'rgba(0, 255, 0, 0.3)';
+	/**
+	 * The stroke style for this colliders gizmo.
+	 */
 	accessor widgetStrokeStyle: string = 'rgba(0, 255, 0, 1)';
+	/**
+	 * The line width for this colliders gizmo.
+	 */
 	accessor widgetLineWidth: number = 1;
+	/**
+	 * The line dash pattern for this colliders gizmo.
+	 */
 	accessor widgetLineDash: number[] = [];
 
+	/**
+	 * Create and returns a collider shape for for this module based on the
+	 * current state of the GameObject.
+	 */
 	abstract getCollider(): ColliderShape;
 
+	/**
+	 * Trace the path of this collider for gizmo rendering.
+	 */
 	abstract doGizmoPath(context: CanvasRenderingContext2D): void;
 
+	/**
+	 * Filters the given list of objects to only those that are colliding with
+	 * this collider.
+	 */
 	cast(objects: Array<GameObject>): Array<GameObject>;
 	cast(objects: IteratorObject<GameObject>): IteratorObject<GameObject>;
 	cast(
@@ -43,8 +85,13 @@ export default abstract class Collider2d
 		return objects.filter(Collider2d.collidingWith(collider));
 	}
 
+	/**
+	 * Gets the center of this collider in world space.
+	 */
 	abstract getWorldCenter(): Vec2Like;
 
+	// TODO: #77 this was a renderGizmos but currently its just render to avoid
+	// overlaying the intro cinematic.
 	protected override render(context: CanvasRenderingContext2D): void {
 		if (!this.renderWidget) {
 			return;
@@ -55,6 +102,16 @@ export default abstract class Collider2d
 		this.doRenderGizmos(context);
 	}
 
+	/**
+	 * Renders this collider shape. Depends on subclasses implementing
+	 * {@link doGizmoPath} to trace the path of the collider.
+	 *
+	 * The rendering is styled based on the `widget*` properties of this module.
+	 *
+	 * This is used for rendering collider gizmos when the {@link renderWidget}
+	 * property is enabled. You can also call this method directly to render the
+	 * collider shape in other contexts (eg. a debug overlay).
+	 */
 	public doRenderGizmos(context: CanvasRenderingContext2D): void {
 		using _ = contextCheckpoint(context);
 
@@ -73,21 +130,57 @@ export default abstract class Collider2d
 		}
 	}
 
+	/**
+	 * Returns a function that checks if a GameObject is colliding with the given collider.
+	 *
+	 * @example You can create a collider dynamically
+	 *
+	 * ```ts
+	 * const collider = new CircleCollider(...);
+	 *
+	 * const collidingObjects = this.game
+	 *   .getObjects(Collider2d.collidingWith(collider))
+	 *   .toArray();
+	 * ```
+	 *
+	 * @example Or use a collider provided by a Collider2d module
+	 * ```ts
+	 * declare const colliderModule: Collider2d;
+	 *
+	 * const collidingObjects = colliderModule
+	 *   .cast(this.game.getObjects())
+	 *   .toArray();
+	 * ```
+	 *
+	 * @example If there are multiple Collider2d modules, you can combine their
+	 * colliders for more complex shapes
+	 * ```ts
+	 * const collisionChecks = this.getModulesByType(Collider2d)
+	 *   .filter((m) => m.enabled)
+	 *   .map((c) => c.getCollider())
+	 *   .map(Collider2d.collidingWith)
+	 *   .toArray();
+	 *
+	 * const collidingObjects = this.game
+	 *   .getObjects(
+	 *     obj => collisionChecks.some((checkCollision) => checkCollision(obj))
+	 *   )
+	 *   .toArray();
+	 * ```
+	 * @param collider The collider to check against.
+	 * @returns A function that takes a GameObject and returns a boolean indicating collision.
+	 */
 	static collidingWith(
 		collider: ColliderShape,
 	): (obj: GameObject) => boolean {
 		return (obj: GameObject) => {
-			const colliderModule = obj
+			return obj
 				.getModulesByType(Collider2d)
-				.filter((m) => m.enabled);
-
-			for (const otherCollider of colliderModule) {
-				if (collider.checkCollision(otherCollider.getCollider())) {
-					return true;
-				}
-			}
-
-			return false;
+				.filter((m) => m.enabled)
+				.map((m) => m.getCollider())
+				.some((otherCollider) =>
+					collider.checkCollision(otherCollider),
+				);
 		};
 	}
 
