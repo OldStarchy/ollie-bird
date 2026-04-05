@@ -16,6 +16,9 @@ export type Size2dView = z.infer<typeof size2dSchema>;
 const size2dDtoSchema = z.tuple([z.number().min(0), z.number().min(0)]);
 type Size2dDto = z.input<typeof size2dDtoSchema>;
 
+/**
+ * A generic 2D size module for GameObjects with editor support.
+ */
 export default class Size2d
 	extends Module
 	implements ReactInterop<Size2dView>, Serializable

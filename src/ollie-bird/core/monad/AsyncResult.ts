@@ -3,6 +3,10 @@ import optionResultInteropMissing from './optionResultInteropMissing';
 import type { Result } from './Result';
 import { Err, Ok, UnknownError } from './Result';
 
+/**
+ * A subclass of Promise that wraps an {@link Result} value, allowing for
+ * convenient chaining of Result methods on asynchronous values.
+ */
 export class AsyncResult<T, E> implements PromiseLike<Result<T, E>> {
 	declare ok: <T>(this: AsyncResult<T, unknown>) => AsyncOption<T>;
 

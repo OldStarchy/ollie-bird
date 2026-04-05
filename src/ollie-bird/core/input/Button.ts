@@ -1,15 +1,42 @@
+/**
+ * A single button input.
+ */
 export abstract class Button {
+	/**
+	 * Is the button currently down now?
+	 */
 	abstract get isDown(): boolean;
+	/**
+	 * Was the button down in the previous frame?
+	 */
 	abstract get wasDown(): boolean;
 	abstract get name(): string;
 
+	/**
+	 * Was the button pressed since the last frame?
+	 */
 	get isPressed(): boolean {
 		return this.isDown && !this.wasDown;
 	}
+	/**
+	 * Was the button released since the last frame?
+	 */
 	get isReleased(): boolean {
 		return !this.isDown && this.wasDown;
 	}
 
+	/**
+	 * Merges this button with one or more other buttons, returning a new button
+	 * that is considered down if any of the merged buttons are down.
+	 *
+	 * This is useful for defining multiple inputs for the same action, eg.
+	 * "move left" could be triggered by either the "A" key or the "ArrowLeft"
+	 * key.
+	 *
+	 * Pressing multiple of these buttons at the same time will be handled as
+	 * a single button press spanning the duration of all the presses.
+	 * {@link isPressed} and {@link isReleased} will only be true once.
+	 */
 	merge(...others: Button[]): Button {
 		return new MergedButton([this, ...others]);
 	}

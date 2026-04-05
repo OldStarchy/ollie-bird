@@ -11,6 +11,7 @@ export interface Vec2Like {
 	x: number;
 	y: number;
 }
+
 export default class Vec2 implements Vec2Like, ReactInterop<Vec2Like> {
 	readonly #change = new Subject<void>();
 
@@ -62,20 +63,64 @@ export default class Vec2 implements Vec2Like, ReactInterop<Vec2Like> {
 		return new Vec2(1, 1);
 	}
 
+	static get right(): Vec2 {
+		return new Vec2(1, 0);
+	}
+
+	static get up(): Vec2 {
+		return new Vec2(0, -1);
+	}
+
+	static get left(): Vec2 {
+		return new Vec2(-1, 0);
+	}
+
+	static get down(): Vec2 {
+		return new Vec2(0, 1);
+	}
+
 	add(vec: Vec2Like): Vec2 {
 		return new Vec2(this.x + vec.x, this.y + vec.y);
+	}
+
+	iadd(vec: Vec2Like): this {
+		this.#x += vec.x;
+		this.#y += vec.y;
+		this.notify();
+		return this;
 	}
 
 	subtract(vec: Vec2Like): Vec2 {
 		return new Vec2(this.x - vec.x, this.y - vec.y);
 	}
 
+	isubtract(vec: Vec2Like): this {
+		this.#x -= vec.x;
+		this.#y -= vec.y;
+		this.notify();
+		return this;
+	}
+
 	scale(scalar: number): Vec2 {
 		return new Vec2(this.x * scalar, this.y * scalar);
 	}
 
+	iscale(scalar: number): this {
+		this.#x *= scalar;
+		this.#y *= scalar;
+		this.notify();
+		return this;
+	}
+
 	abs(): Vec2 {
 		return new Vec2(Math.abs(this.x), Math.abs(this.y));
+	}
+
+	iabs(): this {
+		this.#x = Math.abs(this.#x);
+		this.#y = Math.abs(this.#y);
+		this.notify();
+		return this;
 	}
 
 	hypot(): number {
@@ -90,7 +135,7 @@ export default class Vec2 implements Vec2Like, ReactInterop<Vec2Like> {
 		return new Vec2(this.x / length, this.y / length);
 	}
 
-	normalize(): Vec2 {
+	normalize(): this {
 		const length = this.hypot();
 		if (length === 0) {
 			return this;
@@ -101,16 +146,18 @@ export default class Vec2 implements Vec2Like, ReactInterop<Vec2Like> {
 		return this;
 	}
 
-	set(x: number, y: number): void {
+	set(x: number, y: number): this {
 		this.#x = x;
 		this.#y = y;
 		this.notify();
+		return this;
 	}
 
-	copy(vec: Vec2Like): void {
+	copy(vec: Vec2Like): this {
 		this.#x = vec.x;
 		this.#y = vec.y;
 		this.notify();
+		return this;
 	}
 
 	clone(): Vec2 {

@@ -4,7 +4,8 @@ import { NegativeHalfAxis } from './NegativeHalfAxis';
 import { PositiveHalfAxis } from './PositiveHalfAxis';
 
 /**
- * -1 to 1.
+ * Represents an input that can vary both "forward" and "backward", eg. a
+ * thumbstick. The range of values is -1 to 1.
  *
  * Deadzone is an area around 0 that gets treated as 0, to prevent drift from imperfect hardware.
  */

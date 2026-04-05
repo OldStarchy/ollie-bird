@@ -18,12 +18,44 @@ type Transform2dView = z.infer<typeof transform2dSchema>;
 export const transform2dDtoSchema = z.tuple([z.number(), z.number()]);
 type Transform2dDto = z.input<typeof transform2dDtoSchema>;
 
+/**
+ * Represents the location, rotation, and scale of a GameObject in the game
+ * world. Every GameObject has a Transform2d module, and it cannot be removed.
+ *
+ * ## Warn
+ * Currently, Transform2d only supports position. Rotation and scale are not yet
+ * implemented.
+ */
 class Transform2d
 	extends Module
 	implements ReactInterop<Transform2dView>, Serializable
 {
 	static readonly displayName = 'Transform2d';
 
+	/**
+	 * The current position of the GameObject in world space.
+	 *
+	 * This property is readonly, but the x, y coordinates of the Vec2 can be
+	 * modified. Be careful about use of mutable vs immutable methods on Vec2.
+	 *
+	 * @example the following will not work, because it returns a new Vec2
+	 * instance rather than modifying the one attached to this transform:
+	 *
+	 * ```ts
+	 * transform.position = transform.position.add(Vec2.right);
+	 * ```
+	 *
+	 * Instead, you should modify the x, y components directly or use the
+	 * mutable methods:
+	 *
+	 * ```ts
+	 * transform.position.x += 1;
+	 *
+	 * // or
+	 *
+	 * transform.position.iadd(Vec2.right);
+	 * ```
+	 */
 	readonly position: Vec2 = Vec2.zero;
 
 	[ReactInterop.get](): Transform2dView {
@@ -46,6 +78,12 @@ class Transform2d
 
 	readonly [ReactInterop.schema] = transform2dSchema;
 
+	/**
+	 * Pushes the transform's position to the canvas context and returns a
+	 * Disposable that will pop it back off when disposed. This is useful for
+	 * rendering objects in their correct world position without manually
+	 * applying the transform to every point.
+	 */
 	push(context: CanvasRenderingContext2D): Disposable {
 		const save = contextCheckpoint(context);
 		context.translate(...this.position.xy);
@@ -53,6 +91,9 @@ class Transform2d
 		return save;
 	}
 
+	/**
+	 * Transforms a point in local space to world space.
+	 */
 	transformPoint(point: Vec2Like): Vec2Like {
 		return {
 			x: point.x + this.position.x,
@@ -60,6 +101,11 @@ class Transform2d
 		};
 	}
 
+	/**
+	 * Transforms a rectangle in local space to world space. Note that this does
+	 * not currently support rotation or scale, so it just translates the x and
+	 * y coordinates.
+	 */
 	transformRect(rect: Rect2Like): Rect2Like {
 		return {
 			x: rect.x + this.position.x,

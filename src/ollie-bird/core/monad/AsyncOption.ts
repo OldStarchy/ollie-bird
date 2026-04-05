@@ -2,6 +2,10 @@ import type { AsyncResult } from './AsyncResult';
 import { None, Option, Some } from './Option';
 import optionResultInteropMissing from './optionResultInteropMissing';
 
+/**
+ * A subclass of Promise that wraps an {@link Option} value, allowing for
+ * convenient chaining of Option methods on asynchronous values.
+ */
 export class AsyncOption<T> implements PromiseLike<Option<T>> {
 	declare okOr: <T, E>(this: AsyncOption<T>, err: E) => AsyncResult<T, E>;
 

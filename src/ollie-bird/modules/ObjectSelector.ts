@@ -34,8 +34,10 @@ export default class ObjectSelector extends Module {
 		this.#selectedObject = value;
 
 		if (value) {
-			this.#soDisposable = value.destroy$.subscribe(() => {
-				this.selectedObject = null;
+			this.#soDisposable = value.change$.subscribe({
+				complete: () => {
+					this.selectedObject = null;
+				},
 			});
 		}
 		this.notify();

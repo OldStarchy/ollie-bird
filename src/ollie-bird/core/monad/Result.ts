@@ -17,6 +17,9 @@ export class UnknownError extends Error {
 
 export type IntoResultFn<In, Out, Err> = (value: In) => Result<Out, Err>;
 
+/**
+ * @see {@link https://doc.rust-lang.org/std/result/}
+ */
 export class Result<T, E> implements Iterable<T> {
 	declare ok: <T>(this: Result<T, unknown>) => Option<T>;
 
