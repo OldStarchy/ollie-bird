@@ -75,12 +75,13 @@ export default function Input(
 		wrapper.addEventListener(
 			'wheel',
 			(e) => {
-				if (document.activeElement === wrapper) e.stopPropagation();
+				if (wrapper.contains(document.activeElement))
+					e.stopPropagation();
 			},
 			{ signal: abort.signal, passive: false },
 		);
 		return () => abort.abort();
-	}, []);
+	}, [props.type]);
 
 	return (
 		<InputWrapper

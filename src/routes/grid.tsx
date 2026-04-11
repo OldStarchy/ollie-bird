@@ -1,4 +1,4 @@
-import { globalCss, styled } from '@stitches/react';
+import { styled } from '@stitches/react';
 import { createFileRoute } from '@tanstack/react-router';
 import React, { useId, useState } from 'react';
 import Button from '../components/Button';
@@ -81,32 +81,6 @@ const GridContainer = styled('div', {
 	},
 });
 
-const globalStyles = globalCss({
-	body: {
-		display: 'flex',
-		justifyContent: 'center',
-		padding: '20px',
-	},
-
-	'@media print': {
-		/* 1. Reset body and container for print */
-		body: {
-			background: 'none',
-			padding: '0',
-			margin: '0',
-			display: 'block',
-		},
-
-		[`#root > *:not(.${Pages.className})`]: {
-			display: 'none',
-		},
-		'@page': {
-			size: 'A4' /* Forces the printer to use A4 paper */,
-			margin: 0,
-		},
-	},
-});
-
 const NoPrint = styled('div', {
 	'@media print': {
 		display: 'none',
@@ -114,8 +88,6 @@ const NoPrint = styled('div', {
 });
 
 function GridPage() {
-	globalStyles();
-
 	const pageWidthMm = 210;
 	const pageHeightMm = 297;
 
@@ -130,11 +102,20 @@ function GridPage() {
 	const [drawDiagonals, setDrawDiagonals] = useState(false);
 	const [pageCount, setPageCount] = useState(1);
 
-	const printableWidthMm = pageWidthMm - 2 * pageMarginMm;
-	const printableHeightMm = pageHeightMm - 2 * pageMarginMm;
+	const safePageMarginMm = Number.isFinite(pageMarginMm)
+		? Math.max(0, pageMarginMm)
+		: 0;
+	const safeGridSize =
+		Number.isFinite(gridSize) && gridSize > 0 ? gridSize : 1;
 
-	const gridColumns = Math.floor(printableWidthMm / gridSize);
-	const gridRows = Math.floor(printableHeightMm / gridSize);
+	const printableWidthMm = Math.max(0, pageWidthMm - 2 * safePageMarginMm);
+	const printableHeightMm = Math.max(0, pageHeightMm - 2 * safePageMarginMm);
+
+	const gridColumns = Math.max(
+		0,
+		Math.floor(printableWidthMm / safeGridSize),
+	);
+	const gridRows = Math.max(0, Math.floor(printableHeightMm / safeGridSize));
 
 	return (
 		<div
@@ -145,10 +126,34 @@ function GridPage() {
 				gridTemplateColumns: '1fr auto',
 				gridTemplateRows: '1fr',
 			}}
+			className="print"
 		>
-			<Pages>
-				{Array.from({ length: pageCount }).map(() => (
-					<Page css={{ $$padding: `${pageMarginMm}mm` }}>
+			<style>
+				{`\
+body {
+	display: flex;
+	justify-content: center;
+	padding: 20px;
+}
+
+@media print {
+	body {
+		background: none;
+		padding: 0;
+		margin: 0;
+		display: block;
+	}
+
+	@page {
+		size: A4;
+		margin: 0;
+	}
+}
+`}
+			</style>
+			<Pages className="print">
+				{Array.from({ length: pageCount }).map((_, i) => (
+					<Page css={{ $$padding: `${pageMarginMm}mm` }} key={i}>
 						<GridContainer>
 							<svg
 								width={`${gridColumns * gridSize + lineThickness}mm`}
@@ -267,7 +272,7 @@ function GridPage() {
 							type="number"
 							value={lineThickness}
 							onChange={(e) =>
-								setLineThickness(parseFloat(e.target.value))
+								setLineThickness(e.target.valueAsNumber)
 							}
 							step="0.01"
 							min="0.01"
@@ -283,7 +288,7 @@ function GridPage() {
 							type="number"
 							value={gridSize}
 							onChange={(e) =>
-								setGridSize(parseFloat(e.target.value))
+								setGridSize(e.target.valueAsNumber)
 							}
 							step="1"
 							min="1"
@@ -293,7 +298,7 @@ function GridPage() {
 							type="number"
 							value={pageMarginMm}
 							onChange={(e) =>
-								setPageMarginMm(parseFloat(e.target.value))
+								setPageMarginMm(e.target.valueAsNumber)
 							}
 							step="1"
 							min="0"
@@ -303,7 +308,7 @@ function GridPage() {
 							type="number"
 							value={pageCount}
 							onChange={(e) =>
-								setPageCount(parseInt(e.target.value, 10))
+								setPageCount(e.target.valueAsNumber)
 							}
 							step="1"
 							min="1"
@@ -319,7 +324,7 @@ function GridPage() {
 							type="number"
 							value={circleSize}
 							onChange={(e) =>
-								setCircleSize(parseFloat(e.target.value))
+								setCircleSize(e.target.valueAsNumber)
 							}
 							step="5"
 							min="0"
