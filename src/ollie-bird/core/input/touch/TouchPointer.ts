@@ -12,6 +12,8 @@ export class TouchPointer implements Pointer {
 	#isActive: boolean = false;
 	#wasActive: boolean = false;
 
+	readonly name = 'touch';
+
 	get x(): number {
 		return this.#x;
 	}

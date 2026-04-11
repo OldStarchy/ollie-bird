@@ -3,7 +3,7 @@ import type { VirtualButton } from '../ollie-bird/core/input/VirtualButton';
 interface OnScreenButtonProps {
 	/** The VirtualButton to drive with this UI control. */
 	button: VirtualButton;
-	children: React.ReactNode;
+	children?: React.ReactNode;
 	style?: React.CSSProperties;
 	className?: string;
 }
@@ -37,13 +37,13 @@ export function OnScreenButton({
 				...style,
 			}}
 			onPointerDown={(e) => {
+				e.preventDefault();
 				e.currentTarget.setPointerCapture(e.pointerId);
 				button.press();
 			}}
 			onPointerUp={() => button.release()}
 			onPointerCancel={() => button.release()}
-		>
-			{children}
-		</button>
+			children={children}
+		/>
 	);
 }

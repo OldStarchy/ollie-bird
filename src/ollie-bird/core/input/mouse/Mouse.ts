@@ -42,6 +42,8 @@ export default class Mouse implements Pointer, Disposable {
 	#previousX: number = 0;
 	#previousY: number = 0;
 
+	readonly name = 'mouse';
+
 	get x(): number {
 		return this.#x;
 	}

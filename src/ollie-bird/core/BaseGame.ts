@@ -9,7 +9,7 @@ import seconds from '../../unit/time/seconds';
 import { CELL_SIZE } from '../const';
 import GameObject, { type GameObjectDto } from './GameObject';
 import type IGame from './IGame';
-import Input from './input/Input';
+import InputManager from './input/InputManager';
 import Rect2 from './math/Rect2';
 import { round } from './math/round';
 import type { Vec2Like } from './math/Vec2';
@@ -83,7 +83,7 @@ class BaseGame implements IGame, ReactInterop<BaseGameSettings> {
 	/**
 	 * Access to the various input methods for the game, such as keyboard, mouse, and gamepad.
 	 */
-	readonly input = new Input();
+	readonly input = new InputManager();
 
 	constructor() {
 		this.#abortController.signal.addEventListener('abort', () => {

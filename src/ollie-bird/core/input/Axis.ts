@@ -1,5 +1,6 @@
 import type { Button } from './Button';
 import { HalfAxis } from './HalfAxis';
+import type Input from './Input';
 import { NegativeHalfAxis } from './NegativeHalfAxis';
 import { PositiveHalfAxis } from './PositiveHalfAxis';
 
@@ -9,7 +10,7 @@ import { PositiveHalfAxis } from './PositiveHalfAxis';
  *
  * Deadzone is an area around 0 that gets treated as 0, to prevent drift from imperfect hardware.
  */
-export abstract class Axis {
+export abstract class Axis implements Input {
 	abstract get valueRaw(): number;
 	abstract get previousValueRaw(): number;
 	abstract get name(): string;

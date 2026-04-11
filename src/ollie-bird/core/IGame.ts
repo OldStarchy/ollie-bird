@@ -1,7 +1,7 @@
 import type { EventMap } from './EventMap';
 import type GameObject from './GameObject';
 import type { GameObjectDto } from './GameObject';
-import type Input from './input/Input';
+import type InputManager from './input/InputManager';
 import type Module from './Module';
 
 declare global {
@@ -11,7 +11,7 @@ declare global {
 export type GameEvent = EventMap<GameEventMap>;
 
 export default interface IGame {
-	readonly input: Input;
+	readonly input: InputManager;
 	readonly physics: {
 		gravity: number;
 	};

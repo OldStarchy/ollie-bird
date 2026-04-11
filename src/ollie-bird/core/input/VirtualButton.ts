@@ -18,11 +18,13 @@ export class VirtualButton extends Button {
 
 	/** Mark the button as held down. */
 	press(): void {
+		console.log(`VirtualButton "${this.name}" pressed`);
 		this.#isDown = true;
 	}
 
 	/** Mark the button as released. */
 	release(): void {
+		console.log(`VirtualButton "${this.name}" released`);
 		this.#isDown = false;
 	}
 
