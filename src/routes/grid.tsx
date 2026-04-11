@@ -123,7 +123,7 @@ function GridPage() {
 
 	const [lineThickness, setLineThickness] = useState(0.1);
 	const [lineColor, setLineColor] = useState('#eee');
-	const [gridSize, setGridSize] = useState(20);
+	const [gridSize, setGridSize] = useState(35);
 
 	const [drawCircles, setDrawCircles] = useState(true);
 	const [circleSize, setCircleSize] = useState(100); // Percentage of cell size
