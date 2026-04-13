@@ -31,3 +31,10 @@ a:hover {
 ::placeholder {
 	opacity: 0.6;
 }
+
+@media print {
+	@page {
+		size: A4;
+		margin: 0;
+	}
+}

@@ -3,6 +3,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import React, { useId, useState } from 'react';
 import Button from '../components/Button';
 import Input from '../components/Input';
+import { NoPrint } from '../components/util/NoPrint';
 
 export const Route = createFileRoute('/grid')({
 	component: GridPage,
@@ -48,14 +49,13 @@ const Page = styled('div', {
 		margin: 0,
 		padding: '$$padding',
 		width: '100%' /* Let the @page rule handle dimensions */,
-		minHeight: '100vh',
 		display: 'flex',
 		flexDirection: 'column',
 		justifyContent: 'center',
 		breakAfter: 'page',
 		zoom: 1,
 		'&:last-child': {
-			breakAfter: 'auto' /* Avoids an extra blank page at the end */,
+			breakAfter: 'avoid' /* Avoids an extra blank page at the end */,
 		},
 	},
 });
@@ -81,12 +81,20 @@ const GridContainer = styled('div', {
 	},
 });
 
-const NoPrint = styled('div', {
+const PageRoot = styled('div', {
+	justifyContent: 'center',
+	margin: '20px',
+	display: 'grid',
+	width: '100vw',
+	height: '100vh',
+	gridTemplateColumns: '1fr auto',
+	gridTemplateRows: '1fr',
+
 	'@media print': {
-		display: 'none',
+		padding: 0,
+		margin: 0,
 	},
 });
-
 function GridPage() {
 	const pageWidthMm = 210;
 	const pageHeightMm = 297;
@@ -118,40 +126,8 @@ function GridPage() {
 	const gridRows = Math.max(0, Math.floor(printableHeightMm / safeGridSize));
 
 	return (
-		<div
-			style={{
-				display: 'grid',
-				width: '100vw',
-				height: '100vh',
-				gridTemplateColumns: '1fr auto',
-				gridTemplateRows: '1fr',
-			}}
-			className="print"
-		>
-			<style>
-				{`\
-body {
-	display: flex;
-	justify-content: center;
-	padding: 20px;
-}
-
-@media print {
-	body {
-		background: none;
-		padding: 0;
-		margin: 0;
-		display: block;
-	}
-
-	@page {
-		size: A4;
-		margin: 0;
-	}
-}
-`}
-			</style>
-			<Pages className="print">
+		<PageRoot>
+			<Pages>
 				{Array.from({ length: pageCount }).map((_, i) => (
 					<Page css={{ $$padding: `${pageMarginMm}mm` }} key={i}>
 						<GridContainer>
@@ -214,11 +190,11 @@ body {
 										.flat()}
 								{/* Diagonals */}
 								{drawDiagonals &&
-									Array.from({ length: gridRows })
-										.map((_, row) =>
+									Array.from({ length: gridRows }).flatMap(
+										(_, row) =>
 											Array.from({
 												length: gridColumns,
-											}).map((_, col) => [
+											}).flatMap((_, col) => [
 												<line
 													key={`diag1-${row}-${col}`}
 													x1={col * gridSize}
@@ -238,9 +214,7 @@ body {
 													strokeWidth={lineThickness}
 												/>,
 											]),
-										)
-										.flat()
-										.flat()}
+									)}
 							</svg>
 						</GridContainer>
 					</Page>
@@ -338,9 +312,9 @@ body {
 						/>
 					</div>
 					<Button onClick={() => window.print()}>Print</Button>
-				</div>{' '}
+				</div>
 			</NoPrint>
-		</div>
+		</PageRoot>
 	);
 }
 

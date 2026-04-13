@@ -1,12 +1,16 @@
 import { createRootRoute, Outlet } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
+import { NoPrint } from '../components/util/NoPrint';
 
 function Page() {
 	return (
 		<>
 			<Outlet />
+
 			{import.meta.env.DEV ? (
-				<TanStackRouterDevtools position="bottom-right" />
+				<NoPrint>
+					<TanStackRouterDevtools position="bottom-right" />
+				</NoPrint>
 			) : null}
 		</>
 	);
