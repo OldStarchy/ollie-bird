@@ -9,7 +9,7 @@ import seconds from '../../unit/time/seconds';
 import { CELL_SIZE } from '../const';
 import GameObject, { type GameObjectDto } from './GameObject';
 import type IGame from './IGame';
-import Input from './input/Input';
+import InputManager from './input/InputManager';
 import Rect2 from './math/Rect2';
 import { round } from './math/round';
 import type { Vec2Like } from './math/Vec2';
@@ -83,7 +83,7 @@ class BaseGame implements IGame, ReactInterop<BaseGameSettings> {
 	/**
 	 * Access to the various input methods for the game, such as keyboard, mouse, and gamepad.
 	 */
-	readonly input = new Input();
+	readonly input = new InputManager();
 
 	constructor() {
 		this.#abortController.signal.addEventListener('abort', () => {
@@ -532,6 +532,7 @@ export class GameCanvas implements Disposable {
 
 		ds.use(game.input.keyboard.attachTo(canvas));
 		ds.use(game.input.mouse.attachTo(canvas, this.projectMouseCoordinates));
+		ds.use(game.input.touch.attachTo(canvas, this.projectTouchCoordinates));
 
 		this.disposableStack = ds.move();
 	}
@@ -553,15 +554,25 @@ export class GameCanvas implements Disposable {
 	 * space to world space.
 	 */
 	lastTransform = new DOMMatrix();
-	private projectMouseCoordinates = (e: MouseEvent): Vec2Like => {
+
+	private projectClientCoordinates = (
+		clientX: number,
+		clientY: number,
+	): Vec2Like => {
 		const rect = this.canvas.getBoundingClientRect();
-		const x = e.clientX - rect.left;
-		const y = e.clientY - rect.top;
+		const x = clientX - rect.left;
+		const y = clientY - rect.top;
 
 		const inverted = this.lastTransform.inverse();
-		const transformedPoint = inverted.transformPoint(new DOMPoint(x, y));
+		return inverted.transformPoint(new DOMPoint(x, y));
+	};
 
-		return transformedPoint;
+	private projectMouseCoordinates = (e: MouseEvent): Vec2Like => {
+		return this.projectClientCoordinates(e.clientX, e.clientY);
+	};
+
+	private projectTouchCoordinates = (touch: globalThis.Touch): Vec2Like => {
+		return this.projectClientCoordinates(touch.clientX, touch.clientY);
 	};
 
 	/**

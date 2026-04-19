@@ -1,7 +1,11 @@
+import type Input from './Input';
+
 /**
  * A single button input.
  */
-export abstract class Button {
+export abstract class Button implements Input {
+	abstract get name(): string;
+
 	/**
 	 * Is the button currently down now?
 	 */
@@ -10,7 +14,6 @@ export abstract class Button {
 	 * Was the button down in the previous frame?
 	 */
 	abstract get wasDown(): boolean;
-	abstract get name(): string;
 
 	/**
 	 * Was the button pressed since the last frame?
@@ -55,8 +58,8 @@ export class MergedButton extends Button {
 		);
 	}
 
-	override merge(other: Button): Button {
-		return new MergedButton([...this.buttons, other]);
+	override merge(...others: Button[]): Button {
+		return new MergedButton([...this.buttons, ...others]);
 	}
 
 	get isDown(): boolean {

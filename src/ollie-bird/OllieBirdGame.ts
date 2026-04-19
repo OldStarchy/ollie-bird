@@ -16,7 +16,24 @@ class OllieBirdGame extends BaseGame {
 	constructor() {
 		super();
 
-		let reset = this.input.keyboard.getButton('KeyR');
+		const vLeft = this.input.defineButton(
+			'virtual.left',
+			this.input.createVirtualButton('left'),
+		);
+		const vRight = this.input.defineButton(
+			'virtual.right',
+			this.input.createVirtualButton('right'),
+		);
+		const vUp = this.input.defineButton(
+			'virtual.up',
+			this.input.createVirtualButton('up'),
+		);
+		const vReset = this.input.defineButton(
+			'virtual.reset',
+			this.input.createVirtualButton('reset'),
+		);
+
+		let reset = this.input.keyboard.getButton('KeyR').merge(vReset);
 
 		{
 			const birdControls = BirdControls.fromGamepad(
@@ -29,9 +46,9 @@ class OllieBirdGame extends BaseGame {
 			const keyRight = this.input.keyboard.getButton('ArrowRight');
 			const keyUp = this.input.keyboard.getButton('ArrowUp');
 
-			birdControls.Flap = birdControls.Flap.merge(keyUp);
-			birdControls.Left = birdControls.Left.merge(keyLeft);
-			birdControls.Right = birdControls.Right.merge(keyRight);
+			birdControls.Flap = birdControls.Flap.merge(keyUp, vUp);
+			birdControls.Left = birdControls.Left.merge(keyLeft, vLeft);
+			birdControls.Right = birdControls.Right.merge(keyRight, vRight);
 
 			this.input.defineSchema<BirdControls>('Player 1', birdControls);
 		}
