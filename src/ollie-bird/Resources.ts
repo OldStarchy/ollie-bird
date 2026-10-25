@@ -11,6 +11,8 @@ import bird_r3 from '../assets/bird_r3.png';
 import bird_r4 from '../assets/bird_r4.png';
 import bird_r5 from '../assets/bird_r5.png';
 import sheet1Url from '../assets/sheet1.png';
+import spider1 from '../assets/spider-1.png';
+import spider2 from '../assets/spider-2.png';
 
 import Sprite from './core/Sprite';
 
@@ -104,6 +106,10 @@ export default class Resources {
 		const walkerSet = [new Sprite(baddie1), new Sprite(baddie2)] as const;
 		this.instance.sprite.register('walker', walkerSet[0]);
 		this.instance.spriteSet.register('walker', walkerSet);
+
+		const spiderSet = [new Sprite(spider1), new Sprite(spider2)] as const;
+		this.instance.sprite.register('spider', spiderSet[0]);
+		this.instance.spriteSet.register('spider', spiderSet);
 
 		const birdF1 = new Sprite(bird_f1);
 		this.instance.sprite.register('bird-icon', birdF1);

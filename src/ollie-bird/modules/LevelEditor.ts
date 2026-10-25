@@ -3,6 +3,7 @@ import GameObject from '../core/GameObject';
 import Module from '../core/Module';
 import CreateBombTool from './editor-tools/CreateBombTool';
 import CreateCheckpointTool from './editor-tools/CreateCheckpointTool';
+import CreateSpiderSpawnerTool from './editor-tools/CreateSpiderSpawnerTool';
 import CreateWalkerSpawnerTool from './editor-tools/CreateWalkerSpawnerTool';
 import CreateWallTool from './editor-tools/CreateWallTool';
 import DeleteThingsTool from './editor-tools/DeleteThingsTool';
@@ -17,6 +18,7 @@ enum EditorMode {
 	CreateBomb,
 	AddCheckpoint,
 	AddBaddie,
+	AddSpider,
 	DeleteThings,
 	LAST = DeleteThings,
 }
@@ -29,6 +31,7 @@ const editorModeLabels = {
 	[EditorMode.AddCheckpoint]: 'Add Checkpoint',
 	[EditorMode.SetGoal]: 'Set Goal',
 	[EditorMode.AddBaddie]: 'Add Baddie',
+	[EditorMode.AddSpider]: 'Add Spider',
 } as const;
 
 export default class LevelEditor extends Module {
@@ -52,6 +55,7 @@ export default class LevelEditor extends Module {
 	private createCheckpointTool: CreateCheckpointTool;
 	private setGoalTool: SetGoalTool;
 	private createWalkerSpawnerTool: CreateWalkerSpawnerTool;
+	private createSpiderSpawnerTool: CreateSpiderSpawnerTool;
 
 	#changeToolKey = this.game.input.keyboard.getButton('Tab');
 
@@ -70,6 +74,9 @@ export default class LevelEditor extends Module {
 		this.createWalkerSpawnerTool = this.addTransientModule(
 			CreateWalkerSpawnerTool,
 		);
+		this.createSpiderSpawnerTool = this.addTransientModule(
+			CreateSpiderSpawnerTool,
+		);
 
 		this.updateActiveTool();
 	}
@@ -84,6 +91,8 @@ export default class LevelEditor extends Module {
 		this.deleteThingsTool.active = this.#mode === EditorMode.DeleteThings;
 		this.createWalkerSpawnerTool.active =
 			this.#mode === EditorMode.AddBaddie;
+		this.createSpiderSpawnerTool.active =
+			this.#mode === EditorMode.AddSpider;
 	}
 
 	override update(): void {
