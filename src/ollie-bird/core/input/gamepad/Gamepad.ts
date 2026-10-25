@@ -102,12 +102,42 @@ export default class Gamepad {
 		return new GamepadButtonAxis(this, gamepadIndex, buttonIndex);
 	}
 
+	/**
+	 * Maps each gamepad slot (as used by {@link getButton} etc.) to the index
+	 * of the browser gamepad assigned to it.
+	 *
+	 * The browser's gamepad indices aren't guaranteed to start at 0 or be
+	 * contiguous (eg. on macOS a controller can show up at index 1 with
+	 * nothing at index 0), so slots are assigned to gamepads in the order
+	 * they connect instead.
+	 */
+	#slots: (number | null)[] = [null, null, null, null];
+
 	step() {
+		const gamepads = navigator.getGamepads();
+
+		this.#slots = this.#slots.map((index) =>
+			index !== null && gamepads[index]?.connected ? index : null,
+		);
+
+		for (const gamepad of gamepads) {
+			if (!gamepad?.connected || this.#slots.includes(gamepad.index)) {
+				continue;
+			}
+
+			const freeSlot = this.#slots.indexOf(null);
+			if (freeSlot === -1) break;
+
+			this.#slots[freeSlot] = gamepad.index;
+		}
+
 		this.previousState = this.currentState;
-		this.currentState = navigator.getGamepads();
+		this.currentState = this.#slots.map((index) =>
+			index === null ? null : (gamepads[index] ?? null),
+		);
 	}
 
 	getVibrationActuator(gamepadIndex: GamepadCode) {
-		return new VibrationActuator(gamepadIndex);
+		return new VibrationActuator(this, gamepadIndex);
 	}
 }
